@@ -7,11 +7,22 @@ const { comparePassword } = require('../../utils/bcryptHelper');
 module.exports.login = async (req, res) => {
     try {
         const user = await Users.findOne({
-            email: req.body.email
+            email: req.body.email,
         })
         if (!user) {
             return res.status(401).json({
                 message: "Email Not Correct"
+            })
+        }
+        if (user.status === "inactive" && user.role === 0) {
+            return res.json({
+                code: 401,
+                message: "Account Not Active Please Verify"
+            })
+        }
+        if (user.status === "inactive") {
+            return res.json({
+                message: "Account Not Active"
             })
         }
         const checkPass = await comparePassword(req.body.password, user.password);

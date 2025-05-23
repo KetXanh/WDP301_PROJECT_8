@@ -2,8 +2,11 @@ const Otp = require('../../models/otp');
 const Users = require('../../models/user');
 const { hashPassword } = require('../../utils/bcryptHelper');
 const generalOtp = require('../../utils/generateOtp')
+const sendEmail = require('../../utils/sendEmail')
+
 module.exports.register = async (req, res) => {
     try {
+        const { email, username } = req.body;
         req.body.password = await hashPassword(req.body.password);
         const emailExit = await Users.findOne({
             $or: [{ email }, { username }]
@@ -150,6 +153,7 @@ module.exports.resendOtp = async (req, res) => {
         const objVrtify = {
             email: email,
             otp: otp,
+            purpose: "verify-email",
             "expireAt": Date.now()
         }
         const vertifyEmail = new Otp(objVrtify);
@@ -370,14 +374,14 @@ module.exports.otp = async (req, res) => {
 
 module.exports.reset = async (req, res) => {
     try {
-        const token = req.user.token;
-        const newPassword = hashPassword(req.body.password);
-        if (!token) {
+        const email = req.user.email;
+        const newPassword = await hashPassword(req.body.password);
+        if (!email) {
             return res.status(401).json({
                 message: "User Not Found"
             })
         }
-        await Users.updateOne({ token: token }, { password: newPassword })
+        await Users.updateOne({ email: email }, { password: newPassword })
         res.status(200).json({
             message: "Reset Password Successfully"
         })
