@@ -389,3 +389,45 @@ module.exports.reset = async (req, res) => {
         res.status(500).json({ message: "Server Error", error: error.message });
     }
 }
+
+module.exports.getProfile = async (req, res) => {
+    try {
+        const email = req.user.email;
+        const user = await Users.findOne({
+            email: email,
+            status: "active"
+        }).select("username email address")
+        if (!user) {
+            return res.status(401).json({
+                message: "User not found"
+            })
+        }
+        res.status(200).json({
+            message: "Get Profile Successfully",
+            user
+        })
+    } catch (error) {
+        res.status(500).json({ message: "Server Error", error: error.message });
+    }
+}
+
+module.exports.updateProfile = async (req, res) => {
+    try {
+        const email = req.user.email;
+        const user = await Users.findOne({
+            email: req.body.email,
+            status: 'active'
+        })
+        if (user) {
+            return res.status(401).json({
+                message: "Email is exits"
+            })
+        }
+        await Users.findOneAndUpdate({ email: email }, req.body);
+        res.status(200).json({
+            message: "Update profile successfully",
+        })
+    } catch (error) {
+        res.status(500).json({ message: "Server Error", error: error.message });
+    }
+}
