@@ -13,7 +13,7 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-router(app);
+// router(app);
 const PORT = process.env.PORT || 9999;
 app.listen(PORT, () => {
     connectDb();
