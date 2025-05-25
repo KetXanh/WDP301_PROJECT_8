@@ -5,28 +5,26 @@ import { MdSpaceDashboard } from "react-icons/md";
 const Header = ({ darkMode, toggleDarkMode, toggleSidebar }) => {
   return (
     <nav
-      className="fixed top-0 z-50 w-full bg-white border-b border-gray-200 dark:bg-gray-800 
+      className="fixed top-0 left-0 z-50 w-full bg-white border-b border-gray-200 dark:bg-gray-800 
         dark:border-gray-700 "
     >
-      <div className="px-3 py-3 lg:px-5 lg:pl-3">
-        <div className="flex items-center justify-center">
+      <div className="px-3 py-3 lg:px-5">
+        <div className="flex items-center justify-between">
           <div className="flex items-center justify-start rtl:justify-end">
             <button
-              className="inline-flex items-center p-2 text-sm text-gray-500
-            rounded-lg sm:hidden hover:bg_gray-100 focus:ring-gray200 dark:text-gray-400
-            dark:hover:bg-gray-700
-            dark:focus:ring-gray-600"
-            onClick={toggleSidebar}
+              onClick={toggleSidebar}
+              className="text-gray-800 dark:text-white text-2xl hover:text-blue-500 dark:hover:text-blue-300"
             >
-              <HiOutlineMenuAlt2 className="text-2xl"></HiOutlineMenuAlt2>
+              <HiOutlineMenuAlt2 />
             </button>
+
             <a href="#" className="flex ms-2 md:me-24">
               <MdSpaceDashboard className="h-8 me-3 text-xl text-violet-500"></MdSpaceDashboard>
               <span
                 className="self-center text-xl font-semibold sm:text-2xl whitespace-nowrap
               dark:text-white"
               >
-                DaxBod
+                NutiGo
               </span>
             </a>
           </div>

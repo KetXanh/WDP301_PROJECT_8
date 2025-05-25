@@ -6,24 +6,23 @@ import Header from "./components/admin/Header";
 function App() {
   const [darkMode, setDarkMode] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
-  };
-  const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
-  };
+
+  const toggleDarkMode = () => setDarkMode(!darkMode);
+  const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
+
   return (
-    <>
-      <div className={darkMode ? "dark" : ""}>
+    <div className={darkMode ? "dark" : ""}>
+      
         <Header
           toggleDarkMode={toggleDarkMode}
           darkMode={darkMode}
           toggleSidebar={toggleSidebar}
         />
-        <Sidebar isSidebarOpen={isSidebarOpen}></Sidebar>
-      </div>
-    </>
+        <Sidebar isSidebarOpen={isSidebarOpen} />
+
+    </div>
   );
 }
+
 
 export default App;

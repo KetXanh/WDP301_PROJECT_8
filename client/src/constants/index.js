@@ -17,9 +17,10 @@ import {
   FaListAlt,
   FaMoon,
   FaSun,
+  FaCartPlus,
 } from "react-icons/fa";
 import { HiOutlineMenuAlt2 } from "react-icons/hi";
-import { MdSpaceDashboard } from "react-icons/md";
+import { MdOutlineCategory, MdSpaceDashboard } from "react-icons/md";
 
 import user01 from "../assets/user01.png";
 import user02 from "../assets/user02.png";
@@ -33,8 +34,8 @@ export const links = [
   },
   {
     href: "#",
-    icon: FaCalendarAlt,
-    text: "Kanban",
+    icon: MdOutlineCategory,
+    text: "Categories",
     badge: {
       text: "Pro",
       color: "bg-gray-100 text-gray-800",
@@ -43,8 +44,8 @@ export const links = [
   },
   {
     href: "#",
-    icon: FaFacebookMessenger,
-    text: "Inbox",
+    icon: FaCartPlus,
+    text: "Order",
     badge: {
       text: "4",
       color: "bg-blue-100 text-blue-800",
