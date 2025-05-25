@@ -396,7 +396,7 @@ module.exports.getProfile = async (req, res) => {
         const user = await Users.findOne({
             email: email,
             status: "active"
-        }).select("username email address")
+        }).select("username email address avatar")
         if (!user) {
             return res.status(401).json({
                 message: "User not found"
@@ -413,20 +413,63 @@ module.exports.getProfile = async (req, res) => {
 
 module.exports.updateProfile = async (req, res) => {
     try {
-        const email = req.user.email;
-        const user = await Users.findOne({
-            email: req.body.email,
-            status: 'active'
-        })
-        if (user) {
-            return res.status(401).json({
-                message: "Email is exits"
-            })
+        const currentEmail = req.user.email;
+
+        const currentUser = await Users.findOne({ email: currentEmail });
+        if (!currentUser) {
+            return res.status(404).json({ message: "User not found or inactive" });
         }
-        await Users.findOneAndUpdate({ email: email }, req.body);
+
+        if (req.body.email && req.body.email !== currentUser.email) {
+            const emailExists = await Users.findOne({
+                email: req.body.email,
+                status: "active",
+                _id: { $ne: currentUser._id }
+            });
+            if (emailExists) {
+                return res.status(401).json({ message: "Email already exists" });
+            }
+        }
+
+        if (req.body.username && req.body.username !== currentUser.username) {
+            const usernameExists = await Users.findOne({
+                username: req.body.username,
+                status: "active",
+                _id: { $ne: currentUser._id }
+            });
+            if (usernameExists) {
+                return res.status(401).json({ message: "Username already exists" });
+            }
+        }
+
+        const updateData = {
+            username: req.body.username || currentUser.username,
+            email: req.body.email || currentUser.email,
+            address: req.body.address || currentUser.address,
+            avatar: currentUser.avatar
+        };
+
+        const avatarFile = req.files?.avatar?.[0];
+        if (avatarFile) {
+            if (currentUser.avatar?.public_id) {
+                await cloudinary.uploader.destroy(currentUser.avatar.public_id);
+            }
+
+            updateData.avatar = {
+                url: avatarFile.path,
+                public_id: avatarFile.filename
+            };
+        }
+        const updatedUser = await Users.findOneAndUpdate(
+            { email: currentEmail },
+            updateData,
+            { new: true }
+        );
+
         res.status(200).json({
             message: "Update profile successfully",
-        })
+            user: updatedUser
+        });
     } catch (error) {
         res.status(500).json({ message: "Server Error", error: error.message });
     }
