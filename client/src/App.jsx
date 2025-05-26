@@ -1,8 +1,16 @@
 import { useState } from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import "./App.css";
 
 import Sidebar from "./components/admin/Sidebar";
 import Header from "./components/admin/Header";
+import Product from "./pages/admin/Product";
+import Order from "./pages/admin/Order";
+import User from "./pages/admin/User";
+import Category from "./pages/admin/Category";
+
+
+
 function App() {
   const [darkMode, setDarkMode] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -12,17 +20,29 @@ function App() {
 
   return (
     <div className={darkMode ? "dark" : ""}>
-      
+      <Router>
         <Header
           toggleDarkMode={toggleDarkMode}
           darkMode={darkMode}
           toggleSidebar={toggleSidebar}
         />
-        <Sidebar isSidebarOpen={isSidebarOpen} />
+        <div className="flex">
+          <Sidebar isSidebarOpen={isSidebarOpen} />
 
+          <main className="flex-1 p-4 pt-20">
+            <Routes>
+              <Route path="/product" element={<Product />} />
+              <Route path="/order" element={<Order />} />
+              <Route path="/user" element={<User />} />
+              <Route path="/category" element={<Category/>} />
+              {/* <Route path="/sign-in" element={<SignIn />} />
+              <Route path="/sign-up" element={<SignUp />} /> */}
+            </Routes>
+          </main>
+        </div>
+      </Router>
     </div>
   );
 }
-
 
 export default App;

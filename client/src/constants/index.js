@@ -28,12 +28,12 @@ import user03 from "../assets/user03.png";
 
 export const links = [
   {
-    href: "#",
+    href: "/",
     icon: FaChartBar,
     text: "Dashboard",
   },
   {
-    href: "#",
+    href: "/category",
     icon: MdOutlineCategory,
     text: "Categories",
     badge: {
@@ -43,7 +43,7 @@ export const links = [
     },
   },
   {
-    href: "#",
+    href: "/order",
     icon: FaCartPlus,
     text: "Order",
     badge: {
@@ -53,22 +53,22 @@ export const links = [
     },
   },
   {
-    href: "#",
+    href: "/user",
     icon: FaUsersCog,
     text: "Users",
   },
   {
-    href: "#",
+    href: "/product",
     icon: FaListAlt,
     text: "Products",
   },
   {
-    href: "#",
+    href: "/sign-in",
     icon: IoIosLogIn,
     text: "Sign In",
   },
   {
-    href: "#",
+    href: "/sign-up",
     icon: IoIosLogOut,
     text: "Sign Up",
   },
