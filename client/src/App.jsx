@@ -8,6 +8,7 @@ import Product from "./pages/admin/Product";
 import Order from "./pages/admin/Order";
 import User from "./pages/admin/User";
 import Category from "./pages/admin/Category";
+import Dashboard from "./pages/admin/DashBoard";
 
 
 
@@ -29,12 +30,17 @@ function App() {
         <div className="flex">
           <Sidebar isSidebarOpen={isSidebarOpen} />
 
-          <main className="flex-1 p-4 pt-20">
+          <main
+            className={`flex-1 p-4 pt-20 transition-all duration-300 ${
+              isSidebarOpen ? "md:ml-40" : "md:ml-0"
+            }`}
+          >
             <Routes>
+              <Route path="/" element={<Dashboard />} />
               <Route path="/product" element={<Product />} />
               <Route path="/order" element={<Order />} />
               <Route path="/user" element={<User />} />
-              <Route path="/category" element={<Category/>} />
+              <Route path="/category" element={<Category />} />
               {/* <Route path="/sign-in" element={<SignIn />} />
               <Route path="/sign-up" element={<SignUp />} /> */}
             </Routes>

@@ -36,21 +36,21 @@ export const links = [
     href: "/category",
     icon: MdOutlineCategory,
     text: "Categories",
-    badge: {
-      text: "Pro",
-      color: "bg-gray-100 text-gray-800",
-      darkColor: "dark:bg-gray-700 dark:text-gray-300",
-    },
+    // badge: {
+    //   text: "Pro",
+    //   color: "bg-gray-100 text-gray-800",
+    //   darkColor: "dark:bg-gray-700 dark:text-gray-300",
+    // },
   },
   {
     href: "/order",
     icon: FaCartPlus,
     text: "Order",
-    badge: {
-      text: "4",
-      color: "bg-blue-100 text-blue-800",
-      darkColor: "dark:bg-blue-900 dark:text-blue-300",
-    },
+    // badge: {
+    //   text: "4",
+    //   color: "bg-blue-100 text-blue-800",
+    //   darkColor: "dark:bg-blue-900 dark:text-blue-300",
+    // },
   },
   {
     href: "/user",
