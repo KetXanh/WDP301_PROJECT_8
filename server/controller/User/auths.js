@@ -3,7 +3,7 @@ const Users = require('../../models/user');
 const { hashPassword } = require('../../utils/bcryptHelper');
 const generalOtp = require('../../utils/generateOtp')
 const sendEmail = require('../../utils/sendEmail')
-
+const { jwtDecode } = require('jwt-decode')
 module.exports.register = async (req, res) => {
     try {
         const { email, username } = req.body;
@@ -119,6 +119,7 @@ module.exports.vertifyAccount = async (req, res) => {
     try {
         const { otp, email } = req.body;
         const optCorrect = await Otp.findOne({
+            email: email,
             otp: otp,
             purpose: "verify-email"
         })
@@ -470,6 +471,45 @@ module.exports.updateProfile = async (req, res) => {
             message: "Update profile successfully",
             user: updatedUser
         });
+    } catch (error) {
+        res.status(500).json({ message: "Server Error", error: error.message });
+    }
+}
+
+module.exports.loginGoogle = async (req, res) => {
+    try {
+        const { tokenGoogle } = req.body;
+        const user = jwtDecode(tokenGoogle)
+        const userExits = await Users.findOne({ email: user.email });
+        if (!userExits) {
+            const newUser = new Users({
+                username: user.name,
+                email: user.email,
+                avatar: {
+                    url: user.picture
+                },
+                password: "",
+            })
+            await newUser.save();
+
+        }
+        const dataToken = {
+            username: userExits.username,
+            email: userExits.email,
+            role: userExits.role
+        }
+        const accessToken = jwt.sign(dataToken, process.env.TOKEN_SECRET, { expiresIn: "15m" });
+        const refreshToken = jwt.sign(dataToken, process.env.REFRESH_TOKEN_SECRET, { expiresIn: "7d" });
+        await Users.findByIdAndUpdate(
+            userExits._id,
+            { re_token: refreshToken },
+            { new: true }
+        );
+        return res.status(200).json({
+            message: "Login successfully",
+            accessToken,
+            refreshToken,
+        })
     } catch (error) {
         res.status(500).json({ message: "Server Error", error: error.message });
     }
