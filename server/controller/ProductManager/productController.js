@@ -187,10 +187,13 @@ module.exports.activeProduct = async (req, res) => {
         } else if (currentStock === 0) {
             // Nếu hết hàng -> chuyển sang ngừng kinh doanh
             newStock = 0;
+        } else if (currentStock <= -9999) {
+            // Nếu đang ngừng kinh doanh và het hàng -> chuyển sang ngung kinh doanh
+            newStock = 0;
         } else {
             // Nếu đang ngừng kinh doanh -> chuyển sang kinh doanh lại với số lượng hiện có
             newStock = Math.abs(currentStock);
-        }
+        } 
 
         const updatedProduct = await Product.findByIdAndUpdate(
             id, 
