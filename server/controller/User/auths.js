@@ -2,8 +2,11 @@ const Otp = require('../../models/otp');
 const Users = require('../../models/user');
 const { hashPassword } = require('../../utils/bcryptHelper');
 const generalOtp = require('../../utils/generateOtp')
+const sendEmail = require('../../utils/sendEmail')
+
 module.exports.register = async (req, res) => {
     try {
+        const { email, username } = req.body;
         req.body.password = await hashPassword(req.body.password);
         const emailExit = await Users.findOne({
             $or: [{ email }, { username }]
@@ -150,6 +153,7 @@ module.exports.resendOtp = async (req, res) => {
         const objVrtify = {
             email: email,
             otp: otp,
+            purpose: "verify-email",
             "expireAt": Date.now()
         }
         const vertifyEmail = new Otp(objVrtify);
@@ -370,17 +374,102 @@ module.exports.otp = async (req, res) => {
 
 module.exports.reset = async (req, res) => {
     try {
-        const token = req.user.token;
-        const newPassword = hashPassword(req.body.password);
-        if (!token) {
+        const email = req.user.email;
+        const newPassword = await hashPassword(req.body.password);
+        if (!email) {
             return res.status(401).json({
                 message: "User Not Found"
             })
         }
-        await Users.updateOne({ token: token }, { password: newPassword })
+        await Users.updateOne({ email: email }, { password: newPassword })
         res.status(200).json({
             message: "Reset Password Successfully"
         })
+    } catch (error) {
+        res.status(500).json({ message: "Server Error", error: error.message });
+    }
+}
+
+module.exports.getProfile = async (req, res) => {
+    try {
+        const email = req.user.email;
+        const user = await Users.findOne({
+            email: email,
+            status: "active"
+        }).select("username email address avatar")
+        if (!user) {
+            return res.status(401).json({
+                message: "User not found"
+            })
+        }
+        res.status(200).json({
+            message: "Get Profile Successfully",
+            user
+        })
+    } catch (error) {
+        res.status(500).json({ message: "Server Error", error: error.message });
+    }
+}
+
+module.exports.updateProfile = async (req, res) => {
+    try {
+        const currentEmail = req.user.email;
+
+        const currentUser = await Users.findOne({ email: currentEmail });
+        if (!currentUser) {
+            return res.status(404).json({ message: "User not found or inactive" });
+        }
+
+        if (req.body.email && req.body.email !== currentUser.email) {
+            const emailExists = await Users.findOne({
+                email: req.body.email,
+                status: "active",
+                _id: { $ne: currentUser._id }
+            });
+            if (emailExists) {
+                return res.status(401).json({ message: "Email already exists" });
+            }
+        }
+
+        if (req.body.username && req.body.username !== currentUser.username) {
+            const usernameExists = await Users.findOne({
+                username: req.body.username,
+                status: "active",
+                _id: { $ne: currentUser._id }
+            });
+            if (usernameExists) {
+                return res.status(401).json({ message: "Username already exists" });
+            }
+        }
+
+        const updateData = {
+            username: req.body.username || currentUser.username,
+            email: req.body.email || currentUser.email,
+            address: req.body.address || currentUser.address,
+            avatar: currentUser.avatar
+        };
+
+        const avatarFile = req.files?.avatar?.[0];
+        if (avatarFile) {
+            if (currentUser.avatar?.public_id) {
+                await cloudinary.uploader.destroy(currentUser.avatar.public_id);
+            }
+
+            updateData.avatar = {
+                url: avatarFile.path,
+                public_id: avatarFile.filename
+            };
+        }
+        const updatedUser = await Users.findOneAndUpdate(
+            { email: currentEmail },
+            updateData,
+            { new: true }
+        );
+
+        res.status(200).json({
+            message: "Update profile successfully",
+            user: updatedUser
+        });
     } catch (error) {
         res.status(500).json({ message: "Server Error", error: error.message });
     }
