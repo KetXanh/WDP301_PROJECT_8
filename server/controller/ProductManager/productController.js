@@ -268,5 +268,24 @@ module.exports.updateStock = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 }
+module.exports.getTotalStock = async (req, res) => {
+  try {
+    const products = await Product.find({ stock: { $gt: 0 } });
+
+    // Tính tổng stock
+    const totalStock = products.reduce(
+      (acc, product) => acc + product.stock,
+      0
+    );
+
+    res.status(200).json({
+      message: "Total stock calculated successfully",
+      totalStock,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 
    

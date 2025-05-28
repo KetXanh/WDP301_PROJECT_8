@@ -2,6 +2,8 @@ import React from "react";
 import { FaMoon, FaSun } from "react-icons/fa";
 import { HiOutlineMenuAlt2 } from "react-icons/hi";
 import { MdSpaceDashboard } from "react-icons/md";
+import logo from "../../assets/NutiGo.png";
+
 const Header = ({ darkMode, toggleDarkMode, toggleSidebar }) => {
   return (
     <nav
@@ -19,12 +21,12 @@ const Header = ({ darkMode, toggleDarkMode, toggleSidebar }) => {
             </button>
 
             <a href="#" className="flex ms-2 md:me-24">
-              <MdSpaceDashboard className="h-8 me-3 text-xl text-violet-500"></MdSpaceDashboard>
+            <img src={logo} width={"100px"} height={"100px"}/>
               <span
                 className="self-center text-xl font-semibold sm:text-2xl whitespace-nowrap
               dark:text-white"
               >
-                NutiGo
+                Admin
               </span>
             </a>
           </div>

@@ -11,5 +11,6 @@ router.put('/updateProduct/:id', Authozation.authenticateToken, upload.fields([{
 router.delete('/deleteProduct/:id', Authozation.authenticateToken, controller.deleteProduct);
 router.put('/activeProduct/:id', Authozation.authenticateToken, controller.activeProduct);
 router.put('/updateStock/:id', Authozation.authenticateToken, controller.updateStock);
+router.get("/total-stock", controller.getTotalStock);
 
 module.exports = router;

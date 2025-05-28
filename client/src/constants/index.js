@@ -28,9 +28,19 @@ import user03 from "../assets/user03.png";
 
 export const links = [
   {
+    href: "/###",
+    icon: FaChartBar,
+    text: "Dashboard",
+  },
+  {
     href: "/",
     icon: FaChartBar,
     text: "Dashboard",
+    // badge: {
+    //   text: "Pro",
+    //   color: "bg-gray-100 text-gray-800",
+    //   darkColor: "dark:bg-gray-700 dark:text-gray-300",
+    // },
   },
   {
     href: "/category",
