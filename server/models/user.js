@@ -21,6 +21,7 @@ const userSchema = new mongoose.Schema({
     ],
 
     role: { type: Number, enum: [0, 1, 2, 3, 4], default: 0 },
+    // 0: user, 1: admin dev, 2: sale manager, 3: product manager, 4: sale staff
     re_token: String,
     status: { type: String, enum: ["active", "inactive"], default: "inactive" }
 }, {
