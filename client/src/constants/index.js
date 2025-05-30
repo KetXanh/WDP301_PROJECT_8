@@ -28,47 +28,57 @@ import user03 from "../assets/user03.png";
 
 export const links = [
   {
-    href: "#",
+    href: "/###",
     icon: FaChartBar,
     text: "Dashboard",
   },
   {
-    href: "#",
+    href: "/",
+    icon: FaChartBar,
+    text: "Dashboard",
+    // badge: {
+    //   text: "Pro",
+    //   color: "bg-gray-100 text-gray-800",
+    //   darkColor: "dark:bg-gray-700 dark:text-gray-300",
+    // },
+  },
+  {
+    href: "/category",
     icon: MdOutlineCategory,
     text: "Categories",
-    badge: {
-      text: "Pro",
-      color: "bg-gray-100 text-gray-800",
-      darkColor: "dark:bg-gray-700 dark:text-gray-300",
-    },
+    // badge: {
+    //   text: "Pro",
+    //   color: "bg-gray-100 text-gray-800",
+    //   darkColor: "dark:bg-gray-700 dark:text-gray-300",
+    // },
   },
   {
-    href: "#",
+    href: "/order",
     icon: FaCartPlus,
     text: "Order",
-    badge: {
-      text: "4",
-      color: "bg-blue-100 text-blue-800",
-      darkColor: "dark:bg-blue-900 dark:text-blue-300",
-    },
+    // badge: {
+    //   text: "4",
+    //   color: "bg-blue-100 text-blue-800",
+    //   darkColor: "dark:bg-blue-900 dark:text-blue-300",
+    // },
   },
   {
-    href: "#",
+    href: "/user",
     icon: FaUsersCog,
     text: "Users",
   },
   {
-    href: "#",
+    href: "/product",
     icon: FaListAlt,
     text: "Products",
   },
   {
-    href: "#",
+    href: "/sign-in",
     icon: IoIosLogIn,
     text: "Sign In",
   },
   {
-    href: "#",
+    href: "/sign-up",
     icon: IoIosLogOut,
     text: "Sign Up",
   },
