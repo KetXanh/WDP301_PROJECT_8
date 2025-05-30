@@ -45,49 +45,62 @@ module.exports.getProductByCategory = async (req, res) => {
 }
 
 module.exports.createProduct = async (req, res) => {
-    try {
-        const user = req.user;
-        if (user.role !== 3) {
-            return res.status(403).json({ message: "You are not authorized to create product" });
-        }
+  try {
+    const user = req.user;
 
-        const { name, description, price, stock, subCategoryId } = req.body;
-        if (!name || !description || !price || !stock || !subCategoryId) {
-            return res.status(400).json({ message: "Name, description, price, stock and subCategoryId are required" });
-        }
+    if (user.role !== 3) {
+      return res
+        .status(403)
+        .json({ message: "You are not authorized to create product" });
+    }
 
-        const subCategory = await SubCategory.findById(subCategoryId);
-        if (!subCategory) {
-            return res.status(404).json({ message: "Sub category not found" });
-        }
+    const { name, description, price, stock, subCategoryId} = req.body;
 
-        if (!req.file) {
-            return res.status(400).json({ message: "Image is required" });
+    if (!name || !description || !price || !stock || !subCategoryId) {
+      return res
+        .status(400)
+        .json({
+          message:
+            "Name, description, price, stock and subCategoryId are required",
+        });
+    }
+
+    const subCategory = await SubCategory.findById(subCategoryId);
+    if (!subCategory) {
+      return res.status(404).json({ message: "Sub category not found" });
+    }
+
+   
+   
+        if (!req.files) {
+          return res.status(400).json({ message: "Image is required" });
         }
 
         const image = {
-            url: req.file.path,
-            public_id: req.file.filename
+          url: req.files.path,
+          public_id: req.files.filename,
         };
 
-        const product = await Product.create({ 
-            name, 
-            description, 
-            price, 
-            stock, 
-            subCategory: subCategoryId, 
-            createdBy: user.id, 
-            image 
-        });
+    const product = await Product.create({
+      name,
+      description,
+      price,
+      stock,
+      subCategory: subCategoryId,
+      createdBy: user.id,
+      image, 
+    });
 
-        res.status(201).json({
-            message: "Product created successfully !!!",
-            product
-        });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-}
+    res.status(201).json({
+      message: "Product created successfully !!!",
+      product,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
 
 module.exports.updateProduct = async (req, res) => {
     try {
