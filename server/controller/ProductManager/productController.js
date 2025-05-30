@@ -77,8 +77,8 @@ module.exports.createProduct = async (req, res) => {
         }
 
         const image = {
-          url: req.files.path,
-          public_id: req.files.filename,
+          url: req.files.image[0].path,
+          public_id: req.files.image[0].filename,
         };
 
     const product = await Product.create({
@@ -88,7 +88,7 @@ module.exports.createProduct = async (req, res) => {
       stock,
       subCategory: subCategoryId,
       createdBy: user.id,
-      image, 
+      image: image, 
     });
 
     res.status(201).json({
