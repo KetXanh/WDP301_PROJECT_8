@@ -4,6 +4,8 @@ const { hashPassword } = require('../../utils/bcryptHelper');
 const generalOtp = require('../../utils/generateOtp')
 const sendEmail = require('../../utils/sendEmail')
 const { jwtDecode } = require('jwt-decode')
+const { cloudinary } = require('../../middleware/upload.middleware')
+
 module.exports.register = async (req, res) => {
     try {
         const { email, username } = req.body;

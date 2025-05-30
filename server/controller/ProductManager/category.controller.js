@@ -79,18 +79,23 @@ module.exports.activeCategory = async (req, res) => {
         }
 
         const { id } = req.params;
-        const newStatus = !existingProduct.status;
-        const category = await Category.findByIdAndUpdate(id, { status: newStatus }, { new: true });
-        if (!category) {
+        const existingCategory = await Category.findById(id);
+        if (!existingCategory) {
             return res.status(404).json({ message: "Category not found" });
         }
+        const newStatus = !existingCategory.status;
+        const category = await Category.findByIdAndUpdate(id, { status: newStatus }, { new: true });
 
         res.status(200).json({
             message: `Category ${category.status ? 'activated' : 'deactivated'} successfully !!!`,
             category
         });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error('Error in activeCategory:', error);
+        res.status(500).json({ 
+            message: error.message || 'An error occurred while updating category status',
+            error: process.env.NODE_ENV === 'development' ? error : undefined
+        });
     }
 }
 
@@ -179,16 +184,22 @@ module.exports.activeSubCategory = async (req, res) => {
             return res.status(403).json({ message: "You are not authorized to active sub category" });
         }
         const { id } = req.params;
-        const newStatus = !existingProduct.status;
-        const subCategory = await SubCategory.findByIdAndUpdate(id, { status: newStatus }, { new: true });
-        if (!subCategory) {
+        const existingSubCategory = await SubCategory.findById(id);
+        if (!existingSubCategory) {
             return res.status(404).json({ message: "Sub category not found" });
         }
+        const newStatus = !existingSubCategory.status;
+        const subCategory = await SubCategory.findByIdAndUpdate(id, { status: newStatus }, { new: true });
+        
         res.status(200).json({
             message: `Sub category ${subCategory.status ? 'activated' : 'deactivated'} successfully !!!`,
             subCategory
         });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error('Error in activeSubCategory:', error);
+        res.status(500).json({ 
+            message: error.message || 'An error occurred while updating subcategory status',
+            error: process.env.NODE_ENV === 'development' ? error : undefined
+        });
     }
 }

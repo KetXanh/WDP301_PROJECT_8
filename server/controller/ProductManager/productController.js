@@ -1,6 +1,7 @@
 const { Product } = require("../../models/product/product");
 const { SubCategory } = require("../../models/product/subCategory");
-const { upload, cloudinary } = require("../../middleware/upload.middleware");
+const { cloudinary } = require("../../middleware/upload.middleware")
+const { upload } = require('../../middleware/upload.middleware');
 
 module.exports.getAllProducts = async (req, res) => {
     try {
@@ -35,58 +36,89 @@ module.exports.getProductBySubCategory = async (req, res) => {
 }
 
 module.exports.getProductByCategory = async (req, res) => {
-        try {
-            const { categoryId } = req.params;
-            const products = await Product.find({ category: categoryId });
-            res.status(200).json({ message: "Products fetched successfully !!!", products });
+    try {
+        const { categoryId } = req.params;
+        const products = await Product.find({ category: categoryId });
+        res.status(200).json({ message: "Products fetched successfully !!!", products });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 }
 
 module.exports.createProduct = async (req, res) => {
-    try {
-        const user = req.user;
-        if (user.role !== 3) {
-            return res.status(403).json({ message: "You are not authorized to create product" });
-        }
+    console.log('====================================');
+    console.log(req.body);
+    console.log(JSON.stringify(req.files));
+    console.log('====================================');
+    // try {
+    //     const user = req.user;
 
-        const { name, description, price, stock, subCategoryId } = req.body;
-        if (!name || !description || !price || !stock || !subCategoryId) {
-            return res.status(400).json({ message: "Name, description, price, stock and subCategoryId are required" });
-        }
+    //     const { name, description, price, stock, subCategoryId } = req.body;
+    //     if (!name || !description || !price || !stock || !subCategoryId) {
+    //         return res.status(400).json({ message: "Name, description, price, stock and subCategoryId are required" });
+    //     }
 
-        const subCategory = await SubCategory.findById(subCategoryId);
-        if (!subCategory) {
-            return res.status(404).json({ message: "Sub category not found" });
-        }
+    //     const subCategory = await SubCategory.findById(subCategoryId);
+    //     if (!subCategory) {
+    //         return res.status(404).json({ message: "Sub category not found" });
+    //     }
 
-        if (!req.file) {
-            return res.status(400).json({ message: "Image is required" });
-        }
+    //     if (!req.files) {
+    //         return res.status(400).json({ message: "Image is required" });
+    //     }
 
-        const image = {
-            url: req.file.path,
-            public_id: req.file.filename
-        };
+    //     // Log thông tin file ảnh để debug
+    //     console.log('File information:', {
+    //         originalname: req.file.originalname,
+    //         mimetype: req.file.mimetype,
+    //         size: req.file.size,
+    //         path: req.file.path,
+    //         filename: req.file.filename
+    //     });
 
-        const product = await Product.create({ 
-            name, 
-            description, 
-            price, 
-            stock, 
-            subCategory: subCategoryId, 
-            createdBy: user.id, 
-            image 
-        });
+    //     // Kiểm tra và xử lý thông tin ảnh từ Cloudinary
+    //     if (!req.files.path || !req.files.filename) {
+    //         return res.status(400).json({ message: "Invalid image upload" });
+    //     }
 
-        res.status(201).json({
-            message: "Product created successfully !!!",
-            product
-        });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
+    //     // Tạo object image với thông tin từ Cloudinary
+    //     const image = {
+    //         url: req.files.path,
+    //         public_id: req.files.filename
+    //     };
+
+    //     // Log thông tin image object để kiểm tra
+    //     console.log('Image object:', image);
+
+    //     const productData = {
+    //         name,
+    //         description,
+    //         price: Number(price),
+    //         stock: Number(stock),
+    //         subCategory: subCategoryId,
+    //         createdBy: user._id,
+    //         image
+    //     };
+
+    //     // Log thông tin product trước khi tạo
+    //     console.log('Product data:', productData);
+
+    //     const product = await Product.create(productData);
+
+    //     // Log thông tin product sau khi tạo
+    //     console.log('Created product:', product);
+
+    //     res.status(201).json({
+    //         message: "Product created successfully !!!",
+    //         product
+    //     });
+    // } catch (error) {
+    //     console.error('Error creating product:', error);
+    //     res.status(500).json({
+    //         message: error.message || 'An error occurred while creating product',
+    //         error: error.toString()
+    //     });
+    // }
 }
 
 module.exports.updateProduct = async (req, res) => {
@@ -102,7 +134,7 @@ module.exports.updateProduct = async (req, res) => {
         }
 
         const { name, description, price, subCategoryId } = req.body;
-        
+
         const subCategory = await SubCategory.findById(subCategoryId);
         if (!subCategory) {
             return res.status(404).json({ message: "Sub category not found" });
@@ -112,7 +144,7 @@ module.exports.updateProduct = async (req, res) => {
             return res.status(400).json({ message: "Name, description, price, stock and subCategoryId are required" });
         }
 
-        let image = existingProduct.image; 
+        let image = existingProduct.image;
         if (req.file) {
             if (existingProduct.image && existingProduct.image.public_id) {
                 await cloudinary.uploader.destroy(existingProduct.image.public_id);
@@ -124,14 +156,14 @@ module.exports.updateProduct = async (req, res) => {
             };
         }
         const updatedProduct = await Product.findByIdAndUpdate(
-            id, 
-            { 
-                name, 
-                description, 
-                price, 
+            id,
+            {
+                name,
+                description,
+                price,
                 subCategory: subCategoryId,
-                image 
-            }, 
+                image
+            },
             { new: true }
         );
 
@@ -171,7 +203,7 @@ module.exports.activeProduct = async (req, res) => {
 
         const { id } = req.params;
         const existingProduct = await Product.findById(id);
-        
+
         if (!existingProduct) {
             return res.status(404).json({ message: "Product not found" });
         }
@@ -193,10 +225,10 @@ module.exports.activeProduct = async (req, res) => {
         } else {
             // Nếu đang ngừng kinh doanh -> chuyển sang kinh doanh lại với số lượng hiện có
             newStock = Math.abs(currentStock);
-        } 
+        }
 
         const updatedProduct = await Product.findByIdAndUpdate(
-            id, 
+            id,
             { stock: newStock },
             { new: true }
         );
@@ -211,7 +243,7 @@ module.exports.activeProduct = async (req, res) => {
             message = `Product is out of stock but still available for sale`;
         }
 
-        res.status(200).json({ 
+        res.status(200).json({
             message,
             product: updatedProduct
         });
@@ -229,7 +261,7 @@ module.exports.updateStock = async (req, res) => {
 
         const { id } = req.params;
         const existingProduct = await Product.findById(id);
-        
+
         if (!existingProduct) {
             return res.status(404).json({ message: "Product not found" });
         }
@@ -248,7 +280,7 @@ module.exports.updateStock = async (req, res) => {
         }
 
         const updatedProduct = await Product.findByIdAndUpdate(
-            id, 
+            id,
             { stock: newStock },
             { new: true }
         );
@@ -263,7 +295,7 @@ module.exports.updateStock = async (req, res) => {
             message = `Product is out of stock but still available for sale`;
         }
 
-        res.status(200).json({ 
+        res.status(200).json({
             message,
             product: updatedProduct
         });
@@ -272,4 +304,3 @@ module.exports.updateStock = async (req, res) => {
     }
 }
 
-   
