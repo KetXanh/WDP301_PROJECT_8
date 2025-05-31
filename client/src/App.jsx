@@ -7,8 +7,8 @@ import { Routes, Route, Outlet } from "react-router-dom";
 import Register from "./pages/Customers/Register";
 import HomePage from "./pages/Customers/HomePage";
 import NotFound from "./pages/NotFound";
-import Footer from "./pages/Customers/Footer";
-import Header from "./pages/Customers/Header";
+import Footer from "./components/customer/Footer";
+import Header from "./components/customer/Header";
 import Products from "./pages/Customers/Product";
 
 
