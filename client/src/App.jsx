@@ -2,6 +2,8 @@ import { useState } from "react";
 import "./App.css";
 // import { TestComponent } from "./components/TestComponent";
 // import Sidebar from "./components/admin/Sidebar";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import Login from "./pages/Customers/Login";
 import { Routes, Route, Outlet } from "react-router-dom";
 import Register from "./pages/Customers/Register";
@@ -10,6 +12,7 @@ import NotFound from "./pages/NotFound";
 import Footer from "./components/customer/Footer";
 import Header from "./components/customer/Header";
 import Products from "./pages/Customers/Product";
+import Verify from "./pages/Customers/Verify";
 
 
 const Layout = () => (
@@ -19,6 +22,18 @@ const Layout = () => (
       <Outlet />
     </main>
     <Footer />
+    <ToastContainer
+      position="top-right"
+      autoClose={5000}
+      hideProgressBar={false}
+      newestOnTop={false}
+      closeOnClick
+      rtl={false}
+      pauseOnFocusLoss
+      draggable
+      pauseOnHover
+      theme="light"
+    />
   </div>
 );
 
@@ -36,6 +51,7 @@ function App() {
           <Route index element={<HomePage />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/verify/:email" element={<Verify />} />
           <Route path="/product" element={<Products />} />
 
         </Route>

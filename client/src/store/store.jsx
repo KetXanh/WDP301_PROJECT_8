@@ -2,7 +2,7 @@ import { configureStore } from '@reduxjs/toolkit';
 import { persistStore, persistReducer } from 'redux-persist';
 import storage from 'redux-persist/lib/storage'; // dùng localStorage
 import { combineReducers } from 'redux';
-import counterReducer from '../features/counter/counterSlice';
+import userReducer from './customer/authSlice';
 
 // Cấu hình persist
 const persistConfig = {
@@ -12,7 +12,7 @@ const persistConfig = {
 
 // Combine reducers nếu có nhiều slice
 const rootReducer = combineReducers({
-    counter: counterReducer,
+    customer: userReducer,
     // thêm các slice khác ở đây
 });
 

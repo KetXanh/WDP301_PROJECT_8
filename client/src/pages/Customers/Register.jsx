@@ -4,7 +4,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Eye, EyeOff, User, Lock, Mail } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { customerRegister } from '../../services/Customer/ApiAuth';
+import { toast } from 'react-toastify';
 const Register = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -14,6 +16,7 @@ const Register = () => {
         password: '',
         confirmPassword: ''
     });
+    const navigate = useNavigate();
 
     const handleInputChange = (e) => {
         setFormData({
@@ -22,9 +25,22 @@ const Register = () => {
         });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         console.log('Registration form submitted:', formData);
+        try {
+            const res = await customerRegister(formData);
+            if (res.data && res.data?.status === 201) {
+                toast.success("Đăng Ký Tài Khoản Thành Công");
+                navigate(`/verify/${formData.email}`)
+            } else if (res.data && res.data?.code === 400) {
+                toast.error(res.data?.message === "Email already exits" ? "Email Đã Tồn Tại" : "Tên Tài Khoản Đã Tồn Tại")
+            } else {
+                toast.error("Đăng Ký Thất Bại")
+            }
+        } catch (error) {
+            console.log("Server error", error);
+        }
         // Xử lý đăng ký ở đây
     };
     return (

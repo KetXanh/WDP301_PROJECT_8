@@ -5,6 +5,11 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Eye, EyeOff, User, Lock } from 'lucide-react';
 import logo from '../../assets/NutiGo.jpg'
+import { customerLogin } from '../../services/Customer/ApiAuth';
+import { toast } from 'react-toastify';
+import { useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import { login } from '../../store/customer/authSlice';
 
 const Login = () => {
     const [isLogin, setIsLogin] = useState(true);
@@ -12,9 +17,9 @@ const Login = () => {
     const [formData, setFormData] = useState({
         email: '',
         password: '',
-        confirmPassword: '',
-        fullName: ''
     });
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
 
     const handleInputChange = (e) => {
         setFormData({
@@ -23,10 +28,36 @@ const Login = () => {
         });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         console.log('Form submitted:', formData);
         // Xử lý đăng nhập/đăng ký ở đây
+        try {
+            const res = await customerLogin(formData);
+            if (res.data && res.status === 200) {
+                const dataToken = {
+                    accessToken: res.data?.accessToken,
+                    refreshToken: res.data?.refreshToken
+                }
+                dispatch(login(dataToken))
+                toast.success("Đăng Nhập Thành Công")
+                navigate('/')
+            } else if (res.data && res.data?.status === 400) {
+                toast.error("Email Không Tồn Tại")
+            } else if (res.data && res.data?.status === 402) {
+                toast.error("Tài Khoản Không Tồn Tại")
+            } else if (res.data && res.data?.status === 403) {
+                toast.error("Mật Khẩu Không Đúng")
+            } else if (res.data && res.data?.status === 401) {
+                toast.error("Tài Khoản Chưa Xác Thực")
+                navigate(`/verify/${formData.email}`)
+            } else {
+                toast.error("Đăng Nhập Thất Bại")
+            }
+        } catch (error) {
+            console.log("Server Error", error);
+
+        }
     };
 
     return (
@@ -50,7 +81,7 @@ const Login = () => {
 
                     <CardContent>
                         <form onSubmit={handleSubmit} className="space-y-4">
-                            {!isLogin && (
+                            {/* {!isLogin && (
                                 <div className="space-y-2">
                                     <Label htmlFor="fullName" className="text-sm font-medium text-gray-700">
                                         Họ và tên
@@ -69,7 +100,7 @@ const Login = () => {
                                         />
                                     </div>
                                 </div>
-                            )}
+                            )} */}
 
                             <div className="space-y-2">
                                 <Label htmlFor="email" className="text-sm font-medium text-gray-700">
@@ -116,7 +147,7 @@ const Login = () => {
                                 </div>
                             </div>
 
-                            {!isLogin && (
+                            {/* {!isLogin && (
                                 <div className="space-y-2">
                                     <Label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">
                                         Xác nhận mật khẩu
@@ -135,19 +166,16 @@ const Login = () => {
                                         />
                                     </div>
                                 </div>
-                            )}
+                            )} */}
 
-                            {isLogin && (
-                                <div className="flex items-center justify-between">
-                                    <label className="flex items-center">
-                                        <input type="checkbox" className="rounded border-gray-300 text-green-600 focus:ring-green-500" />
-                                        <span className="ml-2 text-sm text-gray-600">Ghi nhớ đăng nhập</span>
-                                    </label>
-                                    <button type="button" className="text-sm text-green-600 hover:text-green-700 font-medium">
-                                        Quên mật khẩu?
-                                    </button>
-                                </div>
-                            )}
+
+                            <div className="flex items-end justify-between">
+                                <label className="flex items-center">
+                                </label>
+                                <button type="button" className="text-sm text-green-600 hover:text-green-700 font-medium">
+                                    Quên mật khẩu?
+                                </button>
+                            </div>
 
                             <Button
                                 type="submit"
