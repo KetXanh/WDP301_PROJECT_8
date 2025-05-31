@@ -13,7 +13,7 @@ module.exports.register = async (req, res) => {
             $or: [{ email }, { username }]
         })
         if (emailExit) {
-            return res.status(401).json({
+            return res.status(400).json({
                 message: emailExit.email === req.body.email
                     ? "Email already exits"
                     : "Username already exits"
@@ -147,7 +147,7 @@ module.exports.resendOtp = async (req, res) => {
             email: email
         })
         if (vertifyExits) {
-            return res.code(401).json({
+            return res.code(400).json({
                 message: "Account is Vertify"
             })
         }
