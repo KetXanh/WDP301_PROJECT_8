@@ -1,11 +1,12 @@
-const Product = require("../../models/product/product");
+const BaseProduct = require("../../models/product/productBase");
+const ProductVariant = require("../../models/product/ProductVariant");
 const { SubCategory } = require("../../models/product/subCategory");
 const { cloudinary } = require("../../middleware/upload.middleware")
 const { upload } = require('../../middleware/upload.middleware');
 
 module.exports.getAllProducts = async (req, res) => {
     try {
-        const products = await Product.find();
+        const products = await BaseProduct.find().populate('variants');
         res.status(200).json({
             message: "Products fetched successfully !!!",
             products
@@ -18,7 +19,7 @@ module.exports.getAllProducts = async (req, res) => {
 module.exports.getProductById = async (req, res) => {
     try {
         const { id } = req.params;
-        const product = await Product.findById(id);
+        const product = await BaseProduct.findById(id).populate('variants');
         res.status(200).json({ message: "Product fetched successfully !!!", product });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -28,7 +29,7 @@ module.exports.getProductById = async (req, res) => {
 module.exports.getProductBySubCategory = async (req, res) => {
     try {
         const { subCategoryId } = req.params;
-        const products = await Product.find({ subCategory: subCategoryId });
+        const products = await BaseProduct.find({ subCategory: subCategoryId }).populate('variants');
         res.status(200).json({ message: "Products fetched successfully !!!", products });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -38,7 +39,7 @@ module.exports.getProductBySubCategory = async (req, res) => {
 module.exports.getProductByCategory = async (req, res) => {
     try {
         const { categoryId } = req.params;
-        const products = await Product.find({ category: categoryId });
+        const products = await BaseProduct.find({ category: categoryId }).populate('variants');
         res.status(200).json({ message: "Products fetched successfully !!!", products });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -46,108 +47,104 @@ module.exports.getProductByCategory = async (req, res) => {
 }
 
 module.exports.createProduct = async (req, res) => {
-  try {
-    const user = req.user;
-
-    const { name, description, price, stock, subCategoryId} = req.body;
-
-    if (!name || !description || !price || !stock || !subCategoryId) {
-      return res
-        .status(400)
-        .json({
-          message:
-            "Name, description, price, stock and subCategoryId are required",
-        });
-    }
-
-    const subCategory = await SubCategory.findById(subCategoryId);
-    if (!subCategory) {
-      return res.status(404).json({ message: "Sub category not found" });
-    }
-
-   
-   
-        if (!req.files) {
-          return res.status(400).json({ message: "Image is required" });
-        }
-
-        const image = {
-          url: req.files.image[0].path,
-          public_id: req.files.image[0].filename,
-        };
-
-    const product = new Product({
-      name,
-      description,
-      price,
-      stock,
-      subCategory: subCategoryId,
-      createdBy: user.id,
-      image: image, 
-    });
-    
-    await product.save();
-
-    res.status(201).json({
-      message: "Product created successfully !!!",
-      product,
-    });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-
-
-module.exports.updateProduct = async (req, res) => {
     try {
         const user = req.user;
-        if (user.role !== 3) {
-            return res.status(403).json({ message: "You are not authorized to update product" });
-        }
-        const { id } = req.params;
-        const existingProduct = await Product.findById(id);
-        if (!existingProduct) {
-            return res.status(404).json({ message: "Product not found" });
-        }
+        const { name, description, price, stock, subCategoryId } = req.body;
 
-        const { name, description, price, subCategoryId } = req.body;
+        if (!name || !description || !price || !stock || !subCategoryId) {
+            return res.status(400).json({
+                message: "Name, description, price, stock and subCategoryId are required"
+            });
+        }
 
         const subCategory = await SubCategory.findById(subCategoryId);
         if (!subCategory) {
             return res.status(404).json({ message: "Sub category not found" });
         }
 
-        if (!name || !description || !price || !stock || !subCategoryId) {
-            return res.status(400).json({ message: "Name, description, price, stock and subCategoryId are required" });
+        if (!req.files) {
+            return res.status(400).json({ message: "Image is required" });
+        }
+
+        let image = {
+            url: req.files.image[0].path,
+            public_id: req.files.image[0].filename,
+        };
+
+        const baseProduct = new BaseProduct({
+            name,
+            description,
+            image,
+            subCategory: subCategoryId,
+            createdBy: user.id
+        });
+
+        await baseProduct.save();
+
+        const productVariant = new ProductVariant({
+            baseProduct: baseProduct._id,
+            price,
+            stock
+        });
+
+        await productVariant.save();
+
+        res.status(201).json({
+            message: "Product created successfully !!!",
+            baseProduct,
+            productVariant
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}
+
+module.exports.updateProduct = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name, description, subCategoryId } = req.body;
+        console.log(id)
+        const existingProduct = await BaseProduct.findById(id);
+        console.log(existingProduct)
+        if (!existingProduct) {
+            return res.status(404).json({ message: "Product not found" });
+        }
+
+        const subCategory = await SubCategory.findById(subCategoryId);
+        if (!subCategory) {
+            return res.status(404).json({ message: "Sub category not found" });
+        }
+
+        if (!name || !description || !subCategoryId) {
+            return res.status(400).json({ message: "Name, description and subCategoryId are required" });
         }
 
         let image = existingProduct.image;
-        if (req.file) {
+        if (req.files && req.files.image) {
             if (existingProduct.image && existingProduct.image.public_id) {
                 await cloudinary.uploader.destroy(existingProduct.image.public_id);
             }
-
             image = {
-                url: req.file.path,
-                public_id: req.file.filename
+                url: req.files.image[0].path,
+                public_id: req.files.image[0].filename,
             };
         }
-        const updatedProduct = await Product.findByIdAndUpdate(
+
+        const updatedBaseProduct = await BaseProduct.findByIdAndUpdate(
             id,
             {
                 name,
                 description,
-                price,
                 subCategory: subCategoryId,
                 image
             },
             { new: true }
         );
 
+
         res.status(200).json({
             message: "Product updated successfully !!!",
-            product: updatedProduct
+            product: updatedBaseProduct
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -157,15 +154,19 @@ module.exports.updateProduct = async (req, res) => {
 module.exports.deleteProduct = async (req, res) => {
     try {
         const user = req.user;
-        if (user.role !== 3) {
-            return res.status(403).json({ message: "You are not authorized to delete product" });
-        }
         const { id } = req.params;
-        const existingProduct = await Product.findById(id);
+
+        const existingProduct = await BaseProduct.findById(id);
         if (!existingProduct) {
             return res.status(404).json({ message: "Product not found" });
         }
-        await Product.findByIdAndDelete(id);
+
+        // Delete all variants first
+        await ProductVariant.deleteMany({ baseProduct: id });
+
+        // Then delete the base product
+        await BaseProduct.findByIdAndDelete(id);
+
         res.status(200).json({ message: "Product deleted successfully !!!" });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -174,56 +175,86 @@ module.exports.deleteProduct = async (req, res) => {
 
 module.exports.activeProduct = async (req, res) => {
     try {
-        const user = req.user;
-        if (user.role !== 3) {
-            return res.status(403).json({ message: "You are not authorized to change product status" });
+        const { id } = req.params;
+        const { status } = req.body;
+
+        if (!status || !['active', 'inactive'].includes(status)) {
+            return res.status(400).json({
+                message: "Status is required and must be either 'active' or 'inactive'"
+            });
         }
 
-        const { id } = req.params;
-        const existingProduct = await Product.findById(id);
+        // Tìm tất cả các biến thể của sản phẩm
+        const variants = await ProductVariant.find({ baseProduct: id });
+        const baseProduct = await BaseProduct.findById(id);
 
-        if (!existingProduct) {
+        if (!baseProduct || !variants || variants.length === 0) {
             return res.status(404).json({ message: "Product not found" });
         }
 
-        // Lấy giá trị stock hiện tại
-        const currentStock = existingProduct.stock;
-        let newStock;
+        let message;
+        let updatedVariants = [];
 
-        // Logic flipbit cho stock
-        if (currentStock > 0) {
-            // Nếu đang kinh doanh và còn hàng -> chuyển sang ngừng kinh doanh (giữ nguyên số lượng)
-            newStock = currentStock;
-        } else if (currentStock === 0) {
-            // Nếu hết hàng -> chuyển sang ngừng kinh doanh
-            newStock = 0;
-        } else if (currentStock <= -9999) {
-            // Nếu đang ngừng kinh doanh và het hàng -> chuyển sang ngung kinh doanh
-            newStock = 0;
-        } else {
-            // Nếu đang ngừng kinh doanh -> chuyển sang kinh doanh lại với số lượng hiện có
-            newStock = Math.abs(currentStock);
+        // Cập nhật trạng thái cho từng biến thể
+        for (let variant of variants) {
+            const currentStock = variant.stock;
+            let newStock;
+
+            if (status === 'inactive') {
+                // Chuyển sang trạng thái ngừng kinh doanh
+                if (currentStock > 0) {
+                    // Nếu đang kinh doanh và còn hàng -> chuyển sang ngừng kinh doanh (giữ nguyên số lượng)
+                    newStock = -currentStock;
+                } else if (currentStock === 0) {
+                    // Nếu hết hàng -> chuyển sang ngừng kinh doanh
+                    newStock = -9999;
+                } else {
+                    // Nếu đã ngừng kinh doanh -> giữ nguyên trạng thái
+                    newStock = currentStock;
+                }
+            } else {
+                // Chuyển sang trạng thái kinh doanh
+                if (currentStock === -9999) {
+                    // Nếu đang ngừng kinh doanh và hết hàng -> chuyển sang kinh doanh lại
+                    newStock = 0;
+                } else if (currentStock < 0) {
+                    // Nếu đang ngừng kinh doanh và còn hàng -> chuyển sang kinh doanh lại
+                    newStock = Math.abs(currentStock);
+                } else {
+                    // Nếu đang kinh doanh -> giữ nguyên trạng thái
+                    newStock = currentStock;
+                }
+            }
+
+            // Cập nhật stock cho biến thể
+            const updatedVariant = await ProductVariant.findByIdAndUpdate(
+                variant._id,
+                { stock: newStock },
+                { new: true }
+            );
+            updatedVariants.push(updatedVariant);
         }
 
-        const updatedProduct = await Product.findByIdAndUpdate(
-            id,
-            { stock: newStock },
-            { new: true }
-        );
-
-        // Tạo message tương ứng với trạng thái mới
-        let message;
-        if (newStock > 0) {
-            message = `Product is now in stock (${newStock} items) and available for sale`;
-        } else if (newStock < 0) {
-            message = `Product is temporarily out of stock (${Math.abs(newStock)} items) and not available for sale`;
+        // Tạo message dựa trên trạng thái mới
+        const firstVariant = updatedVariants[0];
+        if (status === 'active') {
+            if (firstVariant.stock > 0) {
+                message = `Product is now in business with ${firstVariant.stock} items in stock`;
+            } else {
+                message = "Product is now in business but out of stock";
+            }
         } else {
-            message = `Product is out of stock but still available for sale`;
+            if (firstVariant.stock === -9999) {
+                message = "Product is now out of business and out of stock";
+            } else {
+                message = `Product is now out of business with ${Math.abs(firstVariant.stock)} items in stock`;
+            }
         }
 
         res.status(200).json({
             message,
-            product: updatedProduct
+            product: baseProduct,
+            variants: updatedVariants
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -232,72 +263,163 @@ module.exports.activeProduct = async (req, res) => {
 
 module.exports.updateStock = async (req, res) => {
     try {
-        const user = req.user;
-        if (user.role !== 3) {
-            return res.status(403).json({ message: "You are not authorized to update product stock" });
+        const { id } = req.params;
+        const { newStock, newPrice } = req.body;
+
+        if (!newStock || !newPrice) {
+            return res.status(400).json({
+                message: "newStock and newPrice are required"
+            });
         }
 
-        const { id } = req.params;
-        const existingProduct = await Product.findById(id);
+        // Tìm tất cả các biến thể của sản phẩm
+        const existingVariants = await ProductVariant.find({ baseProduct: id }).populate('baseProduct');
+        console.log("Existing variants:", existingVariants);
 
-        if (!existingProduct) {
+        if (!existingVariants || existingVariants.length === 0) {
             return res.status(404).json({ message: "Product not found" });
         }
 
-        // Lấy giá trị stock hiện tại
-        const currentStock = existingProduct.stock;
-        let newStock;
+        // Chuyển đổi giá mới thành số
+        const numericNewPrice = Number(newPrice);
+        console.log("New price (numeric):", numericNewPrice);
 
-        // Logic flipbit cho stock
-        if (currentStock >= 0) {
-            // Nếu stock >= 0 (đang kinh doanh) -> chuyển sang ngừng kinh doanh nhưng vẫn giữ số lượng
-            newStock = -Math.abs(currentStock);
+        // Kiểm tra xem có biến thể nào có giá bằng giá mới không
+        const existingVariantWithSamePrice = existingVariants.find(variant => {
+            const variantPrice = Number(variant.price);
+            console.log("Comparing prices - Variant price:", variantPrice, "New price:", numericNewPrice);
+            return variantPrice === numericNewPrice;
+        });
+
+        console.log("Found variant with same price:", existingVariantWithSamePrice);
+
+        if (existingVariantWithSamePrice) {
+            // Nếu tìm thấy biến thể có cùng giá, cập nhật số lượng
+            const currentStock = Number(existingVariantWithSamePrice.stock);
+            const addedStock = Number(newStock);
+            const updatedStock = currentStock + addedStock;
+
+            console.log("Updating stock - Current:", currentStock, "Added:", addedStock, "New total:", updatedStock);
+
+            const updatedProduct = await ProductVariant.findByIdAndUpdate(
+                existingVariantWithSamePrice._id,
+                { stock: updatedStock },
+                { new: true }
+            );
+
+            return res.status(200).json({
+                message: "Stock updated successfully for existing price variant",
+                product: updatedProduct,
+                totalStock: updatedStock
+            });
         } else {
-            // Nếu stock < 0 (ngừng kinh doanh) -> chuyển sang kinh doanh lại với số lượng đã có
-            newStock = Math.abs(currentStock);
+            console.log("Creating new variant with price:", numericNewPrice, "and stock:", newStock);
+
+            // Nếu không tìm thấy biến thể có cùng giá, tạo biến thể mới
+            const newVariant = new ProductVariant({
+                baseProduct: id,
+                price: numericNewPrice,
+                stock: Number(newStock)
+            });
+
+            await newVariant.save();
+            console.log("New variant created:", newVariant);
+
+            // Lấy lại tất cả các biến thể sau khi thêm mới
+            const allVariants = await ProductVariant.find({ baseProduct: id }).populate('baseProduct');
+            console.log("All variants after update:", JSON.stringify(allVariants, null, 2));
+
+            // Tính tổng số lượng của tất cả các biến thể
+            const totalStock = allVariants.reduce((sum, variant) => sum + Number(variant.stock), 0);
+            console.log("Total stock:", totalStock);
+
+            return res.status(200).json({
+                message: "New product variant created successfully",
+                allVariants: allVariants,
+                totalStock: totalStock
+            });
         }
 
-        const updatedProduct = await Product.findByIdAndUpdate(
-            id,
-            { stock: newStock },
-            { new: true }
+    } catch (error) {
+        console.error("Error in updateStock:", error);
+        res.status(500).json({ message: error.message });
+    }
+}
+
+module.exports.getTotalStock = async (req, res) => {
+    try {
+        const variants = await ProductVariant.find({ stock: { $gt: 0 } });
+
+        // Tính tổng stock
+        const totalStock = variants.reduce(
+            (acc, variant) => acc + variant.stock,
+            0
         );
 
-        // Tạo message tương ứng với trạng thái mới
-        let message;
-        if (newStock > 0) {
-            message = `Product is now in stock (${newStock} items) and available for sale`;
-        } else if (newStock < 0) {
-            message = `Product is temporarily out of stock (${Math.abs(newStock)} items) and not available for sale`;
-        } else {
-            message = `Product is out of stock but still available for sale`;
-        }
-
         res.status(200).json({
-            message,
-            product: updatedProduct
+            message: "Total stock calculated successfully",
+            totalStock,
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
-}
-module.exports.getTotalStock = async (req, res) => {
-  try {
-    const products = await Product.find({ stock: { $gt: 0 } });
-
-    // Tính tổng stock
-    const totalStock = products.reduce(
-      (acc, product) => acc + product.stock,
-      0
-    );
-
-    res.status(200).json({
-      message: "Total stock calculated successfully",
-      totalStock,
-    });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
 };
+
+module.exports.consolidateProductVariants = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // 1. Lấy thông tin sản phẩm và tất cả biến thể
+        const baseProduct = await BaseProduct.findById(id);
+        const variants = await ProductVariant.find({ baseProduct: id });
+
+        if (!baseProduct || !variants || variants.length === 0) {
+            return res.status(404).json({ message: "Product not found" });
+        }
+
+        // Hiển thị thông tin sản phẩm và các biến thể cũ
+        const oldVariants = variants.map(v => ({
+            price: v.price,
+            stock: v.stock,
+            totalValue: v.price * v.stock
+        }));
+
+        // 2. Tính toán và tạo biến thể mới
+        // Tính tổng số lượng và tổng giá trị
+        const totalStock = variants.reduce((sum, variant) => sum + Math.abs(variant.stock), 0);
+        const totalValue = variants.reduce((sum, variant) => sum + (variant.price * Math.abs(variant.stock)), 0);
+        
+        // Tính giá trung bình mới
+        const newPrice = Math.round(totalValue / totalStock);
+
+        // Xóa tất cả các biến thể cũ
+        await ProductVariant.deleteMany({ baseProduct: id });
+
+        // Tạo biến thể mới với giá và số lượng đã gộp
+        const newVariant = new ProductVariant({
+            baseProduct: id,
+            price: newPrice,
+            stock: totalStock
+        });
+
+        await newVariant.save();
+
+        return res.status(200).json({
+            message: "Product variants consolidated successfully",
+            productInfo: {
+                productName: baseProduct.name,
+                oldVariants: oldVariants,
+                newVariant: {
+                    price: newPrice,
+                    stock: totalStock,
+                    totalValue: newPrice * totalStock
+                }
+            }
+        });
+
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}
 
 
