@@ -73,7 +73,7 @@ module.exports.createProduct = async (req, res) => {
    
    
         if (!req.files) {
-          return res.status(400).json({ message: "Image is required" });
+          return res.status(400).json({ message: "Image is required" });}
         if (!req.files) {
             return res.status(400).json({ message: "Image is required" });
         }
@@ -82,10 +82,8 @@ module.exports.createProduct = async (req, res) => {
         const uploadedImage = req.files.image[0];
 
         const image = {
-          url: req.files.path,
-          public_id: req.files.filename,
-            url: uploadedImage.path,
-            public_id: uploadedImage.filename
+          url: req.files.image[0].path,
+          public_id: req.files.image[0].filename,
         };
 
     const product = await Product.create({
@@ -95,17 +93,8 @@ module.exports.createProduct = async (req, res) => {
       stock,
       subCategory: subCategoryId,
       createdBy: user.id,
-      image, 
+      image: image, 
     });
-        const product = await Product.create({
-            name,
-            description,
-            price,
-            stock,
-            subCategory: subCategoryId,
-            createdBy: user.id,
-            image
-        });
 
     res.status(201).json({
       message: "Product created successfully !!!",
