@@ -10,7 +10,7 @@ module.exports.login = async (req, res) => {
             email: req.body.email,
         })
         if (!user) {
-            return res.status(401).json({
+            return res.status(400).json({
                 message: "Email Not Correct"
             })
         }
@@ -21,13 +21,13 @@ module.exports.login = async (req, res) => {
             })
         }
         if (user.status === "inactive") {
-            return res.json({
+            return res.status(402).json({
                 message: "Account Not Active"
             })
         }
         const checkPass = await comparePassword(req.body.password, user.password);
         if (!checkPass) {
-            return res.status(401).json({
+            return res.status(403).json({
                 message: "Password Not Correct"
             })
         }

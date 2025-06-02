@@ -35,10 +35,10 @@ module.exports.getProductBySubCategory = async (req, res) => {
 }
 
 module.exports.getProductByCategory = async (req, res) => {
-        try {
-            const { categoryId } = req.params;
-            const products = await Product.find({ category: categoryId });
-            res.status(200).json({ message: "Products fetched successfully !!!", products });
+    try {
+        const { categoryId } = req.params;
+        const products = await Product.find({ category: categoryId });
+        res.status(200).json({ message: "Products fetched successfully !!!", products });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -74,11 +74,18 @@ module.exports.createProduct = async (req, res) => {
    
         if (!req.files) {
           return res.status(400).json({ message: "Image is required" });
+        if (!req.files) {
+            return res.status(400).json({ message: "Image is required" });
         }
+
+
+        const uploadedImage = req.files.image[0];
 
         const image = {
           url: req.files.path,
           public_id: req.files.filename,
+            url: uploadedImage.path,
+            public_id: uploadedImage.filename
         };
 
     const product = await Product.create({
@@ -90,6 +97,15 @@ module.exports.createProduct = async (req, res) => {
       createdBy: user.id,
       image, 
     });
+        const product = await Product.create({
+            name,
+            description,
+            price,
+            stock,
+            subCategory: subCategoryId,
+            createdBy: user.id,
+            image
+        });
 
     res.status(201).json({
       message: "Product created successfully !!!",
@@ -115,7 +131,7 @@ module.exports.updateProduct = async (req, res) => {
         }
 
         const { name, description, price, subCategoryId } = req.body;
-        
+
         const subCategory = await SubCategory.findById(subCategoryId);
         if (!subCategory) {
             return res.status(404).json({ message: "Sub category not found" });
@@ -125,7 +141,7 @@ module.exports.updateProduct = async (req, res) => {
             return res.status(400).json({ message: "Name, description, price, stock and subCategoryId are required" });
         }
 
-        let image = existingProduct.image; 
+        let image = existingProduct.image;
         if (req.file) {
             if (existingProduct.image && existingProduct.image.public_id) {
                 await cloudinary.uploader.destroy(existingProduct.image.public_id);
@@ -137,14 +153,14 @@ module.exports.updateProduct = async (req, res) => {
             };
         }
         const updatedProduct = await Product.findByIdAndUpdate(
-            id, 
-            { 
-                name, 
-                description, 
-                price, 
+            id,
+            {
+                name,
+                description,
+                price,
                 subCategory: subCategoryId,
-                image 
-            }, 
+                image
+            },
             { new: true }
         );
 
@@ -184,7 +200,7 @@ module.exports.activeProduct = async (req, res) => {
 
         const { id } = req.params;
         const existingProduct = await Product.findById(id);
-        
+
         if (!existingProduct) {
             return res.status(404).json({ message: "Product not found" });
         }
@@ -200,13 +216,16 @@ module.exports.activeProduct = async (req, res) => {
         } else if (currentStock === 0) {
             // Nếu hết hàng -> chuyển sang ngừng kinh doanh
             newStock = 0;
+        } else if (currentStock <= -9999) {
+            // Nếu đang ngừng kinh doanh và het hàng -> chuyển sang ngung kinh doanh
+            newStock = 0;
         } else {
             // Nếu đang ngừng kinh doanh -> chuyển sang kinh doanh lại với số lượng hiện có
             newStock = Math.abs(currentStock);
         }
 
         const updatedProduct = await Product.findByIdAndUpdate(
-            id, 
+            id,
             { stock: newStock },
             { new: true }
         );
@@ -221,7 +240,7 @@ module.exports.activeProduct = async (req, res) => {
             message = `Product is out of stock but still available for sale`;
         }
 
-        res.status(200).json({ 
+        res.status(200).json({
             message,
             product: updatedProduct
         });
@@ -239,7 +258,7 @@ module.exports.updateStock = async (req, res) => {
 
         const { id } = req.params;
         const existingProduct = await Product.findById(id);
-        
+
         if (!existingProduct) {
             return res.status(404).json({ message: "Product not found" });
         }
@@ -258,7 +277,7 @@ module.exports.updateStock = async (req, res) => {
         }
 
         const updatedProduct = await Product.findByIdAndUpdate(
-            id, 
+            id,
             { stock: newStock },
             { new: true }
         );
@@ -273,7 +292,7 @@ module.exports.updateStock = async (req, res) => {
             message = `Product is out of stock but still available for sale`;
         }
 
-        res.status(200).json({ 
+        res.status(200).json({
             message,
             product: updatedProduct
         });
@@ -301,4 +320,3 @@ module.exports.getTotalStock = async (req, res) => {
 };
 
 
-   
