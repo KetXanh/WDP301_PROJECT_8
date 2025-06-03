@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ShoppingCart, LogOut, User } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -13,6 +13,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useDispatch, useSelector } from 'react-redux';
 import { customerProfile } from '../../services/Customer/ApiAuth';
 import { logout } from '../../store/customer/authSlice';
+import logo from '../../assets/NutiGo.jpg'
 const Header = () => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [user, setUser] = useState(null);
@@ -25,8 +26,12 @@ const Header = () => {
         try {
 
             const res = await customerProfile();
-            if (res.data && res.status === 200) {
+            console.log(res);
+
+            if (res.data && res.data.code === 200) {
                 setUser(res.data.user)
+            } else if (res.data && res.data.code === 401) {
+                dispatch(logout());
             }
         } catch (error) {
             console.log("Lỗi gọi profile:", error.response?.status); // thêm dòng này
@@ -61,8 +66,8 @@ const Header = () => {
             <div className="container mx-auto px-4 py-4">
                 <div className="flex items-center justify-between">
                     <Link to="/" className="flex items-center space-x-2">
-                        <div className="w-10 h-10 bg-gradient-to-r from-green-600 to-amber-600 rounded-full flex items-center justify-center">
-                            <span className="text-xl">🌰</span>
+                        <div className="w-10 h-10 rounded-full flex items-center justify-center">
+                            <img className='' src={logo} />
                         </div>
                         <span className="text-2xl font-bold text-gray-800">NutiGo</span>
                     </Link>

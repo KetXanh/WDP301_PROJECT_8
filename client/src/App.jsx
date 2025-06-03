@@ -13,6 +13,9 @@ import Footer from "./components/customer/Footer";
 import Header from "./components/customer/Header";
 import Products from "./pages/Customers/Product";
 import Verify from "./pages/Customers/Verify";
+import ForgotPassword from "./pages/Customers/ForgotPassword";
+import ForgotOtp from "./pages/Customers/ForgotOtp";
+import ResetPassword from "./pages/Customers/ResetPassword";
 
 
 const Layout = () => (
@@ -52,7 +55,10 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/verify/:email" element={<Verify />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/product" element={<Products />} />
+          <Route path="/otp" element={<ForgotOtp />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
 
         </Route>
         <Route path="*" element={<NotFound />} />
