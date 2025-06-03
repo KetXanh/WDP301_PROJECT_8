@@ -63,7 +63,19 @@ module.exports.getProductBySubCategory = async (req, res) => {
 module.exports.getTop8Products = async (req, res) => {
     try {
         const products = await BaseProduct.find().sort({ createdAt: -1 }).limit(8);
-        res.status(200).json({ message: "Top 8 products fetched successfully !!!", products });
+        const productsWithVariants = await Promise.all(
+            products.map(async (product) => {
+                const variants = await ProductVariant.find({ baseProduct: product._id });
+                return {
+                    ...product.toObject(),
+                    variants
+                };
+            })
+        );
+        res.status(200).json({ 
+            message: "Top 8 products fetched successfully !!!", 
+            products: productsWithVariants 
+        });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -172,7 +184,6 @@ module.exports.updateProduct = async (req, res) => {
             { new: true }
         );
 
-
         res.status(200).json({
             message: "Product updated successfully !!!",
             product: updatedBaseProduct
@@ -215,7 +226,6 @@ module.exports.activeProduct = async (req, res) => {
             });
         }
 
-        // Tìm tất cả các biến thể của sản phẩm
         const variants = await ProductVariant.find({ baseProduct: id });
         const baseProduct = await BaseProduct.findById(id);
 
@@ -226,38 +236,28 @@ module.exports.activeProduct = async (req, res) => {
         let message;
         let updatedVariants = [];
 
-        // Cập nhật trạng thái cho từng biến thể
         for (let variant of variants) {
             const currentStock = variant.stock;
             let newStock;
 
             if (status === 'inactive') {
-                // Chuyển sang trạng thái ngừng kinh doanh
                 if (currentStock > 0) {
-                    // Nếu đang kinh doanh và còn hàng -> chuyển sang ngừng kinh doanh (giữ nguyên số lượng)
                     newStock = -currentStock;
                 } else if (currentStock === 0) {
-                    // Nếu hết hàng -> chuyển sang ngừng kinh doanh
                     newStock = -9999;
                 } else {
-                    // Nếu đã ngừng kinh doanh -> giữ nguyên trạng thái
                     newStock = currentStock;
                 }
             } else {
-                // Chuyển sang trạng thái kinh doanh
                 if (currentStock === -9999) {
-                    // Nếu đang ngừng kinh doanh và hết hàng -> chuyển sang kinh doanh lại
                     newStock = 0;
                 } else if (currentStock < 0) {
-                    // Nếu đang ngừng kinh doanh và còn hàng -> chuyển sang kinh doanh lại
                     newStock = Math.abs(currentStock);
                 } else {
-                    // Nếu đang kinh doanh -> giữ nguyên trạng thái
                     newStock = currentStock;
                 }
             }
 
-            // Cập nhật stock cho biến thể
             const updatedVariant = await ProductVariant.findByIdAndUpdate(
                 variant._id,
                 { stock: newStock },
@@ -266,7 +266,6 @@ module.exports.activeProduct = async (req, res) => {
             updatedVariants.push(updatedVariant);
         }
 
-        // Tạo message dựa trên trạng thái mới
         const firstVariant = updatedVariants[0];
         if (status === 'active') {
             if (firstVariant.stock > 0) {
@@ -433,5 +432,6 @@ module.exports.consolidateProductVariants = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 }
+
 
 

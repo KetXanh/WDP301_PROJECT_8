@@ -1,6 +1,6 @@
 const cloudinary = require('cloudinary').v2;
-const multer = require('multer');
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const multer = require('multer');
 
 cloudinary.config({
     cloud_name: process.env.cloud_name,
@@ -12,9 +12,7 @@ const storage = new CloudinaryStorage({
     cloudinary,
     params: async (req, file) => {
         let resource_type = 'image';
-        const imageFormats = ['image/jpeg', 'image/png', 'image/webp'];
         const videoFormats = ['video/mp4', 'video/quicktime', 'video/x-msvideo'];
-
         if (videoFormats.includes(file.mimetype)) {
             resource_type = 'video';
         }
@@ -35,4 +33,4 @@ const upload = multer({
     }
 });
 
-module.exports = { upload, cloudinary };
+module.exports = { cloudinary, upload };

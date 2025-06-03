@@ -3,22 +3,19 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Eye, EyeOff, User, Lock } from 'lucide-react';
-import logo from '../../assets/NutiGo.jpg'
-import { customerLogin } from '../../services/Customer/ApiAuth';
+import { Eye, EyeOff, User, Lock, Mail } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { customerRegister } from '../../services/Customer/ApiAuth';
 import { toast } from 'react-toastify';
-import { useDispatch } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
-import { login } from '../../store/customer/authSlice';
-
-const Login = () => {
-    const [isLogin, setIsLogin] = useState(true);
+const Register = () => {
     const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [formData, setFormData] = useState({
+        username: '',
         email: '',
         password: '',
+        confirmPassword: ''
     });
-    const dispatch = useDispatch();
     const navigate = useNavigate();
 
     const handleInputChange = (e) => {
@@ -30,84 +27,65 @@ const Login = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log('Form submitted:', formData);
-        // Xử lý đăng nhập/đăng ký ở đây
+        console.log('Registration form submitted:', formData);
         try {
-            const res = await customerLogin(formData);
-            if (res.data && res.status === 200) {
-                const dataToken = {
-                    accessToken: res.data?.accessToken,
-                    refreshToken: res.data?.refreshToken
-                }
-                dispatch(login(dataToken))
-                toast.success("Đăng Nhập Thành Công")
-                navigate('/')
-            } else if (res.data && res.data?.status === 400) {
-                toast.error("Email Không Tồn Tại")
-            } else if (res.data && res.data?.status === 402) {
-                toast.error("Tài Khoản Không Tồn Tại")
-            } else if (res.data && res.data?.status === 403) {
-                toast.error("Mật Khẩu Không Đúng")
-            } else if (res.data && res.data?.status === 401) {
-                toast.error("Tài Khoản Chưa Xác Thực")
+            const res = await customerRegister(formData);
+            if (res.data && res.data?.status === 201) {
+                toast.success("Đăng Ký Tài Khoản Thành Công");
                 navigate(`/verify/${formData.email}`)
+            } else if (res.data && res.data?.code === 400) {
+                toast.error(res.data?.message === "Email already exits" ? "Email Đã Tồn Tại" : "Tên Tài Khoản Đã Tồn Tại")
             } else {
-                toast.error("Đăng Nhập Thất Bại")
+                toast.error("Đăng Ký Thất Bại")
             }
         } catch (error) {
-            console.log("Server Error", error);
-
+            console.log("Server error", error);
         }
+        // Xử lý đăng ký ở đây
     };
-
     return (
         <div className="min-h-screen bg-gradient-to-br from-green-50 to-amber-50 flex items-center justify-center p-4">
             <div className="w-full max-w-md">
                 <Card className="shadow-xl border-0 bg-white/95 backdrop-blur-sm">
                     <CardHeader className="text-center pb-6">
-                        <div className="mx-auto mb-4 w-16 h-16  rounded-full flex items-center justify-center">
-                            <img className='' src={logo} />
+                        <div className="mx-auto mb-4 w-16 h-16 bg-gradient-to-r from-green-600 to-amber-600 rounded-full flex items-center justify-center">
+                            <span className="text-2xl">🌰</span>
                         </div>
                         <CardTitle className="text-2xl font-bold text-gray-800">
-                            {isLogin ? 'Đăng Nhập' : 'Đăng Ký'}
+                            Đăng Ký Tài Khoản
                         </CardTitle>
                         <CardDescription className="text-gray-600">
-                            {isLogin
-                                ? 'Chào mừng bạn trở lại với cửa hàng hạt dinh dưỡng'
-                                : 'Tạo tài khoản mới để khám phá các sản phẩm hạt dinh dưỡng tuyệt vời'
-                            }
+                            Tạo tài khoản mới để khám phá các sản phẩm hạt dinh dưỡng tuyệt vời
                         </CardDescription>
                     </CardHeader>
 
                     <CardContent>
                         <form onSubmit={handleSubmit} className="space-y-4">
-                            {/* {!isLogin && (
-                                <div className="space-y-2">
-                                    <Label htmlFor="fullName" className="text-sm font-medium text-gray-700">
-                                        Họ và tên
-                                    </Label>
-                                    <div className="relative">
-                                        <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                                        <Input
-                                            id="fullName"
-                                            name="fullName"
-                                            type="text"
-                                            placeholder="Nhập họ và tên của bạn"
-                                            value={formData.fullName}
-                                            onChange={handleInputChange}
-                                            className="pl-10 h-12 border-gray-200 focus:border-green-500 focus:ring-green-500"
-                                            required={!isLogin}
-                                        />
-                                    </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="username" className="text-sm font-medium text-gray-700">
+                                    Tên đăng nhập
+                                </Label>
+                                <div className="relative">
+                                    <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                                    <Input
+                                        id="username"
+                                        name="username"
+                                        type="text"
+                                        placeholder="Nhập tên đăng nhập của bạn"
+                                        value={formData.username}
+                                        onChange={handleInputChange}
+                                        className="pl-10 h-12 border-gray-200 focus:border-green-500 focus:ring-green-500"
+                                        required
+                                    />
                                 </div>
-                            )} */}
+                            </div>
 
                             <div className="space-y-2">
                                 <Label htmlFor="email" className="text-sm font-medium text-gray-700">
                                     Email
                                 </Label>
                                 <div className="relative">
-                                    <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                                    <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                                     <Input
                                         id="email"
                                         name="email"
@@ -147,41 +125,37 @@ const Login = () => {
                                 </div>
                             </div>
 
-                            {/* {!isLogin && (
-                                <div className="space-y-2">
-                                    <Label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">
-                                        Xác nhận mật khẩu
-                                    </Label>
-                                    <div className="relative">
-                                        <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                                        <Input
-                                            id="confirmPassword"
-                                            name="confirmPassword"
-                                            type={showPassword ? 'text' : 'password'}
-                                            placeholder="Nhập lại mật khẩu của bạn"
-                                            value={formData.confirmPassword}
-                                            onChange={handleInputChange}
-                                            className="pl-10 h-12 border-gray-200 focus:border-green-500 focus:ring-green-500"
-                                            required={!isLogin}
-                                        />
-                                    </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">
+                                    Nhập lại mật khẩu
+                                </Label>
+                                <div className="relative">
+                                    <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                                    <Input
+                                        id="confirmPassword"
+                                        name="confirmPassword"
+                                        type={showConfirmPassword ? 'text' : 'password'}
+                                        placeholder="Nhập lại mật khẩu của bạn"
+                                        value={formData.confirmPassword}
+                                        onChange={handleInputChange}
+                                        className="pl-10 pr-10 h-12 border-gray-200 focus:border-green-500 focus:ring-green-500"
+                                        required
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                        className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+                                    >
+                                        {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                    </button>
                                 </div>
-                            )} */}
-
-
-                            <div className="flex items-end justify-between">
-                                <label className="flex items-center">
-                                </label>
-                                <button type="button" className="text-sm text-green-600 hover:text-green-700 font-medium">
-                                    Quên mật khẩu?
-                                </button>
                             </div>
 
                             <Button
                                 type="submit"
                                 className="w-full h-12 bg-gradient-to-r from-green-600 to-amber-600 hover:from-green-700 hover:to-amber-700 text-white font-medium rounded-lg transition-all duration-200 transform hover:scale-[1.02]"
                             >
-                                {isLogin ? 'Đăng Nhập' : 'Đăng Ký'}
+                                Đăng Ký
                             </Button>
                         </form>
 
@@ -207,21 +181,20 @@ const Login = () => {
                                         <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
                                         <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
                                     </svg>
-                                    Đăng nhập bằng Google
+                                    Đăng ký bằng Google
                                 </Button>
                             </div>
                         </div>
 
                         <div className="mt-6 text-center">
                             <p className="text-sm text-gray-600">
-                                {isLogin ? 'Chưa có tài khoản?' : 'Đã có tài khoản?'}
-                                <button
-                                    type="button"
-                                    onClick={() => setIsLogin(!isLogin)}
+                                Đã có tài khoản?
+                                <Link
+                                    to="/login"
                                     className="ml-1 text-green-600 hover:text-green-700 font-medium"
                                 >
-                                    {isLogin ? 'Đăng ký ngay' : 'Đăng nhập'}
-                                </button>
+                                    Đăng nhập ngay
+                                </Link>
                             </p>
                         </div>
                     </CardContent>
@@ -229,7 +202,7 @@ const Login = () => {
 
                 <div className="mt-6 text-center">
                     <p className="text-xs text-gray-500">
-                        Bằng việc đăng nhập, bạn đồng ý với{' '}
+                        Bằng việc đăng ký, bạn đồng ý với{' '}
                         <a href="#" className="text-green-600 hover:text-green-700">Điều khoản sử dụng</a>
                         {' '}và{' '}
                         <a href="#" className="text-green-600 hover:text-green-700">Chính sách bảo mật</a>
@@ -240,4 +213,4 @@ const Login = () => {
     );
 };
 
-export default Login;
+export default Register;
