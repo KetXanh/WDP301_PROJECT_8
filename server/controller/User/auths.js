@@ -13,7 +13,8 @@ module.exports.register = async (req, res) => {
             $or: [{ email }, { username }]
         })
         if (emailExit) {
-            return res.status(400).json({
+            return res.json({
+                code: 400,
                 message: emailExit.email === req.body.email
                     ? "Email already exits"
                     : "Username already exits"
@@ -21,7 +22,8 @@ module.exports.register = async (req, res) => {
         }
         const user = new Users(req.body);
         user.save();
-        res.status(201).json({
+        res.json({
+            code: 201,
             message: "Register successfully"
         })
         const otp = generalOtp.generateOtp(6);
@@ -119,20 +121,23 @@ module.exports.register = async (req, res) => {
 module.exports.vertifyAccount = async (req, res) => {
     try {
         const { otp, email } = req.body;
+
         const optCorrect = await Otp.findOne({
             email: email,
             otp: otp,
             purpose: "verify-email"
         })
+
         if (!optCorrect) {
-            return res.status(400).json({ message: "OTP Not Correct" })
+            return res.json({ code: 400, message: "OTP Not Correct" })
         }
         await Users.updateOne({
             email: email
         }, {
             status: "active"
         })
-        res.status(200).json({
+        res.json({
+            code: 200,
             message: "Vertify Successfully"
         })
     } catch (error) {
@@ -143,11 +148,19 @@ module.exports.vertifyAccount = async (req, res) => {
 module.exports.resendOtp = async (req, res) => {
     try {
         const { email } = req.body;
-        const vertifyExits = await Otp.findOne({
-            email: email
+        if (!email) {
+            return res.json({
+                code: 401,
+                message: "Email Not Found"
+            })
+        }
+        const vertifyExits = await Users.findOne({
+            email: email,
+            status: "active"
         })
         if (vertifyExits) {
-            return res.code(400).json({
+            return res.json({
+                code: 400,
                 message: "Account is Vertify"
             })
         }
@@ -236,7 +249,8 @@ module.exports.resendOtp = async (req, res) => {
                         </html>
                         `;
         sendEmail.sendEmail(email, subject, html)
-        res.status(200).json({
+        res.json({
+            code: 200,
             message: "Resend Otp Successfully"
         })
     } catch (error) {
@@ -253,7 +267,8 @@ module.exports.forgot = async (req, res) => {
             status: "active"
         })
         if (!user) {
-            return res.status(401).json({
+            return res.json({
+                code: 401,
                 message: "Email Not Exits"
             })
         }
@@ -342,7 +357,7 @@ module.exports.forgot = async (req, res) => {
                             </html>
                     `;
         sendEmail.sendEmail(email, subject, html);
-        res.status(200).json({ email, message: "Send Otp Successfully" })
+        res.json({ code: 200, email, message: "Send Otp Successfully" })
 
     } catch (error) {
         res.status(500).json({ message: "Server Error", error: error.message });
@@ -358,15 +373,16 @@ module.exports.otp = async (req, res) => {
             otp: otp
         })
         if (!otpExits) {
-            return res.status(400).json({ message: "OTP Not Correct" })
+            return res.json({ code: 400, message: "OTP Not Correct" })
         }
         const user = await Users.findOne({
             email: email
         })
         if (!user) {
-            return res.status(401).json({ message: "Email Not Correct" })
+            return res.json({ code: 401, message: "Email Not Correct" })
         }
-        res.status(200).json({
+        res.json({
+            code: 200,
             message: "Otp is correct"
         })
     } catch (error) {
@@ -376,15 +392,17 @@ module.exports.otp = async (req, res) => {
 
 module.exports.reset = async (req, res) => {
     try {
-        const email = req.user.email;
+        const { email, password } = req.body;
         const newPassword = await hashPassword(req.body.password);
         if (!email) {
-            return res.status(401).json({
+            return res.json({
+                code: 401,
                 message: "User Not Found"
             })
         }
         await Users.updateOne({ email: email }, { password: newPassword })
-        res.status(200).json({
+        res.json({
+            code: 200,
             message: "Reset Password Successfully"
         })
     } catch (error) {
@@ -400,11 +418,13 @@ module.exports.getProfile = async (req, res) => {
             status: "active"
         }).select("username email address avatar")
         if (!user) {
-            return res.status(401).json({
+            return res.json({
+                code: 401,
                 message: "User not found"
             })
         }
-        res.status(200).json({
+        res.json({
+            code: 200,
             message: "Get Profile Successfully",
             user
         })
