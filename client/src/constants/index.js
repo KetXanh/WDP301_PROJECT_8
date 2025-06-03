@@ -11,8 +11,6 @@ import {
 } from "react-icons/io";
 import {
   FaChartBar,
-  FaCalendarAlt,
-  FaFacebookMessenger,
   FaUsersCog,
   FaListAlt,
   FaMoon,
@@ -20,7 +18,7 @@ import {
   FaCartPlus,
 } from "react-icons/fa";
 import { HiOutlineMenuAlt2 } from "react-icons/hi";
-import { MdOutlineCategory, MdSpaceDashboard } from "react-icons/md";
+import { MdCategory, MdOutlineCategory, MdSpaceDashboard } from "react-icons/md";
 
 import user01 from "../assets/user01.png";
 import user02 from "../assets/user02.png";
@@ -48,9 +46,9 @@ export const links = [
     text: "Order",
   },
   {
-    href: "/admin/user",
-    icon: FaUsersCog,
-    text: "Users",
+    href: "/admin/subcategory",
+    icon: MdCategory,
+    text: "SubCategories",
   },
   {
     href: "/admin/product",

@@ -1,0 +1,63 @@
+// services/AdminApi.jsx
+import instance from "../CustomizeApi";
+
+// Lấy danh sách tất cả sản phẩm
+export const getAllProducts = () => {
+  return instance.get("/productmanager/product/getAllProducts");
+};
+
+// Lấy chi tiết sản phẩm theo ID
+export const getProductById = (id) => {
+  return instance.get(`/productmanager/product/getProductById/${id}`);
+};
+
+// Tạo sản phẩm mới (multipart/form-data)
+export const createProduct = (formData) => {
+  return instance.post("/productmanager/product/createProduct", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+};
+
+// Cập nhật sản phẩm theo ID
+export const updateProduct = (id, formData) => {
+  return instance.put(
+    `/productmanager/product/updateProduct/${id}`,
+    formData,
+    {
+      headers: { "Content-Type": "multipart/form-data" },
+    }
+  );
+};
+
+// Xóa sản phẩm theo ID
+export const deleteProduct = (id) => {
+  return instance.delete(`/productmanager/product/deleteProduct/${id}`);
+};
+
+// Kích hoạt / vô hiệu hóa sản phẩm
+export const activeProduct = (id) => {
+  return instance.put(`/productmanager/product/activeProduct/${id}`);
+};
+
+// Cập nhật tồn kho cho sản phẩm
+export const updateStock = (id, stockData) => {
+  return instance.put(
+    `/productmanager/product/updateStock/${id}`,
+    stockData
+  );
+};
+
+// Lấy tổng số lượng tồn kho
+export const getTotalStock = () => {
+  return instance.get("/productmanager/product/total-stock");
+};
+
+
+export const getAllCategories = () => {
+  return instance.get("/productmanager/category/getAllCategories");
+};
+
+export const getAllSubCategories = () => {
+  return instance.get("/productmanager/category/getAllSubCategories");
+};
+

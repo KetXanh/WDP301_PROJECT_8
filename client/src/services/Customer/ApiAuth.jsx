@@ -16,3 +16,4 @@ export const customerResendOtp = ({ email }) => {
 export const customerProfile = () => {
     return instance.get('/user/auth/profile')
 } 
+

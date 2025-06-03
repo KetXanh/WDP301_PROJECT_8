@@ -23,3 +23,19 @@ module.exports.register = async (req, res) => {
         res.status(500).json({ message: "Server Error", error: error.message });
     }
 }
+
+exports.getAllUsers = async (req, res) => {
+  try {
+    const users = await Users.find().select("-password -re_token"); // Không trả về password và refresh token
+    res.status(200).json({
+      success: true,
+      data: users,
+    });
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+};

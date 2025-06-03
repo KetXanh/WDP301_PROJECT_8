@@ -19,9 +19,9 @@ import Sidebar from "./components/admin/Sidebar";
 import HeaderAdmin from "./components/admin/Header";
 import Product from "./pages/admin/Product";
 import Order from "./pages/admin/Order";
-import User from "./pages/admin/User";
 import Category from "./pages/admin/Category";
 import Dashboard from "./pages/admin/DashBoard";
+import SubCategory from "./pages/admin/SubCategory";
 
 // Layouts
 const CustomerLayout = () => (
@@ -93,7 +93,7 @@ function App() {
         <Route index element={<Dashboard />} />
         <Route path="product" element={<Product />} />
         <Route path="order" element={<Order />} />
-        <Route path="user" element={<User />} />
+        <Route path="subcategory" element={<SubCategory/>} />
         <Route path="category" element={<Category />} />
       </Route>
 
