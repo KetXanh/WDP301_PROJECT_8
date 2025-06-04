@@ -13,6 +13,9 @@ import Footer from "./components/customer/Footer";
 import HeaderCustomer from "./components/customer/Header";
 import Products from "./pages/Customers/Product";
 import Verify from "./pages/Customers/Verify";
+import ForgotPassword from "./pages/Customers/ForgotPassword";
+import ForgotOtp from "./pages/Customers/ForgotOtp";
+import ResetPassword from "./pages/Customers/ResetPassword";
 
 // Admin Pages
 import Sidebar from "./components/admin/Sidebar";
@@ -23,7 +26,7 @@ import Category from "./pages/admin/Category";
 import Dashboard from "./pages/admin/DashBoard";
 import SubCategory from "./pages/admin/SubCategory";
 
-// Layouts
+// Customer Layout
 const CustomerLayout = () => (
   <div className="min-h-screen flex flex-col">
     <HeaderCustomer />
@@ -35,6 +38,7 @@ const CustomerLayout = () => (
   </div>
 );
 
+// Admin Layout
 const AdminLayout = ({
   toggleSidebar,
   isSidebarOpen,
@@ -68,38 +72,43 @@ function App() {
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
   return (
-    <Routes>
-      {/* Customer Routes */}
-      <Route path="/" element={<CustomerLayout />}>
-        <Route index element={<HomePage />} />
-        <Route path="login" element={<Login />} />
-        <Route path="register" element={<Register />} />
-        <Route path="verify/:email" element={<Verify />} />
-        <Route path="product" element={<Products />} />
-      </Route>
+    <div className={darkMode ? "dark" : ""}>
+      <Routes>
+        {/* Customer Routes */}
+        <Route path="/" element={<CustomerLayout />}>
+          <Route index element={<HomePage />} />
+          <Route path="login" element={<Login />} />
+          <Route path="register" element={<Register />} />
+          <Route path="verify/:email" element={<Verify />} />
+          <Route path="forgot-password" element={<ForgotPassword />} />
+          <Route path="otp" element={<ForgotOtp />} />
+          <Route path="reset-password" element={<ResetPassword />} />
+          <Route path="product" element={<Products />} />
+        </Route>
 
-      {/* Admin Routes */}
-      <Route
-        path="/admin"
-        element={
-          <AdminLayout
-            toggleSidebar={toggleSidebar}
-            isSidebarOpen={isSidebarOpen}
-            toggleDarkMode={toggleDarkMode}
-            darkMode={darkMode}
-          />
-        }
-      >
-        <Route index element={<Dashboard />} />
-        <Route path="product" element={<Product />} />
-        <Route path="order" element={<Order />} />
-        <Route path="subcategory" element={<SubCategory/>} />
-        <Route path="category" element={<Category />} />
-      </Route>
+        {/* Admin Routes */}
+        <Route
+          path="/admin"
+          element={
+            <AdminLayout
+              toggleSidebar={toggleSidebar}
+              isSidebarOpen={isSidebarOpen}
+              toggleDarkMode={toggleDarkMode}
+              darkMode={darkMode}
+            />
+          }
+        >
+          <Route index element={<Dashboard />} />
+          <Route path="product" element={<Product />} />
+          <Route path="order" element={<Order />} />
+          <Route path="subcategory" element={<SubCategory />} />
+          <Route path="category" element={<Category />} />
+        </Route>
 
-      {/* Not Found */}
-      <Route path="*" element={<NotFound />} />
-    </Routes>
+        {/* Not Found */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </div>
   );
 }
 
