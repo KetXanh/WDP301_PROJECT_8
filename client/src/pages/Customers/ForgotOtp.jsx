@@ -1,75 +1,55 @@
 import React, { useState } from 'react';
-import { toast } from 'react-toastify';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
-import { customerResendOtp, customerVerify } from '../../services/Customer/ApiAuth';
-const Verify = () => {
+import { toast } from 'react-toastify';
+import { otpForgotPass } from '../../services/Customer/ApiAuth';
+const ForgotOtp = () => {
     const [otpValue, setOtpValue] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const location = useLocation();
+    const email = location.state?.email;
     const navigate = useNavigate();
-    const { email } = useParams();
+
     const handleVerify = async () => {
         if (otpValue.length !== 6) {
             toast.error("Vui lòng nhập đầy đủ 6 số");
             return;
         }
+
         setIsLoading(true);
+
         try {
-            if (!email) {
-                toast.error("Không Tìm Thấy Email");
-                navigate(-1)
-                return;
+            if (!otpValue) {
+                return toast.error("Vui Lòng Nhập OTP")
             }
-            setIsLoading(false);
-            const res = await customerVerify(email, otpValue);
-            if (res.data && res.data.code === 200) {
-                toast.success("Xác Thực Tài Khoản Thành Công")
-                navigate('/login')
-            } else if (res.data && res.data.code === 400) {
-                toast.error("OTP Không Chính Xác")
-            } else {
-                toast.error("Xác THực Tài Khoản Thất Bại")
-            }
-        } catch (error) {
-            console.log("Server Error", error);
-
-        }
-
-    };
-
-
-    const handleResendCode = async () => {
-        if (!email) {
-            toast.error("Không Tìm Thấy Email");
-            navigate(-1)
-            return;
-        }
-        try {
-            const res = await customerResendOtp(email);
+            const res = await otpForgotPass(otpValue, email);
 
             if (res.data && res.data.code === 200) {
-                toast.success("Gửi OTP Thành Công")
+                navigate('/reset-password', { state: { email } })
+                setIsLoading(false)
             } else if (res.data && res.data.code === 400) {
-                toast.error("Tài Khoản Đã Được Xác Thực");
-                navigate('/login');
+                toast.error("Mã OTP Không Đúng")
+            } else if (res.data && res.data.code === 401) {
+                toast.error("Email Không Tồn Tại")
             } else {
-                toast.error(`Không thể gửi OTP`);
+                toast.error("Gửi OTP Thất Bại")
             }
         } catch (error) {
-            toast.error("Không thể kết nối tới server");
             console.log(error);
 
         }
     };
+
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-green-50 to-amber-50 flex items-center justify-center p-4">
             <div className="w-full max-w-md">
                 <div className="mb-6">
                     <Link
-                        to="/register"
+                        to="/forgot-password"
                         className="inline-flex items-center text-gray-600 hover:text-gray-800 transition-colors"
                     >
                         <ArrowLeft className="h-4 w-4 mr-2" />
@@ -80,21 +60,21 @@ const Verify = () => {
                 <Card className="shadow-xl">
                     <CardHeader className="text-center">
                         <div className="w-16 h-16 bg-gradient-to-r from-green-600 to-amber-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <span className="text-2xl">📧</span>
+                            <span className="text-2xl">🔐</span>
                         </div>
                         <CardTitle className="text-2xl font-bold text-gray-800">
-                            Xác Thực Email
+                            Xác Thực OTP
                         </CardTitle>
                         <CardDescription className="text-gray-600">
-                            Chúng tôi đã gửi mã xác thực 6 số đến email của bạn.
-                            Vui lòng nhập mã để hoàn tất đăng ký.
+                            Chúng tôi đã gửi mã OTP 6 số đến email của bạn.
+                            Vui lòng nhập mã để tiếp tục đặt lại mật khẩu.
                         </CardDescription>
                     </CardHeader>
 
                     <CardContent className="space-y-6">
                         <div className="flex flex-col items-center space-y-4">
                             <label className="text-sm font-medium text-gray-700">
-                                Nhập mã xác thực
+                                Nhập mã OTP
                             </label>
 
                             <InputOTP
@@ -118,20 +98,9 @@ const Verify = () => {
                             disabled={isLoading || otpValue.length !== 6}
                             className="w-full bg-gradient-to-r from-green-600 to-amber-600 hover:from-green-700 hover:to-amber-700"
                         >
-                            {isLoading ? "Đang xác thực..." : "Xác Thực"}
+                            {isLoading ? "Đang xác thực..." : "Xác Thực OTP"}
                         </Button>
 
-                        <div className="text-center">
-                            <p className="text-sm text-gray-600 mb-2">
-                                Không nhận được mã?
-                            </p>
-                            <button
-                                onClick={handleResendCode}
-                                className="text-sm text-green-600 hover:text-green-700 font-medium underline"
-                            >
-                                Gửi lại mã xác thực
-                            </button>
-                        </div>
                     </CardContent>
                 </Card>
             </div>
@@ -139,4 +108,4 @@ const Verify = () => {
     );
 };
 
-export default Verify;
+export default ForgotOtp;

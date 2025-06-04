@@ -1,5 +1,5 @@
 import React from 'react';
-
+import logo from '../../assets/NutiGo.png'
 const Footer = () => {
     return (
         <div>
@@ -9,8 +9,8 @@ const Footer = () => {
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                         <div>
                             <div className="flex items-center space-x-2 mb-4">
-                                <div className="w-8 h-8 bg-gradient-to-r from-green-600 to-amber-600 rounded-full flex items-center justify-center">
-                                    <span className="text-lg">🌰</span>
+                                <div className="w-8 h-8 rounded-full flex items-center justify-center">
+                                    <img className='' src={logo} />
                                 </div>
                                 <span className="text-xl font-bold">NutiGo</span>
                             </div>
@@ -43,8 +43,8 @@ const Footer = () => {
                             <h3 className="text-lg font-semibold mb-4">Liên Hệ</h3>
                             <ul className="space-y-2 text-gray-400">
                                 <li>📞 0123 456 789</li>
-                                <li>📧 info@nutigo.com</li>
-                                <li>📍 123 Đường ABC, TP.HCM</li>
+                                <li>📧 nutigo93@gmail.com</li>
+                                <li>📍 Hòa Lạc, TP.Hà Nội</li>
                             </ul>
                         </div>
                     </div>

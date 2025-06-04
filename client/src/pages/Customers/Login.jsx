@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Eye, EyeOff, User, Lock } from 'lucide-react';
-import logo from '../../assets/NutiGo.jpg'
+import logo from '../../assets/NutiGo.png'
 import { customerLogin } from '../../services/Customer/ApiAuth';
 import { toast } from 'react-toastify';
 import { useDispatch } from 'react-redux';
@@ -27,14 +27,22 @@ const Login = () => {
             [e.target.name]: e.target.value
         });
     };
-
+    const isValidEmail = (email) => {
+        const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return regex.test(email);
+    };
     const handleSubmit = async (e) => {
         e.preventDefault();
         console.log('Form submitted:', formData);
-        // Xử lý đăng nhập/đăng ký ở đây
         try {
+            if (!formData.email || !formData.password) {
+                return toast.error("Email Hoặc Mật Khẩu Không Để Trống")
+            }
+            if (!isValidEmail(formData.email)) {
+                return toast.error("Email Không Đúng Định Dạng")
+            }
             const res = await customerLogin(formData);
-            if (res.data && res.status === 200) {
+            if (res.data && res.data.code === 200) {
                 const dataToken = {
                     accessToken: res.data?.accessToken,
                     refreshToken: res.data?.refreshToken
@@ -42,20 +50,33 @@ const Login = () => {
                 dispatch(login(dataToken))
                 toast.success("Đăng Nhập Thành Công")
                 navigate('/')
-            } else if (res.data && res.data?.status === 400) {
-                toast.error("Email Không Tồn Tại")
-            } else if (res.data && res.data?.status === 402) {
-                toast.error("Tài Khoản Không Tồn Tại")
-            } else if (res.data && res.data?.status === 403) {
-                toast.error("Mật Khẩu Không Đúng")
-            } else if (res.data && res.data?.status === 401) {
-                toast.error("Tài Khoản Chưa Xác Thực")
-                navigate(`/verify/${formData.email}`)
+            } else if (res.data) {
+                const status = res.data.code;
+                switch (status) {
+                    case 400:
+                        toast.error("Email Không Tồn Tại");
+                        break;
+                    case 403:
+                        toast.error("Mật Khẩu Không Đúng");
+                        break;
+                    case 402:
+                        toast.error("Tài Khoản Không Tồn Tại");
+                        break;
+                    case 401:
+                        toast.error("Tài Khoản Chưa Xác Thực");
+                        console.log(formData.email);
+                        navigate(`/verify/${formData.email}`);
+                        break;
+                    default:
+                        toast.error("Đăng Nhập Thất Bại");
+                        break;
+                }
             } else {
-                toast.error("Đăng Nhập Thất Bại")
+                toast.error("Không thể kết nối đến máy chủ");
             }
         } catch (error) {
-            console.log("Server Error", error);
+            toast.error("Không thể kết nối đến máy chủ");
+            console.log(error);
 
         }
     };
@@ -81,27 +102,6 @@ const Login = () => {
 
                     <CardContent>
                         <form onSubmit={handleSubmit} className="space-y-4">
-                            {/* {!isLogin && (
-                                <div className="space-y-2">
-                                    <Label htmlFor="fullName" className="text-sm font-medium text-gray-700">
-                                        Họ và tên
-                                    </Label>
-                                    <div className="relative">
-                                        <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                                        <Input
-                                            id="fullName"
-                                            name="fullName"
-                                            type="text"
-                                            placeholder="Nhập họ và tên của bạn"
-                                            value={formData.fullName}
-                                            onChange={handleInputChange}
-                                            className="pl-10 h-12 border-gray-200 focus:border-green-500 focus:ring-green-500"
-                                            required={!isLogin}
-                                        />
-                                    </div>
-                                </div>
-                            )} */}
-
                             <div className="space-y-2">
                                 <Label htmlFor="email" className="text-sm font-medium text-gray-700">
                                     Email
@@ -116,7 +116,6 @@ const Login = () => {
                                         value={formData.email}
                                         onChange={handleInputChange}
                                         className="pl-10 h-12 border-gray-200 focus:border-green-500 focus:ring-green-500"
-                                        required
                                     />
                                 </div>
                             </div>
@@ -135,7 +134,6 @@ const Login = () => {
                                         value={formData.password}
                                         onChange={handleInputChange}
                                         className="pl-10 pr-10 h-12 border-gray-200 focus:border-green-500 focus:ring-green-500"
-                                        required
                                     />
                                     <button
                                         type="button"
@@ -147,32 +145,11 @@ const Login = () => {
                                 </div>
                             </div>
 
-                            {/* {!isLogin && (
-                                <div className="space-y-2">
-                                    <Label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">
-                                        Xác nhận mật khẩu
-                                    </Label>
-                                    <div className="relative">
-                                        <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                                        <Input
-                                            id="confirmPassword"
-                                            name="confirmPassword"
-                                            type={showPassword ? 'text' : 'password'}
-                                            placeholder="Nhập lại mật khẩu của bạn"
-                                            value={formData.confirmPassword}
-                                            onChange={handleInputChange}
-                                            className="pl-10 h-12 border-gray-200 focus:border-green-500 focus:ring-green-500"
-                                            required={!isLogin}
-                                        />
-                                    </div>
-                                </div>
-                            )} */}
-
 
                             <div className="flex items-end justify-between">
                                 <label className="flex items-center">
                                 </label>
-                                <button type="button" className="text-sm text-green-600 hover:text-green-700 font-medium">
+                                <button onClick={() => navigate('/forgot-password')} type="button" className="text-sm text-green-600 hover:text-green-700 font-medium">
                                     Quên mật khẩu?
                                 </button>
                             </div>

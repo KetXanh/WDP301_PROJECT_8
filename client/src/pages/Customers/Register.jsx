@@ -24,16 +24,41 @@ const Register = () => {
             [e.target.name]: e.target.value
         });
     };
-
+    const isValidEmail = (email) => {
+        const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return regex.test(email);
+    };
     const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log('Registration form submitted:', formData);
         try {
-            const res = await customerRegister(formData);
-            if (res.data && res.data?.status === 201) {
+            if (!formData.username) {
+                return toast.error("Tên Tài Khoản Không Để Trống")
+            }
+            if (!formData.email) {
+                return toast.error("Email Không Để Trống")
+            }
+            if (!formData.password) {
+                return toast.error("Mật Khẩu Không Để Trống")
+            }
+            if (!formData.confirmPassword) {
+                return toast.error("Mật Khẩu Xác Nhận Không Để Trống")
+            }
+            if (!isValidEmail(formData.email)) {
+                toast.error("Email Không Đúng Định Dạng")
+            }
+            if (formData.password.length < 6) {
+                return toast.error("Mật Khẩu Phải Hơn 6 Ký Tự")
+            }
+            if (formData.password !== formData.confirmPassword) {
+                return toast.error("Xác Nhận Mật Khẩu Không Khớp")
+            }
+            const res = await customerRegister(formData.username, formData.email, formData.password);
+            console.log(res);
+
+            if (res.data && res.data.code === 201) {
                 toast.success("Đăng Ký Tài Khoản Thành Công");
                 navigate(`/verify/${formData.email}`)
-            } else if (res.data && res.data?.code === 400) {
+            } else if (res.data && res.data.code === 400) {
                 toast.error(res.data?.message === "Email already exits" ? "Email Đã Tồn Tại" : "Tên Tài Khoản Đã Tồn Tại")
             } else {
                 toast.error("Đăng Ký Thất Bại")
@@ -41,7 +66,6 @@ const Register = () => {
         } catch (error) {
             console.log("Server error", error);
         }
-        // Xử lý đăng ký ở đây
     };
     return (
         <div className="min-h-screen bg-gradient-to-br from-green-50 to-amber-50 flex items-center justify-center p-4">
@@ -75,7 +99,6 @@ const Register = () => {
                                         value={formData.username}
                                         onChange={handleInputChange}
                                         className="pl-10 h-12 border-gray-200 focus:border-green-500 focus:ring-green-500"
-                                        required
                                     />
                                 </div>
                             </div>
@@ -94,7 +117,6 @@ const Register = () => {
                                         value={formData.email}
                                         onChange={handleInputChange}
                                         className="pl-10 h-12 border-gray-200 focus:border-green-500 focus:ring-green-500"
-                                        required
                                     />
                                 </div>
                             </div>
@@ -113,7 +135,6 @@ const Register = () => {
                                         value={formData.password}
                                         onChange={handleInputChange}
                                         className="pl-10 pr-10 h-12 border-gray-200 focus:border-green-500 focus:ring-green-500"
-                                        required
                                     />
                                     <button
                                         type="button"
@@ -139,7 +160,6 @@ const Register = () => {
                                         value={formData.confirmPassword}
                                         onChange={handleInputChange}
                                         className="pl-10 pr-10 h-12 border-gray-200 focus:border-green-500 focus:ring-green-500"
-                                        required
                                     />
                                     <button
                                         type="button"
