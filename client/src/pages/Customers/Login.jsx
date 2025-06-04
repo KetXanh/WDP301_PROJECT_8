@@ -5,12 +5,13 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Eye, EyeOff, User, Lock } from 'lucide-react';
 import logo from '../../assets/NutiGo.jpg'
-import { customerLogin } from '../../services/Customer/ApiAuth';
+import { customerLogin, loginGooogle } from '../../services/Customer/ApiAuth';
 import { toast } from 'react-toastify';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { login } from '../../store/customer/authSlice';
-
+import { useGoogleLogin } from '@react-oauth/google';
+import { GoogleLogin } from '@react-oauth/google';
 const Login = () => {
     const [isLogin, setIsLogin] = useState(true);
     const [showPassword, setShowPassword] = useState(false);
@@ -31,9 +32,46 @@ const Login = () => {
         const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return regex.test(email);
     };
+    const loginGg = useGoogleLogin({
+        onSuccess: async (tokenResponse) => {
+            // Gửi access_token hoặc gọi API để lấy profile
+            console.log(tokenResponse);
+            const res = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+                headers: {
+                    Authorization: `Bearer ${tokenResponse.access_token}`,
+                },
+            });
+
+            const profile = await res.json();
+            console.log(profile); // name, email, picture
+            try {
+                const res = await loginGooogle(profile.email, profile.name, profile.picture);
+                console.log(res);
+
+                if (res.data?.code === 200) {
+                    const dataToken = {
+                        accessToken: res.data?.accessToken,
+                        refreshToken: res.data?.refreshToken
+                    }
+                    dispatch(login(dataToken));
+                    toast.success("Đăng nhập thành công");
+                    navigate("/");
+                } else {
+                    toast.error("Đăng nhập thất bại");
+                }
+            } catch (err) {
+                console.error(err); // log chi tiết lỗi
+                toast.error("Lỗi kết nối đến máy chủ");
+            }
+        },
+        onError: () => {
+            toast.success("Đăng nhập Google thất bại")
+        },
+
+    });
+
     const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log('Form submitted:', formData);
         try {
             if (!formData.email || !formData.password) {
                 return toast.error("Email Hoặc Mật Khẩu Không Để Trống")
@@ -174,6 +212,7 @@ const Login = () => {
 
                             <div className="mt-6">
                                 <Button
+                                    onClick={() => loginGg()}
                                     type="button"
                                     variant="outline"
                                     className="w-full h-12 border-gray-200 hover:bg-gray-50"

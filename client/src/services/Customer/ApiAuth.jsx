@@ -26,4 +26,8 @@ export const otpForgotPass = (otp, email) => {
 }
 export const resetPass = (email, password) => {
     return instance.post('/user/auth/reset-password', { email, password })
+}
+
+export const loginGooogle = (email, name, picture) => {
+    return instance.post('/user/auth/login-google', { email, name, picture })
 } 
