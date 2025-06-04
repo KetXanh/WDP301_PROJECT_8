@@ -3,8 +3,9 @@ const Users = require('../../models/user');
 const { hashPassword } = require('../../utils/bcryptHelper');
 const generalOtp = require('../../utils/generateOtp')
 const sendEmail = require('../../utils/sendEmail')
-const { jwtDecode } = require('jwt-decode')
+// const { jwtDecode } = require('jwt-decode')
 const { cloudinary } = require('../../middleware/upload.middleware')
+var jwt = require('jsonwebtoken');
 module.exports.register = async (req, res) => {
     try {
         const { email, username } = req.body;
@@ -413,6 +414,7 @@ module.exports.reset = async (req, res) => {
 module.exports.getProfile = async (req, res) => {
     try {
         const email = req.user.email;
+
         const user = await Users.findOne({
             email: email,
             status: "active"
@@ -499,20 +501,21 @@ module.exports.updateProfile = async (req, res) => {
 
 module.exports.loginGoogle = async (req, res) => {
     try {
-        const { tokenGoogle } = req.body;
-        const user = jwtDecode(tokenGoogle)
-        const userExits = await Users.findOne({ email: user.email });
+        const { email, name, picture } = req.body;
+
+        let userExits = await Users.findOne({ email: email });
         if (!userExits) {
             const newUser = new Users({
-                username: user.name,
-                email: user.email,
+                username: name,
+                email: email,
                 avatar: {
-                    url: user.picture
+                    url: picture
                 },
                 password: "",
+                status: "active"
             })
             await newUser.save();
-
+            userExits = newUser;
         }
         const dataToken = {
             username: userExits.username,
@@ -526,7 +529,8 @@ module.exports.loginGoogle = async (req, res) => {
             { re_token: refreshToken },
             { new: true }
         );
-        return res.status(200).json({
+        return res.json({
+            code: 200,
             message: "Login successfully",
             accessToken,
             refreshToken,
