@@ -8,8 +8,8 @@ const userRouter = require('./routers/user/index')
 const authRouter = require('./routers/Auth/index')
 const productRouter = require('./routers/ProductManager/index')
 const saleManager = require('./routers/SaleManager/index')
-
-require('dotenv').config();
+const chatRouter = require('./routers/chatbot/index')
+require('dotenv').config(); 
 
 const corsOptions = {
     origin: ["http://localhost:5173", "http://localhost:5174"],
@@ -25,7 +25,7 @@ userRouter(app)
 authRouter(app)
 productRouter(app)
 saleManager(app)
-
+chatRouter(app)
 const PORT = process.env.PORT || 9999;
 app.listen(PORT, () => {
     connectDb();

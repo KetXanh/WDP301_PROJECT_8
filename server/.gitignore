@@ -20,3 +20,6 @@ Thumbs.db
 # Tệp build hoặc output (nếu có)
 dist/
 build/
+
+# Firebase service account key
+config/serviceAccountKey.json
