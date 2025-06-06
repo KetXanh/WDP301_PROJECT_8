@@ -1,16 +1,49 @@
-import { Eye, Trash2, Filter, Plus } from "lucide-react";
+import { Eye, Trash2, Filter, Plus, Edit } from "lucide-react";
 import { useEffect, useState } from "react";
-import { getAllProducts, deleteProduct } from "../../services/Admin/AdminAPI"; 
+import { getAllProducts, deleteProduct } from "../../services/Admin/AdminAPI";
 
 export default function Product() {
   const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  // Tách mỗi variant thành một sản phẩm riêng biệt
+  const flattenProducts = (products) => {
+    const flattened = [];
+
+    products.forEach((product) => {
+      if (product.variants.length === 0) {
+        flattened.push({
+          ...product,
+          price: null,
+          stock: null,
+          variantId: null,
+        });
+      } else {
+        product.variants.forEach((variant) => {
+          flattened.push({
+            ...product,
+            price: variant.price,
+            stock: variant.stock,
+            variantId: variant._id,
+          });
+        });
+      }
+    });
+
+    return flattened;
+  };
 
   const fetchProducts = async () => {
+    setLoading(true);
     try {
       const res = await getAllProducts();
-      setProducts(res.data.products); // Đảm bảo BE trả về { products: [...] }
+      const flat = flattenProducts(res.data.products);
+      setProducts(flat);
     } catch (err) {
       console.error("Lỗi khi lấy sản phẩm:", err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -22,12 +55,16 @@ export default function Product() {
     if (window.confirm("Bạn có chắc muốn xóa sản phẩm này?")) {
       try {
         await deleteProduct(id);
-        fetchProducts(); // Cập nhật lại danh sách
+        fetchProducts();
       } catch (err) {
         console.error("Lỗi khi xóa sản phẩm:", err);
       }
     }
   };
+
+  const filteredProducts = products.filter((p) =>
+    p.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="p-6 space-y-6 mt-10">
@@ -43,6 +80,8 @@ export default function Product() {
         <input
           type="text"
           placeholder="🔍 Search products..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
           className="flex-1 min-w-[200px] px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
         <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded hover:bg-gray-100">
@@ -76,8 +115,8 @@ export default function Product() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100 bg-white">
-            {products.map((product) => (
-              <tr key={product._id}>
+            {filteredProducts.map((product, index) => (
+              <tr key={product._id + "-" + (product.variantId || index)}>
                 <td className="px-6 py-4">{product.name}</td>
                 <td className="px-6 py-4">
                   <img
@@ -87,15 +126,19 @@ export default function Product() {
                   />
                 </td>
                 <td className="px-6 py-4">
-                  {product.price.toLocaleString()} đ
+                  {product.price !== null
+                    ? `${product.price.toLocaleString()} đ`
+                    : "—"}
                 </td>
-                <td className="px-6 py-4">{product.stock}</td>
+                <td className="px-6 py-4">
+                  {product.stock !== null ? product.stock : "—"}
+                </td>
                 <td className="px-6 py-4">
                   {new Date(product.createdAt).toLocaleDateString("vi-VN")}
                 </td>
                 <td className="px-6 py-4 text-center flex justify-center gap-2">
                   <button className="text-blue-600 hover:text-blue-800">
-                    <Eye size={18} />
+                    <Edit size={18} />
                   </button>
                   <button
                     className="text-red-600 hover:text-red-800"
@@ -106,7 +149,7 @@ export default function Product() {
                 </td>
               </tr>
             ))}
-            {products.length === 0 && (
+            {filteredProducts.length === 0 && (
               <tr>
                 <td colSpan="6" className="text-center py-6 text-gray-500">
                   Không có sản phẩm nào.

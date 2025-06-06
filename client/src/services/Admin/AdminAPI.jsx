@@ -52,12 +52,31 @@ export const getTotalStock = () => {
   return instance.get("/productmanager/product/total-stock");
 };
 
-
+//Category
 export const getAllCategories = () => {
   return instance.get("/productmanager/category/getAllCategories");
 };
 
+
+export const deleteCategory = (id) => {
+  return instance.delete(`/productmanager/category/deleteCategory/${id}`);
+};
+
+export const createCategory = (categoryData) => {
+  return instance.post("/productmanager/category/createCategory", categoryData);
+};
+
+export const updateCategory = (id ,categoryData) => {
+  return instance.put(`/productmanager/category/updateCategory/${id}`,categoryData);
+}
+
+//SubCategory
 export const getAllSubCategories = () => {
   return instance.get("/productmanager/category/getAllSubCategories");
 };
 
+
+
+export const deleteSubCategory = (id) => {
+  return instance.delete(`/productmanager/category/deleteSubCategory/${id}`);
+};
