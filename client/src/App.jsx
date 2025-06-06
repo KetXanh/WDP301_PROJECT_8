@@ -16,6 +16,7 @@ import Verify from "./pages/Customers/Verify";
 import ForgotPassword from "./pages/Customers/ForgotPassword";
 import ForgotOtp from "./pages/Customers/ForgotOtp";
 import ResetPassword from "./pages/Customers/ResetPassword";
+import Profile from "./pages/Customers/Profile";
 
 
 const Layout = () => (
@@ -59,6 +60,7 @@ function App() {
           <Route path="/product" element={<Products />} />
           <Route path="/otp" element={<ForgotOtp />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/profile" element={<Profile />} />
 
         </Route>
         <Route path="*" element={<NotFound />} />

@@ -30,4 +30,10 @@ export const resetPass = (email, password) => {
 
 export const loginGooogle = (email, name, picture) => {
     return instance.post('/user/auth/login-google', { email, name, picture })
+}
+export const getProfile = () => {
+    return instance.get('/user/auth/profile')
+}
+export const updateProfile = (formData) => {
+    return instance.post('/user/auth/profile', formData)
 } 

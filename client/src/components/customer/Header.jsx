@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ShoppingCart, LogOut, User } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -17,7 +17,7 @@ import logo from '../../assets/NutiGo.jpg'
 const Header = () => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [user, setUser] = useState(null);
-    // const navigate = useNavigate();
+    const navigate = useNavigate();
 
     const accessToken = useSelector((state) => state.customer.accessToken);
     const dispatch = useDispatch();
@@ -26,8 +26,6 @@ const Header = () => {
         try {
 
             const res = await customerProfile();
-            console.log(res);
-
             if (res.data && res.data.code === 200) {
                 setUser(res.data.user)
             } else if (res.data && res.data.code === 401) {
@@ -106,7 +104,7 @@ const Header = () => {
                                     <DropdownMenuSeparator />
                                     <DropdownMenuItem className="cursor-pointer">
                                         <User className="mr-2 h-4 w-4" />
-                                        <span>Xem Profile</span>
+                                        <span onClick={() => navigate('/profile')}>Xem Profile</span>
                                     </DropdownMenuItem>
                                     <DropdownMenuSeparator />
                                     <DropdownMenuItem

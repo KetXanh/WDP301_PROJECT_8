@@ -417,14 +417,15 @@ module.exports.getProfile = async (req, res) => {
 
         const user = await Users.findOne({
             email: email,
-            status: "active"
-        }).select("username email address avatar")
+            status: "active",
+        }).select("username email address avatar").lean()
         if (!user) {
             return res.json({
                 code: 401,
                 message: "User not found"
             })
         }
+
         res.json({
             code: 200,
             message: "Get Profile Successfully",
@@ -441,7 +442,7 @@ module.exports.updateProfile = async (req, res) => {
 
         const currentUser = await Users.findOne({ email: currentEmail });
         if (!currentUser) {
-            return res.status(404).json({ message: "User not found or inactive" });
+            return res.json({ code: 404, message: "User not found or inactive" });
         }
 
         if (req.body.email && req.body.email !== currentUser.email) {
@@ -451,7 +452,7 @@ module.exports.updateProfile = async (req, res) => {
                 _id: { $ne: currentUser._id }
             });
             if (emailExists) {
-                return res.status(401).json({ message: "Email already exists" });
+                return res.json({ code: 401, message: "Email already exists" });
             }
         }
 
@@ -462,7 +463,7 @@ module.exports.updateProfile = async (req, res) => {
                 _id: { $ne: currentUser._id }
             });
             if (usernameExists) {
-                return res.status(401).json({ message: "Username already exists" });
+                return res.json({ code: 402, message: "Username already exists" });
             }
         }
 
@@ -470,7 +471,8 @@ module.exports.updateProfile = async (req, res) => {
             username: req.body.username || currentUser.username,
             email: req.body.email || currentUser.email,
             address: req.body.address || currentUser.address,
-            avatar: currentUser.avatar
+            avatar: req.body.avatar || currentUser.avatar,
+            isDefault: true
         };
 
         const avatarFile = req.files?.avatar?.[0];
@@ -490,7 +492,8 @@ module.exports.updateProfile = async (req, res) => {
             { new: true }
         );
 
-        res.status(200).json({
+        res.json({
+            code: 200,
             message: "Update profile successfully",
             user: updatedUser
         });
