@@ -525,7 +525,7 @@ module.exports.loginGoogle = async (req, res) => {
             email: userExits.email,
             role: userExits.role
         }
-        const accessToken = jwt.sign(dataToken, process.env.TOKEN_SECRET, { expiresIn: "15m" });
+        const accessToken = jwt.sign(dataToken, process.env.TOKEN_SECRET, { expiresIn: "7m" });
         const refreshToken = jwt.sign(dataToken, process.env.REFRESH_TOKEN_SECRET, { expiresIn: "7d" });
         await Users.findByIdAndUpdate(
             userExits._id,
