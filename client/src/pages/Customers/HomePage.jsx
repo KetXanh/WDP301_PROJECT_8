@@ -1,11 +1,12 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ShoppingCart, Star, Truck, Shield, Award, Heart } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import React from 'react';
 
 
 const HomePage = () => {
+    const navigate = useNavigate();
     const featuredProducts = [
         {
             id: 1,
@@ -82,10 +83,10 @@ const HomePage = () => {
                         Khám phá thế giới hạt dinh dưỡng tươi ngon, chất lượng cao với những lợi ích tuyệt vời cho sức khỏe của bạn
                     </p>
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                        <Button size="lg" className="bg-gradient-to-r from-green-600 to-amber-600 hover:from-green-700 hover:to-amber-700 text-lg px-8 py-3">
+                        <Button onClick={() => navigate('/products')} size="lg" className="bg-gradient-to-r from-green-600 to-amber-600 hover:from-green-700 hover:to-amber-700 text-lg px-8 py-3">
                             Mua Ngay
                         </Button>
-                        <Button size="lg" variant="outline" className="text-lg px-8 py-3">
+                        <Button onClick={() => navigate('/about')} size="lg" variant="outline" className="text-lg px-8 py-3">
                             Tìm Hiểu Thêm
                         </Button>
                     </div>

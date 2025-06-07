@@ -43,10 +43,8 @@ const Login = () => {
             });
 
             const profile = await res.json();
-            console.log(profile); // name, email, picture
             try {
                 const res = await loginGooogle(profile.email, profile.name, profile.picture);
-                console.log(res);
 
                 if (res.data?.code === 200) {
                     const dataToken = {

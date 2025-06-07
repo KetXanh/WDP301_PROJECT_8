@@ -17,6 +17,7 @@ import ForgotPassword from "./pages/Customers/ForgotPassword";
 import ForgotOtp from "./pages/Customers/ForgotOtp";
 import ResetPassword from "./pages/Customers/ResetPassword";
 import Profile from "./pages/Customers/Profile";
+import { useSelector } from "react-redux";
 
 
 const Layout = () => (
@@ -42,6 +43,7 @@ const Layout = () => (
 );
 
 function App() {
+  const accessToken = useSelector((state) => state.customer.accessToken);
   const [darkMode, setDarkMode] = useState(false);
   // const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
@@ -53,14 +55,22 @@ function App() {
       <Routes>
         <Route path="/" element={<Layout />} >
           <Route index element={<HomePage />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/verify/:email" element={<Verify />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/product" element={<Products />} />
-          <Route path="/otp" element={<ForgotOtp />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/profile" element={<Profile />} />
+
+          {!accessToken ?
+            <>
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/verify/:email" element={<Verify />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/otp" element={<ForgotOtp />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+            </>
+            :
+            <>
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/products" element={<Products />} />
+            </>
+          }
 
         </Route>
         <Route path="*" element={<NotFound />} />
