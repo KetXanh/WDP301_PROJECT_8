@@ -4,16 +4,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Eye, EyeOff, User, Lock } from 'lucide-react';
-import logo from '../../assets/NutiGo.jpg'
+import logo from '../../assets/NutiGo.png'
 import { customerLogin, loginGooogle } from '../../services/Customer/ApiAuth';
 import { toast } from 'react-toastify';
 import { useDispatch } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { login } from '../../store/customer/authSlice';
 import { useGoogleLogin } from '@react-oauth/google';
 import { GoogleLogin } from '@react-oauth/google';
 const Login = () => {
-    const [isLogin, setIsLogin] = useState(true);
     const [showPassword, setShowPassword] = useState(false);
     const [formData, setFormData] = useState({
         email: '',
@@ -126,13 +125,10 @@ const Login = () => {
                             <img className='' src={logo} />
                         </div>
                         <CardTitle className="text-2xl font-bold text-gray-800">
-                            {isLogin ? 'Đăng Nhập' : 'Đăng Ký'}
+                            Đăng Nhập
                         </CardTitle>
                         <CardDescription className="text-gray-600">
-                            {isLogin
-                                ? 'Chào mừng bạn trở lại với cửa hàng hạt dinh dưỡng'
-                                : 'Tạo tài khoản mới để khám phá các sản phẩm hạt dinh dưỡng tuyệt vời'
-                            }
+                            Chào mừng bạn trở lại với cửa hàng hạt dinh dưỡng
                         </CardDescription>
                     </CardHeader>
 
@@ -194,7 +190,7 @@ const Login = () => {
                                 type="submit"
                                 className="w-full h-12 bg-gradient-to-r from-green-600 to-amber-600 hover:from-green-700 hover:to-amber-700 text-white font-medium rounded-lg transition-all duration-200 transform hover:scale-[1.02]"
                             >
-                                {isLogin ? 'Đăng Nhập' : 'Đăng Ký'}
+                                Đăng Nhập
                             </Button>
                         </form>
 
@@ -228,14 +224,13 @@ const Login = () => {
 
                         <div className="mt-6 text-center">
                             <p className="text-sm text-gray-600">
-                                {isLogin ? 'Chưa có tài khoản?' : 'Đã có tài khoản?'}
-                                <button
-                                    type="button"
-                                    onClick={() => setIsLogin(!isLogin)}
+                                Chưa có tài khoản?
+                                <Link
+                                    to="/register"
                                     className="ml-1 text-green-600 hover:text-green-700 font-medium"
                                 >
-                                    {isLogin ? 'Đăng ký ngay' : 'Đăng nhập'}
-                                </button>
+                                    Đăng ký ngay
+                                </Link>
                             </p>
                         </div>
                     </CardContent>

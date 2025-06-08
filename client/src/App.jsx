@@ -80,16 +80,13 @@ function App() {
         <Route path="/" element={<CustomerLayout />}>
           <Route index element={<HomePage />} />
 
-          {!accessToken ?
-            <>
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/verify/:email" element={<Verify />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
-              <Route path="/otp" element={<ForgotOtp />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
-            </>
-            :
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/verify/:email" element={<Verify />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/otp" element={<ForgotOtp />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          {accessToken &&
             <>
               <Route path="/profile" element={<Profile />} />
               <Route path="/products" element={<Products />} />
