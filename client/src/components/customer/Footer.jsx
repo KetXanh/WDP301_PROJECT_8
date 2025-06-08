@@ -1,5 +1,5 @@
 import React from 'react';
-import logo from '../../assets/NutiGo.jpg'
+import logo from '../../assets/NutiGo.png'
 const Footer = () => {
     return (
         <div>

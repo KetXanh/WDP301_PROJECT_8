@@ -13,7 +13,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useDispatch, useSelector } from 'react-redux';
 import { customerProfile } from '../../services/Customer/ApiAuth';
 import { logout } from '../../store/customer/authSlice';
-import logo from '../../assets/NutiGo.jpg'
+import logo from '../../assets/NutiGo.png'
 const Header = () => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [user, setUser] = useState(null);

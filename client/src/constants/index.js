@@ -11,8 +11,6 @@ import {
 } from "react-icons/io";
 import {
   FaChartBar,
-  FaCalendarAlt,
-  FaFacebookMessenger,
   FaUsersCog,
   FaListAlt,
   FaMoon,
@@ -20,7 +18,7 @@ import {
   FaCartPlus,
 } from "react-icons/fa";
 import { HiOutlineMenuAlt2 } from "react-icons/hi";
-import { MdOutlineCategory, MdSpaceDashboard } from "react-icons/md";
+import { MdCategory, MdOutlineCategory, MdSpaceDashboard } from "react-icons/md";
 
 import user01 from "../assets/user01.png";
 import user02 from "../assets/user02.png";
@@ -28,51 +26,47 @@ import user03 from "../assets/user03.png";
 
 export const links = [
   {
-    href: "#",
+    href: "/admin",
     icon: FaChartBar,
     text: "Dashboard",
   },
   {
-    href: "#",
+    href: "/admin",
+    icon: FaChartBar,
+    text: "Dashboard",
+  },
+  {
+    href: "/admin/category",
     icon: MdOutlineCategory,
     text: "Categories",
-    badge: {
-      text: "Pro",
-      color: "bg-gray-100 text-gray-800",
-      darkColor: "dark:bg-gray-700 dark:text-gray-300",
-    },
   },
   {
-    href: "#",
+    href: "/admin/order",
     icon: FaCartPlus,
     text: "Order",
-    badge: {
-      text: "4",
-      color: "bg-blue-100 text-blue-800",
-      darkColor: "dark:bg-blue-900 dark:text-blue-300",
-    },
   },
   {
-    href: "#",
-    icon: FaUsersCog,
-    text: "Users",
+    href: "/admin/subcategory",
+    icon: MdCategory,
+    text: "SubCategories",
   },
   {
-    href: "#",
+    href: "/admin/product",
     icon: FaListAlt,
     text: "Products",
   },
   {
-    href: "#",
+    href: "/login", // khách hàng login
     icon: IoIosLogIn,
     text: "Sign In",
   },
   {
-    href: "#",
+    href: "/register", // khách hàng register
     icon: IoIosLogOut,
     text: "Sign Up",
   },
 ];
+
 
 export const empolyeesData = [
   {
