@@ -36,4 +36,8 @@ export const getProfile = () => {
 }
 export const updateProfile = (formData) => {
     return instance.post('/user/auth/profile', formData)
+}
+
+export const allProducts = () => {
+    return instance.get('/user/products')
 } 

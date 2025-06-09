@@ -2,49 +2,51 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ShoppingCart, Star, Truck, Shield, Award, Heart } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { allProducts } from '../../services/Customer/ApiAuth';
 
 
 const HomePage = () => {
     const navigate = useNavigate();
-    const featuredProducts = [
-        {
-            id: 1,
-            name: 'Hạt Óc Chó Cao Cấp',
-            price: '299.000đ',
-            originalPrice: '350.000đ',
-            image: '🥜',
-            rating: 4.8,
-            description: 'Hạt óc chó tươi ngon, giàu omega-3'
-        },
-        {
-            id: 2,
-            name: 'Hạnh Nhân Mỹ',
-            price: '249.000đ',
-            originalPrice: '280.000đ',
-            image: '🌰',
-            rating: 4.9,
-            description: 'Hạnh nhân thơm ngon, bổ dưỡng'
-        },
-        {
-            id: 3,
-            name: 'Hạt Điều Rang Muối',
-            price: '189.000đ',
-            originalPrice: '220.000đ',
-            image: '🥜',
-            rating: 4.7,
-            description: 'Hạt điều rang vàng giòn tan'
-        },
-        {
-            id: 4,
-            name: 'Mix Nuts Premium',
-            price: '399.000đ',
-            originalPrice: '450.000đ',
-            image: '🌟',
-            rating: 5.0,
-            description: 'Hỗn hợp các loại hạt cao cấp'
-        }
-    ];
+    const [featuredProducts, setFeaturedProducts] = useState([]);
+    // const featuredProducts = [
+    //     {
+    //         id: 1,
+    //         name: 'Hạt Óc Chó Cao Cấp',
+    //         price: '299.000đ',
+    //         originalPrice: '350.000đ',
+    //         image: '🥜',
+    //         rating: 4.8,
+    //         description: 'Hạt óc chó tươi ngon, giàu omega-3'
+    //     },
+    //     {
+    //         id: 2,
+    //         name: 'Hạnh Nhân Mỹ',
+    //         price: '249.000đ',
+    //         originalPrice: '280.000đ',
+    //         image: '🌰',
+    //         rating: 4.9,
+    //         description: 'Hạnh nhân thơm ngon, bổ dưỡng'
+    //     },
+    //     {
+    //         id: 3,
+    //         name: 'Hạt Điều Rang Muối',
+    //         price: '189.000đ',
+    //         originalPrice: '220.000đ',
+    //         image: '🥜',
+    //         rating: 4.7,
+    //         description: 'Hạt điều rang vàng giòn tan'
+    //     },
+    //     {
+    //         id: 4,
+    //         name: 'Mix Nuts Premium',
+    //         price: '399.000đ',
+    //         originalPrice: '450.000đ',
+    //         image: '🌟',
+    //         rating: 5.0,
+    //         description: 'Hỗn hợp các loại hạt cao cấp'
+    //     }
+    // ];
 
     const benefits = [
         {
@@ -68,6 +70,25 @@ const HomePage = () => {
             description: 'Hỗ trợ 24/7 cho khách hàng'
         }
     ];
+
+
+    const products = async () => {
+        try {
+            const res = await allProducts();
+            if (res.data && res.data.code === 200) {
+                setFeaturedProducts(res.data.data)
+            }
+        } catch (error) {
+            console.log("Lấy danh sách product không thành công", error);
+
+        }
+    }
+
+    useEffect(() => {
+        products();
+    }, [])
+
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-green-50 to-amber-50">
             {/* Hero Section */}
@@ -100,11 +121,15 @@ const HomePage = () => {
                         Sản Phẩm Nổi Bật
                     </h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        {featuredProducts.map((product) => (
+                        {featuredProducts.slice(0, 4).map((product) => (
                             <Card key={product.id} className="hover:shadow-lg transition-shadow duration-300 group">
                                 <CardHeader className="text-center pb-4">
-                                    <div className="text-6xl mb-4 group-hover:scale-110 transition-transform duration-300">
-                                        {product.image}
+                                    <div className="mb-4 group-hover:scale-105 transition-transform duration-300">
+                                        <img
+                                            src={product.image}
+                                            alt={product.name}
+                                            className="h-32 w-32 object-contain mx-auto"
+                                        />
                                     </div>
                                     <CardTitle className="text-lg font-semibold text-gray-800">
                                         {product.name}
