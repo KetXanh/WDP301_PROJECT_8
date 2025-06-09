@@ -1,7 +1,7 @@
-import { Eye, Trash2, Filter, Plus } from "lucide-react";
+import { Eye, Trash2, Filter, Plus, Edit } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getAllSubCategories } from "../../services/Admin/AdminAPI";
-
+import { deleteSubCategory } from "../../services/Admin/AdminAPI";
 export default function SubCategory() {
   const [subCategories, setSubCategories] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -36,6 +36,20 @@ export default function SubCategory() {
   const filteredSubCategories = subCategories.filter((subCategory) =>
     subCategory.name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
+    const handleDelete = async (id) => {
+      if (!window.confirm("Bạn có chắc chắn muốn xoá danh mục này không?"))
+        return;
+
+      try {
+        await deleteSubCategory(id);
+        setSubCategories((prev) => prev.filter((c) => c._id !== id)); 
+      } catch (err) {
+        console.error("Lỗi khi xoá danh mục:", err);
+        alert(
+          "Xoá danh mục thất bại. Vui lòng kiểm tra quyền hoặc đăng nhập lại."
+        );
+      }
+    };
 
   return (
     <div className="p-6 space-y-6 mt-10">
@@ -128,9 +142,9 @@ export default function SubCategory() {
                   <td className="px-4 py-4 text-center">
                     <div className="flex justify-center gap-2">
                       <button className="text-blue-600 hover:text-blue-800">
-                        <Eye size={18} />
+                        < Edit size={18} />
                       </button>
-                      <button className="text-red-600 hover:text-red-800">
+                      <button className="text-red-600 hover:text-red-800" onClick={() => handleDelete(subCategory._id)}>
                         <Trash2 size={18} />
                       </button>
                     </div>

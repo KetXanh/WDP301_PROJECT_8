@@ -10,7 +10,7 @@ const Header = ({ darkMode, toggleDarkMode, toggleSidebar }) => {
       className="fixed top-0 left-0 z-50 w-full bg-white border-b border-gray-200 dark:bg-gray-800 
         dark:border-gray-700 "
     >
-      <div className="px-3 py-3 lg:px-5">
+      <div className="px-3 py-1 lg:px-5">
         <div className="flex items-center justify-between">
           <div className="flex items-center justify-start rtl:justify-end">
             <button
@@ -21,7 +21,7 @@ const Header = ({ darkMode, toggleDarkMode, toggleSidebar }) => {
             </button>
 
             <a href="#" className="flex ms-2 md:me-24">
-            <img src={logo} width={"100px"} height={"100px"}/>
+            <img src={logo} width={"60px"} height={"60px"}/>
               <span
                 className="self-center text-xl font-semibold sm:text-2xl whitespace-nowrap
               dark:text-white"
