@@ -1,6 +1,7 @@
 const { Category } = require("../../models/product/category");
 const { SubCategory } = require("../../models/product/subCategory");
 const { User } = require("../../models/user");
+const slugify = require('slugify');
 
 
 module.exports.getAllCategories = async (req, res) => {
@@ -15,6 +16,74 @@ module.exports.getAllCategories = async (req, res) => {
     }
 }
 
+module.exports.getCategoryBySlug = async (req, res) => {
+    try {
+        const { slug } = req.params;
+        let category = await Category.findOne({ slug });
+
+        if (!category) {
+            category = await Category.findOne({ name: slug });
+            
+            if (category) {
+                category.slug = slugify(category.name, {
+                    lower: true,
+                    strict: true,
+                    locale: 'vi'
+                });
+                await category.save();
+            }
+        }
+        
+        if (!category) {
+            return res.status(404).json({ message: "Category not found" });
+        }
+
+        const populatedCategory = await Category.findById(category._id);
+
+        res.status(200).json({
+            message: "Category fetched successfully !!!",
+            category: populatedCategory
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}
+
+module.exports.getSubCategoryBySlug = async (req, res) => {
+    try {
+        const { slug } = req.params;
+        let subCategory = await SubCategory.findOne({ slug });
+
+        if (!subCategory) {
+            subCategory = await SubCategory.findOne({ name: slug });
+            
+            if (subCategory) {
+                subCategory.slug = slugify(subCategory.name, {
+                    lower: true,
+                    strict: true,
+                    locale: 'vi'
+                });
+                await subCategory.save();
+            }
+        }
+        
+        if (!subCategory) {
+            return res.status(404).json({ message: "SubCategory not found" });
+        }
+
+        const populatedSubCategory = await SubCategory.findById(subCategory._id).populate({
+            path: 'category',
+            model: 'Categories'
+        });
+
+        res.status(200).json({
+            message: "SubCategory fetched successfully !!!",
+            subCategory: populatedSubCategory
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}
 
 module.exports.createCategory = async (req, res) => {
     try {
@@ -23,6 +92,12 @@ module.exports.createCategory = async (req, res) => {
         if (!name || !description) {
             return res.status(400).json({ message: "Name and description are required" });
         }
+
+        const existingCategory = await Category.findOne({ name });
+        if (existingCategory) {
+            return res.status(400).json({ message: "Category with this name already exists" });
+        }
+
         const category = await Category.create({ name, description, createdBy: user.id });
         res.status(201).json({
             message: "Category created successfully !!!",
@@ -35,16 +110,27 @@ module.exports.createCategory = async (req, res) => {
 
 module.exports.updateCategory = async (req, res) => {
     try {
-        const user = req.user;
-        if (user.role !== 3) {
-            return res.status(403).json({ message: "You are not authorized to update category" });
-        }
         const { id } = req.params;
         const { name, description } = req.body;
         if (!name || !description) {
             return res.status(400).json({ message: "Name and description are required" });
         }
-        const category = await Category.findByIdAndUpdate(id, { name, description, createdBy: user.id }, { new: true });
+
+        const existingCategory = await Category.findOne({ name, _id: { $ne: id } });
+        if (existingCategory) {
+            return res.status(400).json({ message: "Another category with this name already exists" });
+        }
+
+        const category = await Category.findByIdAndUpdate(
+            id, 
+            { name, description, createdBy: user.id }, 
+            { new: true }
+        );
+
+        if (!category) {
+            return res.status(404).json({ message: "Category not found" });
+        }
+
         res.status(200).json({
             message: "Category updated successfully !!!",
             category
@@ -56,10 +142,6 @@ module.exports.updateCategory = async (req, res) => {
 
 module.exports.deleteCategory = async (req, res) => {
     try {
-        const user = req.user;
-        if (user.role !== 3) {
-            return res.status(403).json({ message: "You are not authorized to delete category" });
-        }
         const { id } = req.params;
         const category = await Category.findByIdAndDelete(id);
         res.status(200).json({
@@ -73,11 +155,6 @@ module.exports.deleteCategory = async (req, res) => {
 
 module.exports.activeCategory = async (req, res) => {
     try {
-        const user = req.user;
-        if (user.role !== 3) {
-            return res.status(403).json({ message: "You are not authorized to active category" });
-        }
-
         const { id } = req.params;
         const existingCategory = await Category.findById(id);
         if (!existingCategory) {
@@ -91,11 +168,7 @@ module.exports.activeCategory = async (req, res) => {
             category
         });
     } catch (error) {
-        console.error('Error in activeCategory:', error);
-        res.status(500).json({ 
-            message: error.message || 'An error occurred while updating category status',
-            error: process.env.NODE_ENV === 'development' ? error : undefined
-        });
+        res.status(500).json({ message: error.message });
     }
 }
 
@@ -113,10 +186,6 @@ module.exports.getAllSubCategories = async (req, res) => {
 
 module.exports.createSubCategory = async (req, res) => {
     try {
-        const user = req.user;
-        if (user.role !== 3) {
-            return res.status(403).json({ message: "You are not authorized to create sub category" });
-        }
         const { name, description, categoryId } = req.body;
         if (!name || !description || !categoryId) {
             return res.status(400).json({ message: "Name, description and categoryId are required" });
@@ -137,10 +206,6 @@ module.exports.createSubCategory = async (req, res) => {
 
 module.exports.updateSubCategory = async (req, res) => {
     try {
-        const user = req.user;
-        if (user.role !== 3) {
-            return res.status(403).json({ message: "You are not authorized to update sub category" });
-        }
         const { id } = req.params;
         const { name, description, categoryId } = req.body;
         if (!name || !description || !categoryId) {
@@ -162,10 +227,6 @@ module.exports.updateSubCategory = async (req, res) => {
 
 module.exports.deleteSubCategory = async (req, res) => {
     try {
-        const user = req.user;
-        if (user.role !== 3) {
-            return res.status(403).json({ message: "You are not authorized to delete sub category" });
-        }
         const { id } = req.params;
         const subCategory = await SubCategory.findByIdAndDelete(id);
         res.status(200).json({
@@ -179,10 +240,6 @@ module.exports.deleteSubCategory = async (req, res) => {
 
 module.exports.activeSubCategory = async (req, res) => {
     try {
-        const user = req.user;
-        if (user.role !== 3) {
-            return res.status(403).json({ message: "You are not authorized to active sub category" });
-        }
         const { id } = req.params;
         const existingSubCategory = await SubCategory.findById(id);
         if (!existingSubCategory) {
@@ -196,10 +253,6 @@ module.exports.activeSubCategory = async (req, res) => {
             subCategory
         });
     } catch (error) {
-        console.error('Error in activeSubCategory:', error);
-        res.status(500).json({ 
-            message: error.message || 'An error occurred while updating subcategory status',
-            error: process.env.NODE_ENV === 'development' ? error : undefined
-        });
+        res.status(500).json({ message: error.message });
     }
 }

@@ -5,7 +5,7 @@ import {
   getAllSubCategories,
 } from "../../../services/Admin/AdminAPI";
 import { toast } from "react-toastify";
-import slugify from "slugify";
+
 
 
 export default function AddProduct({ onSuccess }) {
@@ -60,7 +60,7 @@ export default function AddProduct({ onSuccess }) {
     formDataToSend.append("stock", productData.stock);
     formDataToSend.append("subCategoryId", productData.subCategoryId);
     formDataToSend.append("image", productData.image);
-    formDataToSend.append("slug", slugify(productData.name, { lower: true }));
+  
 
     try {
       const res = await createProduct(formDataToSend);
