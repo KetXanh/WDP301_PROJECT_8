@@ -1,16 +1,18 @@
-import { Eye, Trash2, Filter, Plus, Edit } from "lucide-react";
+// pages/admin/Product.jsx
+import { Eye, Trash2, Filter, Plus, Edit, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getAllProducts, deleteProduct } from "../../services/Admin/AdminAPI";
+import * as Dialog from "@radix-ui/react-dialog";
+import AddProduct from "./Form/AddProduct";
 
 export default function Product() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
-  // Tách mỗi variant thành một sản phẩm riêng biệt
   const flattenProducts = (products) => {
     const flattened = [];
-
     products.forEach((product) => {
       if (product.variants.length === 0) {
         flattened.push({
@@ -30,7 +32,6 @@ export default function Product() {
         });
       }
     });
-
     return flattened;
   };
 
@@ -70,10 +71,36 @@ export default function Product() {
     <div className="p-6 space-y-6 mt-10">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Product</h1>
-        <button className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-          <Plus size={18} />
-          Add
-        </button>
+        <Dialog.Root open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
+          <Dialog.Trigger asChild>
+            <button className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+              <Plus size={18} />
+              Add
+            </button>
+          </Dialog.Trigger>
+          <Dialog.Portal>
+            <Dialog.Overlay className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40" />
+            <Dialog.Content className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-xl shadow-2xl z-50 w-[90vw] max-w-md min-h-[60vh] max-h-[80vh] overflow-y-auto">
+              <Dialog.Title className="text-xl font-bold">
+                Thêm sản phẩm
+              </Dialog.Title>
+              <Dialog.Description className="text-sm text-gray-500 mb-4">
+                Điền thông tin để thêm một sản phẩm mới.
+              </Dialog.Description>
+              <AddProduct
+                onSuccess={() => {
+                  fetchProducts();
+                  setIsAddModalOpen(false);
+                }}
+              />
+              <Dialog.Close asChild>
+                <button className="absolute top-4 right-4 text-gray-500 hover:text-black">
+                  <X size={20} />
+                </button>
+              </Dialog.Close>
+            </Dialog.Content>
+          </Dialog.Portal>
+        </Dialog.Root>
       </div>
 
       <div className="flex items-center justify-between gap-4 flex-wrap">

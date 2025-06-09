@@ -16,6 +16,7 @@ import Verify from "./pages/Customers/Verify";
 import ForgotPassword from "./pages/Customers/ForgotPassword";
 import ForgotOtp from "./pages/Customers/ForgotOtp";
 import ResetPassword from "./pages/Customers/ResetPassword";
+import Profile from "./pages/Customers/Profile";
 
 // Admin Pages
 import Sidebar from "./components/admin/Sidebar";
@@ -77,13 +78,15 @@ function App() {
         {/* Customer Routes */}
         <Route path="/" element={<CustomerLayout />}>
           <Route index element={<HomePage />} />
-          <Route path="login" element={<Login />} />
-          <Route path="register" element={<Register />} />
-          <Route path="verify/:email" element={<Verify />} />
-          <Route path="forgot-password" element={<ForgotPassword />} />
-          <Route path="otp" element={<ForgotOtp />} />
-          <Route path="reset-password" element={<ResetPassword />} />
-          <Route path="product" element={<Products />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/verify/:email" element={<Verify />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/product" element={<Products />} />
+          <Route path="/otp" element={<ForgotOtp />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/profile" element={<Profile />} />
+
         </Route>
 
         {/* Admin Routes */}

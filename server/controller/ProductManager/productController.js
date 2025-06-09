@@ -92,57 +92,70 @@ module.exports.getProductByCategory = async (req, res) => {
 }
 
 module.exports.createProduct = async (req, res) => {
-    try {
-        const user = req.user;
-        const { name, description, price, stock, subCategoryId } = req.body;
+  try {
+    const user = req.user;
+    const { name, description, price, stock, subCategoryId } = req.body;
 
-        if (!name || !description || !price || !stock || !subCategoryId) {
-            return res.status(400).json({
-                message: "Name, description, price, stock and subCategoryId are required"
-            });
-        }
-
-        const subCategory = await SubCategory.findById(subCategoryId);
-        if (!subCategory) {
-            return res.status(404).json({ message: "Sub category not found" });
-        }
-
-        if (!req.files) {
-            return res.status(400).json({ message: "Image is required" });
-        }
-
-        let image = {
-            url: req.files.image[0].path,
-            public_id: req.files.image[0].filename,
-        };
-
-        const baseProduct = new BaseProduct({
-            name,
-            description,
-            image,
-            subCategory: subCategoryId,
-            createdBy: user.id
-        });
-
-        await baseProduct.save();
-
-        const productVariant = new ProductVariant({
-            baseProduct: baseProduct._id,
-            price,
-            stock
-        });
-
-        await productVariant.save();
-
-        res.status(201).json({
-            message: "Product created successfully !!!",
-            baseProduct,
-            productVariant
-        });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
+    if (!name || !description || !price || !stock || !subCategoryId) {
+      return res.status(400).json({
+        message:
+          "Name, description, price, stock and subCategoryId are required",
+      });
     }
-}
+
+    // Kiểm tra danh mục con
+    const subCategory = await SubCategory.findById(subCategoryId);
+    if (!subCategory) {
+      return res.status(404).json({ message: "Sub category not found" });
+    }
+
+    // Kiểm tra file ảnh
+    if (
+      !req.files ||
+      !req.files.image ||
+      !Array.isArray(req.files.image) ||
+      req.files.image.length === 0
+    ) {
+      return res.status(400).json({ message: "Image is required" });
+    }
+
+    // Lấy ảnh
+    const image = {
+      url: req.files.image[0].path,
+      public_id: req.files.image[0].filename,
+    };
+
+    // Tạo baseProduct
+    const baseProduct = new BaseProduct({
+      name,
+      description,
+      image,
+      subCategory: subCategoryId,
+      createdBy: user.id,
+    });
+
+    await baseProduct.save();
+
+    // Tạo variant
+    const productVariant = new ProductVariant({
+      baseProduct: baseProduct._id,
+      price,
+      stock,
+    });
+
+    await productVariant.save();
+
+    return res.status(201).json({
+      message: "Product created successfully!",
+      baseProduct,
+      productVariant,
+    });
+  } catch (error) {
+    console.error("Lỗi tạo sản phẩm:", error); // logging
+    return res.status(500).json({ message: error.message });
+  }
+};
+
 
 module.exports.updateProduct = async (req, res) => {
     try {
