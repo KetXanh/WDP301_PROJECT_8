@@ -1,6 +1,38 @@
 const ChatMessage = require('../../models/chatMessage');
 const { db } = require('../../config/firebase');
 const Users = require('../../models/user');
+const { GoogleGenerativeAI } = require("@google/generative-ai");
+require("dotenv").config();
+
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+
+module.exports.chatWithAI = async (req, res) => {
+  try {
+    const { message } = req.body;
+
+    if (!message) {
+      return res.status(400).json({ error: "Message is required" });
+    }
+    const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const result = await model.generateContent(message);
+    const response = await result.response;
+    const aiReply = response.text(); 
+
+    res.json({ reply: aiReply });
+  } catch (error) {
+    console.error(
+      "Error in chatWithAI:",
+      error.response?.data || error.message
+    );
+    res.status(500).json({
+      error: "Failed to generate AI reply",
+      details: error.response?.data || error.message,
+    });
+  }
+};
+
+
 
 // Gửi tin nhắn mới
 exports.sendMessage = async (req, res) => {
