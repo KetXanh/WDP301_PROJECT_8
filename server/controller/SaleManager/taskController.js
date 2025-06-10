@@ -1,4 +1,5 @@
 const Task = require("../../models/sale/Task");
+const Users = require("../../models/user"); 
 
 // Tạo task mới
 exports.createTask = async (req, res) => {
@@ -18,7 +19,10 @@ exports.getTasks = async (req, res) => {
       query.assignedTo = req.query.employeeId;
     }
 
-    const tasks = await Task.find(query).populate("assignedTo", "name email");
+    const tasks = await Task.find(query).populate(
+      "assignedTo",
+      "username email role"
+    ); 
     res.json(tasks);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -28,7 +32,10 @@ exports.getTasks = async (req, res) => {
 // Lấy 1 task theo ID
 exports.getTaskById = async (req, res) => {
   try {
-    const task = await Task.findById(req.params.id).populate("assignedTo");
+    const task = await Task.findById(req.params.id).populate(
+      "assignedTo",
+      "username email role"
+    );
     if (!task) return res.status(404).json({ error: "Task not found" });
     res.json(task);
   } catch (err) {
@@ -53,6 +60,15 @@ exports.deleteTask = async (req, res) => {
   try {
     await Task.findByIdAndDelete(req.params.id);
     res.json({ message: "Task deleted" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+exports.getAllUsers = async (req, res) => {
+  try {
+    const users = await Users.find({}, "username email role");
+    res.json(users);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

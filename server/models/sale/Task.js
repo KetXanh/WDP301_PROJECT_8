@@ -5,7 +5,7 @@ const taskSchema = new mongoose.Schema({
   description: String,
   assignedTo: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
+    ref: "Users",
     required: true,
   },
   dueDate: Date,
@@ -15,7 +15,7 @@ const taskSchema = new mongoose.Schema({
     default: "pending",
   },
   progress: { type: Number, default: 0 }, 
-  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "Users" },
   createdAt: { type: Date, default: Date.now },
 });
 

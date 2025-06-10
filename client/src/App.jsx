@@ -26,6 +26,9 @@ import Order from "./pages/admin/Order";
 import Category from "./pages/admin/Category";
 import Dashboard from "./pages/admin/DashBoard";
 import SubCategory from "./pages/admin/SubCategory";
+import Task from "./pages/admin/Task";
+
+
 
 // Customer Layout
 const CustomerLayout = () => (
@@ -86,7 +89,6 @@ function App() {
           <Route path="/otp" element={<ForgotOtp />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/profile" element={<Profile />} />
-
         </Route>
 
         {/* Admin Routes */}
@@ -106,6 +108,7 @@ function App() {
           <Route path="order" element={<Order />} />
           <Route path="subcategory" element={<SubCategory />} />
           <Route path="category" element={<Category />} />
+          <Route path="task" element={<Task/>}/>
         </Route>
 
         {/* Not Found */}
