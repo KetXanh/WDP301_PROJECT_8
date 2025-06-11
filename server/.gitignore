@@ -1,5 +1,6 @@
 # node_modules chứa thư viện => không nên đẩy lên Git
 node_modules/
+node_modules/
 
 # Biến môi trường - chứa thông tin nhạy cảm
 .env
@@ -20,3 +21,6 @@ Thumbs.db
 # Tệp build hoặc output (nếu có)
 dist/
 build/
+
+# Firebase service account key
+config/serviceAccountKey.json

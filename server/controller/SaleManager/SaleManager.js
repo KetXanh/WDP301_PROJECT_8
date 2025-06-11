@@ -19,12 +19,7 @@ module.exports.changeRole = async (req, res) => {
     try {
         const { id } = req.params;
         const { role } = req.body;
-        const user = req.user;
-        if (user.role !== 2) {
-            return res.status(403).json({
-                message: "You are not authorized to change role"
-            })
-        }
+
         if (!id || !role) {
             return res.status(400).json({
                 message: "Id and role are required"

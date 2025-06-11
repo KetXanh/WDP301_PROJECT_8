@@ -1,13 +1,25 @@
-const { Product } = require("../../models/product/product");
+const BaseProduct = require("../../models/product/productBase");
+const ProductVariant = require("../../models/product/ProductVariant");
 const { SubCategory } = require("../../models/product/subCategory");
-const { upload, cloudinary } = require("../../middleware/upload.middleware");
+const { cloudinary } = require("../../middleware/upload.middleware")
+const slugify = require('slugify');
 
 module.exports.getAllProducts = async (req, res) => {
     try {
-        const products = await Product.find();
+        const products = await BaseProduct.find();
+        const productsWithVariants = await Promise.all(
+            products.map(async (product) => {
+                const variants = await ProductVariant.find({ baseProduct: product._id });
+                return {
+                    ...product.toObject(),
+                    variants
+                };
+            })
+        );
+        
         res.status(200).json({
             message: "Products fetched successfully !!!",
-            products
+            products: productsWithVariants
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -17,8 +29,22 @@ module.exports.getAllProducts = async (req, res) => {
 module.exports.getProductById = async (req, res) => {
     try {
         const { id } = req.params;
-        const product = await Product.findById(id);
-        res.status(200).json({ message: "Product fetched successfully !!!", product });
+        const product = await BaseProduct.findById(id);
+        
+        if (!product) {
+            return res.status(404).json({ message: "Product not found" });
+        }
+
+        const variants = await ProductVariant.find({ baseProduct: id });
+        const productWithVariants = {
+            ...product.toObject(),
+            variants
+        };
+
+        res.status(200).json({ 
+            message: "Product fetched successfully !!!", 
+            product: productWithVariants 
+        });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -27,18 +53,76 @@ module.exports.getProductById = async (req, res) => {
 module.exports.getProductBySubCategory = async (req, res) => {
     try {
         const { subCategoryId } = req.params;
-        const products = await Product.find({ subCategory: subCategoryId });
+        const products = await BaseProduct.find({ subCategory: subCategoryId }).populate('variants');
         res.status(200).json({ message: "Products fetched successfully !!!", products });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 }
 
+module.exports.getTop8Products = async (req, res) => {
+    try {
+        const products = await BaseProduct.find().sort({ createdAt: -1 }).limit(8);
+        const productsWithVariants = await Promise.all(
+            products.map(async (product) => {
+                const variants = await ProductVariant.find({ baseProduct: product._id });
+                return {
+                    ...product.toObject(),
+                    variants
+                };
+            })
+        );
+        res.status(200).json({ 
+            message: "Top 8 products fetched successfully !!!", 
+            products: productsWithVariants 
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}
+
 module.exports.getProductByCategory = async (req, res) => {
-        try {
-            const { categoryId } = req.params;
-            const products = await Product.find({ category: categoryId });
-            res.status(200).json({ message: "Products fetched successfully !!!", products });
+    try {
+        const { categoryId } = req.params;
+        const products = await BaseProduct.find({ category: categoryId }).populate('variants');
+        res.status(200).json({ message: "Products fetched successfully !!!", products });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}
+
+module.exports.getProductBySlug = async (req, res) => {
+    try {
+        const { slug } = req.params;
+        let product = await BaseProduct.findOne({ slug });
+
+        if (!product) {
+            product = await BaseProduct.findOne({ name: slug });
+            
+            if (product) {
+                product.slug = slugify(product.name, {
+                    lower: true,
+                    strict: true,
+                    locale: 'vi'
+                });
+                await product.save();
+            }
+        }
+        
+        if (!product) {
+            return res.status(404).json({ message: "Product not found" });
+        }
+
+        const variants = await ProductVariant.find({ baseProduct: product._id });
+        const productWithVariants = {
+            ...product.toObject(),
+            variants
+        };
+
+        res.status(200).json({ 
+            message: "Product fetched successfully !!!", 
+            product: productWithVariants 
+        });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -47,13 +131,17 @@ module.exports.getProductByCategory = async (req, res) => {
 module.exports.createProduct = async (req, res) => {
     try {
         const user = req.user;
-        if (user.role !== 3) {
-            return res.status(403).json({ message: "You are not authorized to create product" });
+        const { name, description, price, stock, subCategoryId } = req.body;
+
+        if (!name || !description || !price || !stock || !subCategoryId) {
+            return res.status(400).json({
+                message: "Name, description, price, stock and subCategoryId are required"
+            });
         }
 
-        const { name, description, price, stock, subCategoryId } = req.body;
-        if (!name || !description || !price || !stock || !subCategoryId) {
-            return res.status(400).json({ message: "Name, description, price, stock and subCategoryId are required" });
+        const existingProduct = await BaseProduct.findOne({ name });
+        if (existingProduct) {
+            return res.status(400).json({ message: "Product with this name already exists" });
         }
 
         const subCategory = await SubCategory.findById(subCategoryId);
@@ -61,28 +149,44 @@ module.exports.createProduct = async (req, res) => {
             return res.status(404).json({ message: "Sub category not found" });
         }
 
-        if (!req.file) {
+        if (!req.files || !req.files.image) {
             return res.status(400).json({ message: "Image is required" });
         }
 
-        const image = {
-            url: req.file.path,
-            public_id: req.file.filename
-        };
+        const uploadedFiles = Array.isArray(req.files.image) ? req.files.image : [req.files.image];
+        
+        if (uploadedFiles.length > 3) {
+            return res.status(400).json({ message: "Maximum 3 images allowed" });
+        }
 
-        const product = await Product.create({ 
-            name, 
-            description, 
-            price, 
-            stock, 
-            subCategory: subCategoryId, 
-            createdBy: user.id, 
-            image 
+        const images = uploadedFiles.map(file => ({
+            url: file.path,
+            public_id: file.filename
+        }));
+
+        const baseProduct = new BaseProduct({
+            name,
+            description,
+            image: images[0],
+            images,
+            subCategory: subCategoryId,
+            createdBy: user.id
         });
+
+        await baseProduct.save();
+
+        const productVariant = new ProductVariant({
+            baseProduct: baseProduct._id,
+            price,
+            stock
+        });
+
+        await productVariant.save();
 
         res.status(201).json({
             message: "Product created successfully !!!",
-            product
+            baseProduct,
+            productVariant
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -91,72 +195,67 @@ module.exports.createProduct = async (req, res) => {
 
 module.exports.updateProduct = async (req, res) => {
     try {
-        const user = req.user;
-        if (user.role !== 3) {
-            return res.status(403).json({ message: "You are not authorized to update product" });
-        }
         const { id } = req.params;
-        const existingProduct = await Product.findById(id);
+        const { name, description, subCategoryId } = req.body;
+        const existingProduct = await BaseProduct.findById(id);
         if (!existingProduct) {
             return res.status(404).json({ message: "Product not found" });
         }
 
-        const { name, description, price, subCategoryId } = req.body;
-        
         const subCategory = await SubCategory.findById(subCategoryId);
         if (!subCategory) {
             return res.status(404).json({ message: "Sub category not found" });
         }
 
-        if (!name || !description || !price || !stock || !subCategoryId) {
-            return res.status(400).json({ message: "Name, description, price, stock and subCategoryId are required" });
+        if (!name || !description || !subCategoryId) {
+            return res.status(400).json({ message: "Name, description and subCategoryId are required" });
         }
 
-        let image = existingProduct.image; 
-        if (req.file) {
-            if (existingProduct.image && existingProduct.image.public_id) {
-                await cloudinary.uploader.destroy(existingProduct.image.public_id);
+        let images = existingProduct.images || [];
+        let image = existingProduct.image;
+        
+        if (req.files && req.files.image) {
+            const uploadedFiles = Array.isArray(req.files.image) ? req.files.image : [req.files.image];
+            
+            if (uploadedFiles.length > 3) {
+                return res.status(400).json({ message: "Maximum 3 images allowed" });
             }
 
-            image = {
-                url: req.file.path,
-                public_id: req.file.filename
-            };
+            // Delete old images from cloudinary
+            if (existingProduct.images && existingProduct.images.length > 0) {
+                for (const img of existingProduct.images) {
+                    if (img.public_id) {
+                        await cloudinary.uploader.destroy(img.public_id);
+                    }
+                }
+            }
+
+            // Add new images
+            images = uploadedFiles.map(file => ({
+                url: file.path,
+                public_id: file.filename
+            }));
+
+            // Set first image as main image
+            image = images[0];
         }
-        const updatedProduct = await Product.findByIdAndUpdate(
-            id, 
-            { 
-                name, 
-                description, 
-                price, 
+
+        const updatedBaseProduct = await BaseProduct.findByIdAndUpdate(
+            id,
+            {
+                name,
+                description,
                 subCategory: subCategoryId,
-                image 
-            }, 
+                image,
+                images
+            },
             { new: true }
         );
 
         res.status(200).json({
             message: "Product updated successfully !!!",
-            product: updatedProduct
+            product: updatedBaseProduct
         });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-}
-
-module.exports.deleteProduct = async (req, res) => {
-    try {
-        const user = req.user;
-        if (user.role !== 3) {
-            return res.status(403).json({ message: "You are not authorized to delete product" });
-        }
-        const { id } = req.params;
-        const existingProduct = await Product.findById(id);
-        if (!existingProduct) {
-            return res.status(404).json({ message: "Product not found" });
-        }
-        await Product.findByIdAndDelete(id);
-        res.status(200).json({ message: "Product deleted successfully !!!" });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -164,56 +263,74 @@ module.exports.deleteProduct = async (req, res) => {
 
 module.exports.activeProduct = async (req, res) => {
     try {
-        const user = req.user;
-        if (user.role !== 3) {
-            return res.status(403).json({ message: "You are not authorized to change product status" });
+        const { id } = req.params;
+        const { status } = req.body;
+        
+        if (!status || !['active', 'inactive'].includes(status)) {
+            return res.status(400).json({ 
+                message: "Status is required and must be either 'active' or 'inactive'" 
+            });
         }
 
-        const { id } = req.params;
-        const existingProduct = await Product.findById(id);
-        
-        if (!existingProduct) {
+        const variants = await ProductVariant.find({ baseProduct: id });
+        const baseProduct = await BaseProduct.findById(id);
+
+        if (!baseProduct || !variants || variants.length === 0) {
             return res.status(404).json({ message: "Product not found" });
         }
 
-        // Lấy giá trị stock hiện tại
-        const currentStock = existingProduct.stock;
-        let newStock;
-
-        // Logic flipbit cho stock
-        if (currentStock > 0) {
-            // Nếu đang kinh doanh và còn hàng -> chuyển sang ngừng kinh doanh (giữ nguyên số lượng)
-            newStock = currentStock;
-        } else if (currentStock === 0) {
-            // Nếu hết hàng -> chuyển sang ngừng kinh doanh
-            newStock = 0;
-        } else if (currentStock <= -9999) {
-            // Nếu đang ngừng kinh doanh và het hàng -> chuyển sang ngung kinh doanh
-            newStock = 0;
-        } else {
-            // Nếu đang ngừng kinh doanh -> chuyển sang kinh doanh lại với số lượng hiện có
-            newStock = Math.abs(currentStock);
-        } 
-
-        const updatedProduct = await Product.findByIdAndUpdate(
-            id, 
-            { stock: newStock },
-            { new: true }
-        );
-
-        // Tạo message tương ứng với trạng thái mới
         let message;
-        if (newStock > 0) {
-            message = `Product is now in stock (${newStock} items) and available for sale`;
-        } else if (newStock < 0) {
-            message = `Product is temporarily out of stock (${Math.abs(newStock)} items) and not available for sale`;
-        } else {
-            message = `Product is out of stock but still available for sale`;
+        let updatedVariants = [];
+
+        for (let variant of variants) {
+            const currentStock = variant.stock;
+            let newStock;
+
+            if (status === 'inactive') {
+                if (currentStock > 0) {
+                    newStock = -currentStock;
+                } else if (currentStock === 0) {
+                    newStock = -9999;
+                } else {
+                    newStock = currentStock;
+                }
+            } else {
+                if (currentStock === -9999) {
+                    newStock = 0;
+                } else if (currentStock < 0) {
+                    newStock = Math.abs(currentStock);
+                } else {
+                    newStock = currentStock;
+                }
+            }
+
+            const updatedVariant = await ProductVariant.findByIdAndUpdate(
+                variant._id,
+                { stock: newStock },
+                { new: true }
+            );
+            updatedVariants.push(updatedVariant);
         }
 
-        res.status(200).json({ 
+        const firstVariant = updatedVariants[0];
+        if (status === 'active') {
+            if (firstVariant.stock > 0) {
+                message = `Product is now in business with ${firstVariant.stock} items in stock`;
+            } else {
+                message = "Product is now in business but out of stock";
+            }
+        } else {
+            if (firstVariant.stock === -9999) {
+                message = "Product is now out of business and out of stock";
+            } else {
+                message = `Product is now out of business with ${Math.abs(firstVariant.stock)} items in stock`;
+            }
+        }
+
+        res.status(200).json({
             message,
-            product: updatedProduct
+            product: baseProduct,
+            variants: updatedVariants
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -222,54 +339,168 @@ module.exports.activeProduct = async (req, res) => {
 
 module.exports.updateStock = async (req, res) => {
     try {
-        const user = req.user;
-        if (user.role !== 3) {
-            return res.status(403).json({ message: "You are not authorized to update product stock" });
+        const { id } = req.params;
+        const { newStock, newPrice } = req.body;
+
+        if (!newStock || !newPrice) {
+            return res.status(400).json({
+                message: "newStock and newPrice are required"
+            });
         }
 
-        const { id } = req.params;
-        const existingProduct = await Product.findById(id);
+        const existingVariants = await ProductVariant.find({ baseProduct: id }).populate('baseProduct');
         
-        if (!existingProduct) {
+        if (!existingVariants || existingVariants.length === 0) {
             return res.status(404).json({ message: "Product not found" });
         }
 
-        // Lấy giá trị stock hiện tại
-        const currentStock = existingProduct.stock;
-        let newStock;
-
-        // Logic flipbit cho stock
-        if (currentStock >= 0) {
-            // Nếu stock >= 0 (đang kinh doanh) -> chuyển sang ngừng kinh doanh nhưng vẫn giữ số lượng
-            newStock = -Math.abs(currentStock);
-        } else {
-            // Nếu stock < 0 (ngừng kinh doanh) -> chuyển sang kinh doanh lại với số lượng đã có
-            newStock = Math.abs(currentStock);
-        }
-
-        const updatedProduct = await Product.findByIdAndUpdate(
-            id, 
-            { stock: newStock },
-            { new: true }
+        const existingVariantWithSamePrice = existingVariants.find(variant => 
+            Number(variant.price) === Number(newPrice)
         );
 
-        // Tạo message tương ứng với trạng thái mới
-        let message;
-        if (newStock > 0) {
-            message = `Product is now in stock (${newStock} items) and available for sale`;
-        } else if (newStock < 0) {
-            message = `Product is temporarily out of stock (${Math.abs(newStock)} items) and not available for sale`;
+        if (existingVariantWithSamePrice) {
+            const updatedStock = Number(existingVariantWithSamePrice.stock) + Number(newStock);
+            const updatedProduct = await ProductVariant.findByIdAndUpdate(
+                existingVariantWithSamePrice._id,
+                { stock: updatedStock },
+                { new: true }
+            );
+
+            return res.status(200).json({
+                message: "Stock updated successfully for existing price variant",
+                product: updatedProduct,
+                totalStock: updatedStock
+            });
         } else {
-            message = `Product is out of stock but still available for sale`;
+            const newVariant = new ProductVariant({
+                baseProduct: id,
+                price: newPrice,
+                stock: newStock
+            });
+
+            await newVariant.save();
+
+            const allVariants = await ProductVariant.find({ baseProduct: id }).populate('baseProduct');
+            const totalStock = allVariants.reduce((sum, variant) => sum + Number(variant.stock), 0);
+
+            return res.status(200).json({
+                message: "New product variant created successfully",
+                product: newVariant,
+                allVariants: allVariants,
+                totalStock: totalStock
+            });
         }
 
-        res.status(200).json({ 
-            message,
-            product: updatedProduct
-        });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 }
 
-   
+module.exports.getTotalStock = async (req, res) => {
+    try {
+        const variants = await ProductVariant.find({ stock: { $gt: 0 } });
+        const totalStock = variants.reduce(
+            (acc, variant) => acc + variant.stock,
+            0
+        );
+
+        res.status(200).json({
+            message: "Total stock calculated successfully",
+            totalStock,
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+module.exports.consolidateProductVariants = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const baseProduct = await BaseProduct.findById(id);
+        const variants = await ProductVariant.find({ baseProduct: id });
+
+        if (!baseProduct || !variants || variants.length === 0) {
+            return res.status(404).json({ message: "Product not found" });
+        }
+
+        const oldVariants = variants.map(v => ({
+            price: v.price,
+            stock: v.stock,
+            totalValue: v.price * v.stock
+        }));
+
+        const totalStock = variants.reduce((sum, variant) => sum + Math.abs(variant.stock), 0);
+        const totalValue = variants.reduce((sum, variant) => sum + (variant.price * Math.abs(variant.stock)), 0);
+        const newPrice = Math.round(totalValue / totalStock);
+
+        await ProductVariant.deleteMany({ baseProduct: id });
+
+        const newVariant = new ProductVariant({
+            baseProduct: id,
+            price: newPrice,
+            stock: totalStock
+        });
+
+        await newVariant.save();
+
+        return res.status(200).json({
+            message: "Product variants consolidated successfully",
+            productInfo: {
+                productName: baseProduct.name,
+                oldVariants: oldVariants,
+                newVariant: {
+                    price: newPrice,
+                    stock: totalStock,
+                    totalValue: newPrice * totalStock
+                }
+            }
+        });
+
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}
+
+module.exports.updateAllProductSlugs = async (req, res) => {
+    try {
+        const products = await BaseProduct.find();
+        let updatedCount = 0;
+
+        for (const product of products) {
+            if (!product.slug) {
+                product.slug = slugify(product.name, {
+                    lower: true,
+                    strict: true,
+                    locale: 'vi'
+                });
+                await product.save();
+                updatedCount++;
+            }
+        }
+
+        res.status(200).json({
+            message: `Successfully updated slugs for ${updatedCount} products`,
+            totalProducts: products.length,
+            updatedCount
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}
+module.exports.deleteProduct = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const existingProduct = await BaseProduct.findById(id);
+        if (!existingProduct) {
+            return res.status(404).json({ message: "Product not found" });
+        }
+        await ProductVariant.deleteMany({ baseProduct: id });
+        await BaseProduct.findByIdAndDelete(id);
+
+        res.status(200).json({ message: "Product deleted successfully !!!" });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}
+
+

@@ -1,5 +1,5 @@
 const User = require("../../models/user");
-const { Product } = require("../../models/product/product");
+// const { Product } = require("../../models/product/product");
 
 module.exports.getAllUser = async (req, res) => {
     try {
