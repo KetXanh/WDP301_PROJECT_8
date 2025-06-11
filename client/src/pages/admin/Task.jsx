@@ -54,15 +54,20 @@ export default function Task() {
     fetchEmployees();
   }, []);
 
-  useEffect(() => {
-    if (employeeFilter) {
-      setFilteredTasks(
-        tasks.filter((t) => t.employeeId.includes(employeeFilter))
-      );
-    } else {
-      setFilteredTasks(tasks);
-    }
-  }, [employeeFilter, tasks]);
+useEffect(() => {
+  if (employeeFilter) {
+    setFilteredTasks(
+      tasks.filter((t) =>
+        t.assignedTo?.username
+          ?.toLowerCase()
+          .includes(employeeFilter.toLowerCase())
+      )
+    );
+  } else {
+    setFilteredTasks(tasks);
+  }
+}, [employeeFilter, tasks]);
+
 
   const handleDelete = async (id) => {
     if (window.confirm("Bạn có chắc muốn xoá task này?")) {
@@ -163,9 +168,7 @@ export default function Task() {
                 <select
                   className="w-full border px-4 py-2 rounded"
                   value={form.status}
-                  onChange={(e) =>
-                    setForm({ ...form, status: e.target.value })
-                  }
+                  onChange={(e) => setForm({ ...form, status: e.target.value })}
                   required
                 >
                   <option value="pending">Chờ xử lý</option>
@@ -212,7 +215,7 @@ export default function Task() {
       <div className="flex gap-4 items-center">
         <input
           type="text"
-          placeholder="Lọc theo mã nhân viên..."
+          placeholder="Lọc theo tên nhân viên..."
           value={employeeFilter}
           onChange={(e) => setEmployeeFilter(e.target.value)}
           className="border px-4 py-2 rounded w-full max-w-sm"
