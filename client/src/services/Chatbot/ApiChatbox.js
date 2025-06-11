@@ -1,4 +1,4 @@
-import api from '../../utils/CustomizeApi';
+import api from '../CustomizeApi'
 
 export const sendMessage = async (receiverId, content) => {
     const response = await api.post('/chat/send', { receiverId, content });

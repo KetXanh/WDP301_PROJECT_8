@@ -1,11 +1,13 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ShoppingCart, Star, Truck, Shield, Award, Heart } from 'lucide-react';
+import { ShoppingCart, Star, Truck, Shield, Award, Heart, MessageCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import React from 'react';
-
+import React, { useState } from 'react';
+import Chatbox from '@/components/Chatbox/Chatbox';
 
 const HomePage = () => {
+    const [isChatOpen, setIsChatOpen] = useState(false);
+
     const featuredProducts = [
         {
             id: 1,
@@ -176,6 +178,20 @@ const HomePage = () => {
                     </Link>
                 </div>
             </section>
+
+            {/* Floating Chat Button */}
+            <div className="fixed bottom-6 right-6 z-50">
+                <Button
+                    onClick={() => setIsChatOpen(true)}
+                    size="lg"
+                    className="rounded-full h-14 w-14 bg-gradient-to-r from-green-600 to-amber-600 hover:from-green-700 hover:to-amber-700 shadow-lg hover:shadow-xl transition-all duration-300"
+                >
+                    <MessageCircle className="h-6 w-6" />
+                </Button>
+            </div>
+
+            {/* Chatbox Component */}
+            <Chatbox isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
 
         </div>
     );

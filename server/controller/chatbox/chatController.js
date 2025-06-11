@@ -2,34 +2,75 @@ const ChatMessage = require('../../models/chatMessage');
 const { db } = require('../../config/firebase');
 const Users = require('../../models/user');
 const { GoogleGenerativeAI } = require("@google/generative-ai");
+const { TRAINING_DATA, SYSTEM_PROMPT } = require('../../data/chatbotTraining');
 require("dotenv").config();
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
 module.exports.chatWithAI = async (req, res) => {
-  try {
-    const { message } = req.body;
+    try {
+        const { message, context } = req.body;
 
-    if (!message) {
-      return res.status(400).json({ error: "Message is required" });
+        if (!message) {
+            return res.status(400).json({ error: "Message is required" });
+        }
+
+        const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+        // Tạo prompt với context và training data
+        let fullPrompt = SYSTEM_PROMPT + "\n\n";
+        
+        // Thêm context nếu có
+        if (context) {
+            fullPrompt += `Context: ${context}\n\n`;
+        }
+
+        // Tìm và thêm training data phù hợp
+        let matchedCategory = null;
+        let matchedPattern = null;
+
+        // Kiểm tra từng category trong training data
+        for (const [category, data] of Object.entries(TRAINING_DATA)) {
+            const matched = data.patterns.find(pattern => 
+                message.toLowerCase().includes(pattern.toLowerCase())
+            );
+            if (matched) {
+                matchedCategory = category;
+                matchedPattern = matched;
+                break;
+            }
+        }
+
+        // Thêm training data nếu tìm thấy pattern phù hợp
+        if (matchedCategory && matchedPattern) {
+            const responses = TRAINING_DATA[matchedCategory].responses;
+            const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+            fullPrompt += `Đây là một câu hỏi về ${matchedCategory}. Mẫu câu trả lời: "${randomResponse}"\n\n`;
+        }
+
+        // Thêm câu hỏi của người dùng
+        fullPrompt += `User: ${message}\nAssistant:`;
+
+        const result = await model.generateContent(fullPrompt);
+        const response = await result.response;
+        const aiReply = response.text();
+
+        res.json({ 
+            reply: aiReply,
+            context: context || null,
+            matchedCategory: matchedCategory || null
+        });
+    } catch (error) {
+        console.error(
+            "Error in chatWithAI:",
+            error.response?.data || error.message
+        );
+        res.status(500).json({
+            error: "Failed to generate AI reply",
+            details: error.response?.data || error.message,
+        });
     }
-    const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-    const result = await model.generateContent(message);
-    const response = await result.response;
-    const aiReply = response.text(); 
-
-    res.json({ reply: aiReply });
-  } catch (error) {
-    console.error(
-      "Error in chatWithAI:",
-      error.response?.data || error.message
-    );
-    res.status(500).json({
-      error: "Failed to generate AI reply",
-      details: error.response?.data || error.message,
-    });
-  }
 };
 
 
