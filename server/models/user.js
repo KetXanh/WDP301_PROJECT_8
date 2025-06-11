@@ -2,8 +2,8 @@ const { default: mongoose } = require("mongoose");
 
 const userSchema = new mongoose.Schema({
     username: String,
-    email: { type: String, required: true },
-    password: { type: String, required: true },
+    email: { type: String },
+    password: { type: String },
     avatar: {
         url: { type: String, default: "" },
         public_id: { type: String, default: "" },

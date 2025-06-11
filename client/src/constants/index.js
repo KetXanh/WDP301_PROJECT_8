@@ -25,7 +25,6 @@ import user02 from "../assets/user02.png";
 import user03 from "../assets/user03.png";
 
 export const links = [
- 
   {
     href: "/admin",
     icon: FaChartBar,
@@ -52,12 +51,17 @@ export const links = [
     text: "Products",
   },
   {
-    href: "/login", // khách hàng login
+    href: "/admin/task",
+    icon: FaUsersCog,
+    text: "Task",
+  },
+  {
+    href: "/login",
     icon: IoIosLogIn,
     text: "Sign In",
   },
   {
-    href: "/register", // khách hàng register
+    href: "/register",
     icon: IoIosLogOut,
     text: "Sign Up",
   },
