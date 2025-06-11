@@ -3,6 +3,8 @@ const router = express.Router();
 const Authozation = require("../../middleware/auth");
 const controller = require("../../controller/AdminDev/admin.controller");
 
-router.put('/changeRole/:id', Authozation.authenticateToken, userController.changeRole);
+router.get('/getAllUser', controller.getAllUser);
+router.get('/getAllProduct', controller.getAllProduct);
+router.put('/changeRole/:id', Authozation.authenticateToken, controller.changeRole);
 
 module.exports = router;
