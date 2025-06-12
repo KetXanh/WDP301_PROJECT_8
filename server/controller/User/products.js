@@ -1,3 +1,4 @@
+const { Category } = require("../../models/product/category")
 const productBase = require("../../models/product/productBase")
 const ProductVariant = require("../../models/product/ProductVariant")
 const { SubCategory } = require("../../models/product/subCategory")
@@ -111,6 +112,49 @@ module.exports.detailProducts = async (req, res) => {
         });
     }
 };
+
+
+//[GET] user/products/categories
+module.exports.allCategories = async (req, res) => {
+    try {
+        const categories = await SubCategory.find().populate('category').lean();
+        const grouped = {};
+
+        categories.forEach(sub => {
+            const parent = sub.category;
+            if (!parent || !parent._id) return; // bỏ qua nếu thiếu dữ liệu
+
+            const parentId = parent._id.toString();
+
+            if (!grouped[parentId]) {
+                grouped[parentId] = {
+                    id: parent.slug,
+                    name: parent.name,
+                    children: []
+                };
+            }
+
+            grouped[parentId].children.push({
+                id: sub.slug,
+                name: sub.name
+            });
+        });
+
+        // Chuyển object -> array
+        const result = Object.values(grouped);
+
+        res.json({
+            code: 200,
+            data: categories
+        });
+    } catch (error) {
+        return res.status(500).json({
+            code: 500,
+            message: 'Server Error',
+            error: error.message
+        });
+    }
+}
 
 // [GET] user/products/:sort
 module.exports.sortProduct = async (req, res) => {
