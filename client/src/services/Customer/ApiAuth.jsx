@@ -40,4 +40,8 @@ export const updateProfile = (formData) => {
 
 export const allProducts = () => {
     return instance.get('/user/products')
-} 
+}
+
+export const detailProduct = (slug) => {
+    return instance.get(`/user/products/${slug}`)
+}

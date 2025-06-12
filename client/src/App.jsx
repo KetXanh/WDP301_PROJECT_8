@@ -27,6 +27,8 @@ import Order from "./pages/admin/Order";
 import Category from "./pages/admin/Category";
 import Dashboard from "./pages/admin/DashBoard";
 import SubCategory from "./pages/admin/SubCategory";
+import ProductDetail from "./pages/Customers/ProductDetail";
+import ProtectedRoute from "./components/protectedRouter/ProtectedRoute";
 
 // Customer Layout
 const CustomerLayout = () => (
@@ -36,7 +38,7 @@ const CustomerLayout = () => (
       <Outlet />
     </main>
     <Footer />
-    <ToastContainer position="top-right" autoClose={5000} theme="light" />
+
   </div>
 );
 
@@ -88,8 +90,9 @@ function App() {
           <Route path="/reset-password" element={<ResetPassword />} />
           {accessToken &&
             <>
-              <Route path="/profile" element={<Profile />} />
+              <Route path="/profile" element={<ProtectedRoute element={<Profile />} />} />
               <Route path="/products" element={<Products />} />
+              <Route path="/products/:slug" element={<ProductDetail />} />
             </>
           }
 
@@ -117,6 +120,7 @@ function App() {
         {/* Not Found */}
         <Route path="*" element={<NotFound />} />
       </Routes>
+      <ToastContainer position="top-right" autoClose={5000} theme="light" />
     </div>
   );
 }
