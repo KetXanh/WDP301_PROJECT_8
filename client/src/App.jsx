@@ -24,10 +24,19 @@ import HeaderAdmin from "./components/admin/Header";
 import Product from "./pages/admin/Product";
 import Order from "./pages/admin/Order";
 import Category from "./pages/admin/Category";
-import Dashboard from "./pages/admin/DashBoard";
+import DashboardAdmin from "./pages/admin/DashBoard";
 import SubCategory from "./pages/admin/SubCategory";
 import Task from "./pages/admin/Task";
 
+//Sale Manager Pages
+import SaleManagerLayout from "./pages/SaleManager/SaleManagerLayout";
+import Dashboard from "./pages/SaleManager/Dashboard";
+import Statistics from "./pages/SaleManager/Statistics";
+import ManagerTask from "./pages/SaleManager/ManagerTask";
+import ManagerKPI from "./pages/SaleManager/ManagerKPI";
+import ManagerDiscount from "./pages/SaleManager/ManagerDiscount";
+import Chat from "./pages/SaleManager/components/Chat";
+import ManagerOrder from "./pages/SaleManager/ManagerOrder";
 
 
 // Customer Layout
@@ -103,12 +112,23 @@ function App() {
             />
           }
         >
-          <Route index element={<Dashboard />} />
+          <Route index element={<DashboardAdmin />} />
           <Route path="product" element={<Product />} />
           <Route path="order" element={<Order />} />
           <Route path="subcategory" element={<SubCategory />} />
           <Route path="category" element={<Category />} />
-          <Route path="task" element={<Task/>}/>
+          <Route path="task" element={<Task />} />
+        </Route>
+
+        {/* Sale Manager Routes */}
+        <Route path="/sale-manager" element={<SaleManagerLayout />}>
+          <Route index element={<Dashboard />} />
+          <Route path="statistics" element={<Statistics />} />
+          <Route path="task" element={<ManagerTask />} />
+          <Route path="kpi" element={<ManagerKPI />} />
+          <Route path="discount" element={<ManagerDiscount />} />
+          <Route path="chat" element={<Chat />} />
+          <Route path="order" element={<ManagerOrder />} />
         </Route>
 
         {/* Not Found */}

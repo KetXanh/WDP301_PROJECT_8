@@ -19,7 +19,7 @@ const data = [
   { name: "Apr", total: 3908 },
 ];
 
-const Dashboard = () => {
+const DashboardAdmin = () => {
   // Move state declaration inside the component
   const [totalStock, setTotalStock] = useState(0);
 
@@ -122,4 +122,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export default DashboardAdmin;

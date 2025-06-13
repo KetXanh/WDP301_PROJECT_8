@@ -84,6 +84,14 @@ module.exports.updateTaskStatus = async (req, res) => {
             return res.status(400).json({ message: "Trạng thái không hợp lệ" });
         }
 
+        // Kiểm tra task có tồn tại không
+        const existingTask = await TaskAssignment.findById(task);
+
+        console.log(existingTask)
+        if (!existingTask) {
+            return res.status(404).json({ message: "Không tìm thấy task đã gán" });
+        }
+
         const updated = await TaskAssignment.findByIdAndUpdate(
             task,
             { status },
@@ -101,6 +109,7 @@ module.exports.updateTaskStatus = async (req, res) => {
             assignment: updated
         });
     } catch (err) {
+        console.error('Error updating task status:', err);
         res.status(500).json({ message: "Lỗi server", error: err.message });
     }
 };
