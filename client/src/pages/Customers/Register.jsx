@@ -53,7 +53,6 @@ const Register = () => {
                 return toast.error("Xác Nhận Mật Khẩu Không Khớp")
             }
             const res = await customerRegister(formData.username, formData.email, formData.password);
-            console.log(res);
 
             if (res.data && res.data.code === 201) {
                 toast.success("Đăng Ký Tài Khoản Thành Công");

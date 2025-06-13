@@ -12,7 +12,7 @@ export const getTaskById = (id) => {
   return instance.get(`/saleManager/task/${id}`);
 };
 
-// ✅ Tạo task mới (map employeeId -> assignedTo)
+
 export const createTask = (taskData) => {
   const payload = {
     ...taskData,
@@ -22,7 +22,7 @@ export const createTask = (taskData) => {
   return instance.post("/saleManager/task", payload);
 };
 
-// ✅ Cập nhật task theo ID (map employeeId -> assignedTo)
+
 export const updateTask = (id, taskData) => {
   const payload = {
     ...taskData,
@@ -34,4 +34,29 @@ export const updateTask = (id, taskData) => {
 
 export const deleteTask = (id) => {
   return instance.delete(`/saleManager/task/${id}`);
+};
+
+//Lấy danh sách tất cả KPI
+export const getAllKPIs = () => {
+  return instance.get("/saleManager/kpi");
+};
+
+
+export const getKPIById = (id) => {
+  return instance.get(`/saleManager/kpi/${id}`);
+};
+
+
+export const createKPI = (kpiData) => {
+  return instance.post("/saleManager/kpi", kpiData);
+};
+
+
+export const updateKPI = (id, kpiData) => {
+  return instance.put(`/saleManager/kpi/${id}`, kpiData);
+};
+
+
+export const deleteKPI = (id) => {
+  return instance.delete(`/saleManager/kpi/${id}`);
 };

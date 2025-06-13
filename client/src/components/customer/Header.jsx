@@ -53,6 +53,7 @@ const Header = () => {
         // Add logout logic here (clear tokens, redirect, etc.)
         console.log('Đăng xuất thành công');
         dispatch(logout());
+        navigate('/')
     };
 
 

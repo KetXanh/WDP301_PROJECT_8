@@ -108,24 +108,25 @@ const Profile = () => {
 
       const res = await updateProfile(form);
 
-      if (res.data && res.data.code === 200) {
-        toast.success("Thông tin cá nhân của bạn đã được cập nhật.");
-        setIsEditing(false);
-        setAvatarFile(null);
-      } else if (res.data.code === 401) {
-        toast.error("Email Đã Tồn Tại");
-      } else if (res.data.code === 402) {
-        toast.error("Tên Tài Khoản Đã Tồn Tại");
-      } else {
-        toast.error("Cập nhật thất bại.");
-      }
-    } catch (error) {
-      console.error(error);
-      toast.error("Có lỗi xảy ra khi cập nhật.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+            if (res.data && res.data.code === 200) {
+                toast.success("Thông tin cá nhân của bạn đã được cập nhật.");
+                setAvatarFile(null);
+            } else if (res.data.code === 401) {
+                toast.error("Email Đã Tồn Tại");
+            } else if (res.data.code === 402) {
+                toast.error("Tên Tài Khoản Đã Tồn Tại");
+            } else {
+                toast.error("Cập nhật thất bại.");
+            }
+            setIsEditing(false);
+
+        } catch (error) {
+            console.error(error);
+            toast.error("Có lỗi xảy ra khi cập nhật.");
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
   const handleCancel = () => {
     setIsEditing(false);

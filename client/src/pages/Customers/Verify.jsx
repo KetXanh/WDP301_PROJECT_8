@@ -23,7 +23,6 @@ const Verify = () => {
                 navigate(-1)
                 return;
             }
-            setIsLoading(false);
             const res = await customerVerify(email, otpValue);
             if (res.data && res.data.code === 200) {
                 toast.success("Xác Thực Tài Khoản Thành Công")
@@ -33,6 +32,8 @@ const Verify = () => {
             } else {
                 toast.error("Xác THực Tài Khoản Thất Bại")
             }
+            setIsLoading(false);
+
         } catch (error) {
             console.log("Server Error", error);
 

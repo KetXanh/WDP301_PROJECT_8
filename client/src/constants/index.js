@@ -56,6 +56,11 @@ export const links = [
     text: "Task",
   },
   {
+    href: "/admin/kpi",
+    icon: FaUsersCog,
+    text: "Kpi",
+  },
+  {
     href: "/login",
     icon: IoIosLogIn,
     text: "Sign In",

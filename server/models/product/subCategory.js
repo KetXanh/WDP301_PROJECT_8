@@ -18,7 +18,7 @@ const SubCategorySchema = new mongoose.Schema({
     },
     category: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "categories",
+        ref: "Categories",
     },
     status: {
         type: Boolean,
@@ -33,7 +33,7 @@ const SubCategorySchema = new mongoose.Schema({
 });
 
 // Pre-save middleware to generate slug
-SubCategorySchema.pre('save', function(next) {
+SubCategorySchema.pre('save', function (next) {
     if (this.isModified('name')) {
         this.slug = slugify(this.name, {
             lower: true,
