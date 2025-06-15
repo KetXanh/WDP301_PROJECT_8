@@ -20,7 +20,9 @@ const Header = () => {
     const navigate = useNavigate();
 
     const accessToken = useSelector((state) => state.customer.accessToken);
+    const cart = useSelector((state) => state.cart)
     const dispatch = useDispatch();
+
 
     const profile = async () => {
         try {
@@ -79,8 +81,15 @@ const Header = () => {
                     </nav>
 
                     <div className="flex items-center space-x-4">
-                        <Button variant="ghost" size="icon">
+                        <Button variant="ghost" size="icon" className="relative">
                             <ShoppingCart className="h-5 w-5" />
+                            {cart.items.length > 0 && (
+                                <span className="absolute -top-1 -right-1 bg-red-500 text-white
+                         text-[10px] leading-none rounded-full px-1.5 h-4 min-w-4
+                         flex items-center justify-center">
+                                    {cart.items.length}
+                                </span>
+                            )}
                         </Button>
 
                         {isLoggedIn ? (

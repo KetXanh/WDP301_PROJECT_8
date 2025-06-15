@@ -5,11 +5,12 @@ import { Link, useNavigate } from 'react-router-dom';
 import React, { useEffect, useState } from 'react';
 import { allProducts } from '../../services/Customer/ApiAuth';
 
+import AddToCartButton from '../../components/customer/AddToCartButton';
+
 
 const HomePage = () => {
     const navigate = useNavigate();
     const [featuredProducts, setFeaturedProducts] = useState([]);
-
 
     const benefits = [
         {
@@ -46,6 +47,7 @@ const HomePage = () => {
 
         }
     }
+
 
     useEffect(() => {
         products();
@@ -109,13 +111,10 @@ const HomePage = () => {
                                         </div>
                                     </div>
                                     <div className="text-center mb-4">
-                                        <span className="text-2xl font-bold text-green-600">{product.price}</span>
+                                        <span className="text-2xl font-bold text-green-600">{product.price.toLocaleString("vi-VN")}đ</span>
                                         <span className="text-sm text-gray-500 line-through ml-2">{product.originalPrice}</span>
                                     </div>
-                                    <Button className="w-full bg-gradient-to-r from-green-600 to-amber-600 hover:from-green-700 hover:to-amber-700">
-                                        <ShoppingCart className="h-4 w-4 mr-2" />
-                                        Thêm Vào Giỏ
-                                    </Button>
+                                    <AddToCartButton product={product} quantity={1} />
                                 </CardContent>
                             </Card>
                         ))}

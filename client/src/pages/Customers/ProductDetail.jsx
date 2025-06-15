@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, Star, ShoppingCart, Heart, Share2, Minus, Plus } from 'lucide-react';
+import AddToCartButton from '../../components/customer/AddToCartButton';
 const ProductDetail = () => {
     const { slug } = useParams();
     const navigate = useNavigate();
@@ -48,9 +49,6 @@ const ProductDetail = () => {
         }
     };
 
-    const handleAddToCart = () => {
-        toast.success(`Đã thêm ${quantity} ${product.name} vào giỏ hàng`);
-    };
 
     const handleToggleWishlist = () => {
         setIsWishlisted(!isWishlisted);
@@ -256,14 +254,7 @@ const ProductDetail = () => {
 
                         {/* Action Buttons */}
                         <div className="flex gap-4">
-                            <Button
-                                onClick={handleAddToCart}
-                                className="flex-1 bg-gradient-to-r from-green-600 to-amber-600 hover:from-green-700 hover:to-amber-700"
-                                disabled={product.stock === 0}
-                            >
-                                <ShoppingCart className="h-4 w-4 mr-2" />
-                                Thêm vào giỏ hàng
-                            </Button>
+                            <AddToCartButton product={product} quantity={quantity} />
                             <Button
                                 variant="outline"
                                 onClick={handleToggleWishlist}
