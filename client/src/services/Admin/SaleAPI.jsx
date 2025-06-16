@@ -60,3 +60,4 @@ export const updateKPI = (id, kpiData) => {
 export const deleteKPI = (id) => {
   return instance.delete(`/saleManager/kpi/${id}`);
 };
+

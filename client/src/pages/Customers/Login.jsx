@@ -82,6 +82,7 @@ const Login = () => {
                     accessToken: res.data?.accessToken,
                     refreshToken: res.data?.refreshToken
                 }
+                console.log(dataToken);
                 dispatch(login(dataToken))
                 toast.success("Đăng Nhập Thành Công")
                 navigate('/')

@@ -11,7 +11,7 @@ const customerSlice = createSlice({
     reducers: {
         login: (state, action) => {
             state.accessToken = action.payload.accessToken;
-            state.refreshToken = action.payload.refreshToken
+            state.refreshToken = action.payload.refreshToken;
         },
         logout: (state) => {
             state.accessToken = null;

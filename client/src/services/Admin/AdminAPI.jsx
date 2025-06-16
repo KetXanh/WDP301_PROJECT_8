@@ -86,3 +86,11 @@ export const updateSubCategory = (id, subCategoryData) => {
 export const deleteSubCategory = (id) => {
   return instance.delete(`/productmanager/category/deleteSubCategory/${id}`);
 };
+
+export const importProductFromExcel = async (formData) => {
+  return await instance.post("/productmanager/product/import-excel", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+};

@@ -24,6 +24,7 @@ const processQueue = (error, token = null) => {
 instance.interceptors.request.use(
     (config) => {
         const token = store.getState().customer?.accessToken;
+          console.log("🔥 Access Token kiểm tra:", token);
         if (token) {
             config.headers['Authorization'] = `Bearer ${token}`;
         }
@@ -42,6 +43,7 @@ instance.interceptors.response.use(
             originalRequest._retry = true;
 
             const state = store.getState();
+          
             const refreshToken = state.customer?.refreshToken;
 
             if (!refreshToken) {

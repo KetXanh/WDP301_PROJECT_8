@@ -83,12 +83,41 @@ export default function Product() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Product</h1>
         <Dialog.Root open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
-          <Dialog.Trigger asChild>
-            <button className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+          <div className="flex items-center gap-2">
+            <Dialog.Trigger asChild>
+              <button className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                <Plus size={18} />
+                Add
+              </button>
+            </Dialog.Trigger>
+
+            <label className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 cursor-pointer">
               <Plus size={18} />
-              Add
-            </button>
-          </Dialog.Trigger>
+              Add Excel
+              <input
+                type="file"
+                accept=".xlsx"
+                hidden
+                onChange={async (e) => {
+                  const file = e.target.files[0];
+                  if (!file) return;
+                  const formData = new FormData();
+                  formData.append("file", file);
+                  try {
+                    await importProductFromExcel(formData);
+                    alert("Nhập sản phẩm thành công!");
+                    fetchProducts();
+                  } catch (err) {
+                    alert(
+                      "Lỗi khi nhập sản phẩm: " + err.response?.data?.message ||
+                        err.message
+                    );
+                  }
+                }}
+              />
+            </label>
+          </div>
+
           <Dialog.Portal>
             <Dialog.Overlay className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40" />
             <Dialog.Content className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-xl shadow-2xl z-50 w-[90vw] max-w-md min-h-[60vh] max-h-[80vh] overflow-y-auto">

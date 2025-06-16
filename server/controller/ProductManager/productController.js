@@ -3,6 +3,8 @@ const ProductVariant = require("../../models/product/ProductVariant");
 const { SubCategory } = require("../../models/product/subCategory");
 const { cloudinary } = require("../../middleware/upload.middleware")
 const slugify = require('slugify');
+const xlsx = require("xlsx");
+
 
 module.exports.getAllProducts = async (req, res) => {
     try {
@@ -521,4 +523,73 @@ module.exports.deleteProduct = async (req, res) => {
     }
 }
 
+module.exports.importProductsFromExcel = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: "Excel file is required" });
+    }
+
+    const workbook = xlsx.readFile(req.file.path);
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    const rows = xlsx.utils.sheet_to_json(sheet);
+
+    let imported = 0;
+    for (const row of rows) {
+      const { name, description, subCategoryName, price, stock, imageUrl } =
+        row;
+
+      if (
+        !name ||
+        !description ||
+        !subCategoryName ||
+        !price ||
+        !stock ||
+        !imageUrl
+      ) {
+        console.log("⚠️ Thiếu dữ liệu dòng:", row);
+        continue;
+      }
+
+      const subCategory = await SubCategory.findOne({ name: subCategoryName });
+      if (!subCategory) {
+        console.log(`❌ Không tìm thấy subCategory: ${subCategoryName}`);
+        continue;
+      }
+
+      let slug = slugify(name, { lower: true, strict: true });
+      let uniqueSlug = slug;
+      let count = 1;
+      while (await BaseProduct.findOne({ slug: uniqueSlug })) {
+        uniqueSlug = `${slug}-${count++}`;
+      }
+
+      const baseProduct = await BaseProduct.create({
+        name,
+        slug: uniqueSlug,
+        description,
+        image: {
+          url: imageUrl,
+          public_id: "",
+        },
+        subCategory: subCategory._id,
+        createdBy: req.user?.id || null, // nếu có login
+      });
+
+      await ProductVariant.create({
+        baseProduct: baseProduct._id,
+        price,
+        stock,
+      });
+
+      imported++;
+    }
+
+    return res
+      .status(200)
+      .json({ message: `Đã import ${imported} sản phẩm thành công` });
+  } catch (error) {
+    console.error("❌ Lỗi import:", error);
+    return res.status(500).json({ message: error.message });
+  }
+};
 

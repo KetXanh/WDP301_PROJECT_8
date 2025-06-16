@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const Authozation = require("../../middleware/auth")
 const { upload } = require('../../middleware/upload.middleware');
+const { uploadExcel } = require("../../middleware/uploadExcel.middleware");
 const controller = require('../../controller/ProductManager/productController');
 
 router.get('/getAllProducts', controller.getAllProducts);
@@ -15,5 +16,6 @@ router.put('/updateStock/:id', Authozation.authenticateToken, Authozation.author
 router.get("/total-stock", controller.getTotalStock);
 router.post("/consolidateProductVariants/:id", Authozation.authenticateToken, Authozation.authorizeRoles(3), controller.consolidateProductVariants);
 router.post("/update-all-slugs", Authozation.authenticateToken, Authozation.authorizeRoles(3), controller.updateAllProductSlugs);
+router.post("/import-excel",uploadExcel.single("file"),controller.importProductsFromExcel);
 
 module.exports = router;
