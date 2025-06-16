@@ -100,3 +100,10 @@ export const exportProductToExcel = async () => {
     responseType: "blob",
   });
 };
+export const getCategoryStats = () => {
+  return instance.get("/productmanager/category/category-stats");
+};
+
+export const getProductCountByCategory = () => {
+  return instance.get("/productmanager/category/product-by-category");
+};

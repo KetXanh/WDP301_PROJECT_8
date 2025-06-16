@@ -1,38 +1,37 @@
 import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
-import { DollarSign, Package, ShoppingCart, Users } from "lucide-react";
-import { getTotalStock } from "../../services/Admin/AdminAPI";
+import { Box, Package, ShoppingCart, Tag } from "lucide-react";
+import { getTotalStock ,getCategoryStats} from "../../services/Admin/AdminAPI";
+import ProductByCategoryChart from "./Form/ProductChart";
 
 // Move data outside the component to avoid redefinition on each render
-const data = [
-  { name: "Jan", total: 2400 },
-  { name: "Feb", total: 1398 },
-  { name: "Mar", total: 9800 },
-  { name: "Apr", total: 3908 },
-];
 
 const Dashboard = () => {
   // Move state declaration inside the component
   const [totalStock, setTotalStock] = useState(0);
+  const [categoryCount, setCategoryCount] = useState(0);
+  const [subcategoryCount, setSubcategoryCount] = useState(0);
 
   // Move useEffect inside the component
-  useEffect(() => {
-    getTotalStock()
-      .then((res) => {
-        setTotalStock(res.data.totalStock); // Adjust based on actual API response
-      })
-      .catch((err) => {
-        console.error("Error fetching stock:", err);
-      });
-  }, []);
+useEffect(() => {
+  getTotalStock()
+    .then((res) => {
+      setTotalStock(res.data.totalStock);
+    })
+    .catch((err) => {
+      console.error("Error fetching stock:", err);
+    });
+
+  getCategoryStats()
+    .then((res) => {
+      setCategoryCount(res.data.categoryCount);
+      setSubcategoryCount(res.data.subcategoryCount);
+    })
+    .catch((err) => {
+      console.error("Error fetching category stats:", err);
+    });
+}, []);
+
 
   return (
     <div className="p-6 space-y-6">
@@ -41,15 +40,13 @@ const Dashboard = () => {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Revenue
+              Category
             </CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <Box className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">$4,500</div>
-            <p className="text-xs text-muted-foreground">
-              +20% from last month
-            </p>
+            <div className="text-2xl font-bold">{categoryCount}</div>
+            <p className="text-xs text-muted-foreground">Tổng danh mục chính</p>
           </CardContent>
         </Card>
 
@@ -61,7 +58,7 @@ const Dashboard = () => {
             <ShoppingCart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">120</div>
+            <div className="text-2xl font-bold">0</div>
             <p className="text-xs text-muted-foreground">
               +15% from last month
             </p>
@@ -71,13 +68,13 @@ const Dashboard = () => {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Customers
+              Subcategory
             </CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <Tag className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">89</div>
-            <p className="text-xs text-muted-foreground">+5 new customers</p>
+            <div className="text-2xl font-bold">{subcategoryCount}</div>
+            <p className="text-xs text-muted-foreground">Tổng danh mục con</p>
           </CardContent>
         </Card>
 
@@ -97,25 +94,9 @@ const Dashboard = () => {
 
       {/* Revenue Chart */}
       <Card>
-        <CardHeader>
-          <CardTitle className="text-lg font-semibold">
-            Revenue Statistics
-          </CardTitle>
-        </CardHeader>
+        
         <CardContent className="h-[300px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={data}>
-              <XAxis dataKey="name" stroke="#888888" />
-              <YAxis stroke="#888888" />
-              <Tooltip />
-              <Line
-                type="monotone"
-                dataKey="total"
-                stroke="#4f46e5"
-                strokeWidth={2}
-              />
-            </LineChart>
-          </ResponsiveContainer>
+          <ProductByCategoryChart/>
         </CardContent>
       </Card>
     </div>
