@@ -11,6 +11,7 @@ import { useDispatch } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import { login } from '../../store/customer/authSlice';
 import LoginGoogle from '../../components/customer/LoginGoogle';
+import { jwtDecode } from "jwt-decode";
 const Login = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [formData, setFormData] = useState({
@@ -47,9 +48,15 @@ const Login = () => {
                     accessToken: res.data?.accessToken,
                     refreshToken: res.data?.refreshToken
                 }
+                const decoded = jwtDecode(dataToken.accessToken);
                 dispatch(login(dataToken))
                 toast.success("Đăng Nhập Thành Công")
-                navigate('/')
+                if (decoded?.role === 0) {
+                    navigate('/')
+
+                } else if (decoded?.role === 3) {
+                    navigate('/admin')
+                }
             } else if (res.data) {
                 const status = res.data.code;
                 switch (status) {

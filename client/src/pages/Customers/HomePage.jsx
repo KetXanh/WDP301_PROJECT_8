@@ -87,8 +87,8 @@ const HomePage = () => {
                     </h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                         {featuredProducts.slice(0, 4).map((product) => (
-                            <Card onClick={() => navigate(`/products/${product.slug}`)} key={product.id} className="hover:shadow-lg transition-shadow duration-300 group">
-                                <CardHeader className="text-center pb-4">
+                            <Card key={product.id} className="hover:shadow-lg transition-shadow duration-300 group">
+                                <CardHeader onClick={() => navigate(`/products/${product.slug}`)} className="text-center pb-4">
                                     <div className="mb-4 group-hover:scale-105 transition-transform duration-300">
                                         <img
                                             src={product.image}
