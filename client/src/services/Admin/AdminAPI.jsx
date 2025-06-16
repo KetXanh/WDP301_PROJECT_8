@@ -94,3 +94,9 @@ export const importProductFromExcel = async (formData) => {
     },
   });
 };
+
+export const exportProductToExcel = async () => {
+  return await instance.get("/productmanager/product/export-excel", {
+    responseType: "blob",
+  });
+};

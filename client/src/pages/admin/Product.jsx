@@ -1,6 +1,6 @@
-import { Eye, Trash2, Filter, Plus, Edit, X } from "lucide-react";
+import { Eye, Trash2, Filter, Plus, Edit, X,FileSpreadsheet,Download } from "lucide-react";
 import { useEffect, useState } from "react";
-import { getAllProducts, deleteProduct } from "../../services/Admin/AdminAPI";
+import { getAllProducts, deleteProduct,importProductFromExcel,exportProductToExcel } from "../../services/Admin/AdminAPI";
 import * as Dialog from "@radix-ui/react-dialog";
 import AddProduct from "./Form/AddProduct";
 import UpdateProduct from "./Form/UpdateProduct";
@@ -77,6 +77,25 @@ export default function Product() {
   const filteredProducts = products.filter((p) =>
     p.baseProduct.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
+  const handleExportExcel = async () => {
+    try {
+      const res = await exportProductToExcel();
+      const url = window.URL.createObjectURL(
+        new Blob([res.data], {
+          type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        })
+      );
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "productsList.xlsx");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err) {
+      console.error("Lỗi export Excel:", err);
+      alert("Không thể export file Excel.");
+    }
+  };
 
   return (
     <div className="p-6 space-y-6 mt-10">
@@ -92,7 +111,7 @@ export default function Product() {
             </Dialog.Trigger>
 
             <label className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 cursor-pointer">
-              <Plus size={18} />
+              <FileSpreadsheet size={18} />
               Add Excel
               <input
                 type="file"
@@ -116,6 +135,13 @@ export default function Product() {
                 }}
               />
             </label>
+            <button
+              className="flex items-center gap-2 bg-violet-600 text-white px-4 py-2 rounded hover:bg-violet-700"
+              onClick={handleExportExcel}
+            >
+              <Download size={18} />
+              Export Excel
+            </button>
           </div>
 
           <Dialog.Portal>

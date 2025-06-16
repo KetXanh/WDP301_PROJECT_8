@@ -17,5 +17,7 @@ router.get("/total-stock", controller.getTotalStock);
 router.post("/consolidateProductVariants/:id", Authozation.authenticateToken, Authozation.authorizeRoles(3), controller.consolidateProductVariants);
 router.post("/update-all-slugs", Authozation.authenticateToken, Authozation.authorizeRoles(3), controller.updateAllProductSlugs);
 router.post("/import-excel",uploadExcel.single("file"),controller.importProductsFromExcel);
+router.get("/export-excel", controller.exportProductsToExcel);
+
 
 module.exports = router;

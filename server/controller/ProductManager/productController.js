@@ -4,7 +4,7 @@ const { SubCategory } = require("../../models/product/subCategory");
 const { cloudinary } = require("../../middleware/upload.middleware")
 const slugify = require('slugify');
 const xlsx = require("xlsx");
-
+const ExcelJS = require("exceljs");
 
 module.exports.getAllProducts = async (req, res) => {
     try {
@@ -592,4 +592,47 @@ module.exports.importProductsFromExcel = async (req, res) => {
     return res.status(500).json({ message: error.message });
   }
 };
+
+
+exports.exportProductsToExcel = async (req, res) => {
+  try {
+    const products = await BaseProduct.find().populate("subCategory");
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Products");
+
+    worksheet.columns = [
+      { header: "Tên sản phẩm", key: "name", width: 30 },
+      { header: "Mô tả", key: "description", width: 40 },
+      { header: "Giá", key: "price", width: 15 },
+      { header: "Tồn kho", key: "stock", width: 15 },
+      { header: "Danh mục con", key: "subCategory", width: 25 },
+    ];
+
+    for (const product of products) {
+      const variant = await ProductVariant.findOne({
+        baseProduct: product._id,
+      });
+      worksheet.addRow({
+        name: product.name,
+        description: product.description,
+        price: variant?.price || "",
+        stock: variant?.stock || "",
+        subCategory: product.subCategory?.name || "",
+      });
+    }
+
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+    res.setHeader("Content-Disposition", "attachment; filename=productsList.xlsx");
+
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (error) {
+    console.error("Export error:", error);
+    res.status(500).json({ message: "Export failed" });
+  }
+};
+
 

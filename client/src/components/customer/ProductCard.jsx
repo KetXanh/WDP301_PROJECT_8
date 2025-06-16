@@ -1,13 +1,13 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ShoppingCart, Star } from 'lucide-react';
+import { Star } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { Separator } from '@/components/ui/separator';
-import { ArrowLeft, Heart, Share2, Minus, Plus } from 'lucide-react';
+
+import AddToCartButton from './AddToCartButton';
 const ProductCard = ({ product }) => {
     const discount = Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100);
+
     return (
         <Card className="hover:shadow-lg transition-shadow duration-300 group relative">
             {discount > 0 && (
@@ -59,13 +59,7 @@ const ProductCard = ({ product }) => {
                     )}
                 </div>
 
-                <Button
-                    className="w-full bg-gradient-to-r from-green-600 to-amber-600 hover:from-green-700 hover:to-amber-700"
-                    disabled={!product.stock}
-                >
-                    <ShoppingCart className="h-4 w-4 mr-2" />
-                    {product.stock ? 'Thêm Vào Giỏ' : 'Hết Hàng'}
-                </Button>
+                <AddToCartButton product={product} quantity={1} />
             </CardContent>
         </Card>
     );

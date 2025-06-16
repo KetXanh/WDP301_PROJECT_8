@@ -3,7 +3,7 @@ import { persistStore, persistReducer } from 'redux-persist';
 import storage from 'redux-persist/lib/storage'; // dùng localStorage
 import { combineReducers } from 'redux';
 import userReducer from './customer/authSlice';
-
+import cartReducer from './customer/cartSlice';
 // Cấu hình persist
 const persistConfig = {
     key: 'root',
@@ -13,6 +13,7 @@ const persistConfig = {
 // Combine reducers nếu có nhiều slice
 const rootReducer = combineReducers({
     customer: userReducer,
+    cart: cartReducer
     // thêm các slice khác ở đây
 });
 

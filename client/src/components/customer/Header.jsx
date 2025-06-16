@@ -14,8 +14,10 @@ import { useDispatch, useSelector } from 'react-redux';
 import { customerProfile } from '../../services/Customer/ApiAuth';
 import { logout } from '../../store/customer/authSlice';
 import logo from '../../assets/NutiGo.png'
+import { jwtDecode } from "jwt-decode";
 const Header = () => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [username, setUsername] = useState(null);
     const [user, setUser] = useState(null);
     const navigate = useNavigate();
 
@@ -31,18 +33,28 @@ const Header = () => {
             } else if (res.data && res.data.code === 401) {
                 dispatch(logout());
             }
+
         } catch (error) {
-            console.log("Lỗi gọi profile:", error.response?.status); // thêm dòng này
+            console.log("Lỗi gọi profile:", error.response?.status);
             if (error.response?.status === 403 || error.response?.status === 401) {
                 dispatch(logout());
             }
         }
     }
 
+    const cartItems = useSelector((state) =>
+        username ? state.cart.items[username] || [] : []
+    );
+    const badgeCount = cartItems.reduce((s, i) => s + i.quantity, 0);
+
     useEffect(() => {
         if (accessToken) {
-            profile();
-            setIsLoggedIn(true)
+            const decoded = jwtDecode(accessToken);
+            setUsername(decoded.username);
+            if (decoded.role === 0) {
+                profile();
+                setIsLoggedIn(true)
+            }
         } else {
             setIsLoggedIn(false)
         }
@@ -79,8 +91,15 @@ const Header = () => {
                     </nav>
 
                     <div className="flex items-center space-x-4">
-                        <Button variant="ghost" size="icon">
+                        <Button variant="ghost" size="icon" className="relative">
                             <ShoppingCart className="h-5 w-5" />
+                            {badgeCount > 0 && (
+                                <span className="absolute -top-1 -right-1 bg-red-500 text-white
+                         text-[10px] leading-none rounded-full px-1.5 h-4 min-w-4
+                         flex items-center justify-center">
+                                    {badgeCount}
+                                </span>
+                            )}
                         </Button>
 
                         {isLoggedIn ? (
