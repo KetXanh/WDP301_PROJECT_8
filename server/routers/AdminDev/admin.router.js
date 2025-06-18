@@ -1,10 +1,12 @@
 const express = require("express");
 const router = express.Router();
 const Authozation = require("../../middleware/auth");
-const controller = require("../../controller/AdminDev/admin.controller");
+const adminController = require("../../controller/AdminDev/adminController");
 
-router.get('/getAllUser', controller.getAllUser);
-// router.get('/getAllProduct', controller.getAllProduct);
-router.put('/changeRole/:id', Authozation.authenticateToken, controller.changeRole);
+router.get('/getAllUser', adminController.getAllUser);
+// router.get('/getAllProduct', adminController.getAllProduct);
+router.put('/changeRole/:id', Authozation.authenticateToken, adminController.changeRole);
+router.patch("/ban/:id", Authozation.authenticateToken, adminController.banUser);
+router.patch("/unban/:id", Authozation.authenticateToken, adminController.unbanUser);
 
 module.exports = router;
