@@ -45,3 +45,7 @@ export const allProducts = () => {
 export const detailProduct = (slug) => {
     return instance.get(`/user/products/${slug}`)
 }
+
+export const address = () => {
+    return instance.get(`/user/auth/address`)
+}

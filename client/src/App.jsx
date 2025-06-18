@@ -29,6 +29,8 @@ import Dashboard from "./pages/admin/DashBoard";
 import SubCategory from "./pages/admin/SubCategory";
 import ProductDetail from "./pages/Customers/ProductDetail";
 import ProtectedRoute from "./components/protectedRouter/ProtectedRoute";
+import { Car } from "lucide-react";
+import Cart from "./pages/Customers/Cart";
 
 // Customer Layout
 const CustomerLayout = () => (
@@ -88,11 +90,12 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/otp" element={<ForgotOtp />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/products" element={<Products />} />
+          <Route path="/products/:slug" element={<ProductDetail />} />
           {accessToken &&
             <>
               <Route path="/profile" element={<ProtectedRoute element={<Profile />} />} />
-              <Route path="/products" element={<Products />} />
-              <Route path="/products/:slug" element={<ProductDetail />} />
+              <Route path="/cart" element={<Cart />} />
             </>
           }
 
