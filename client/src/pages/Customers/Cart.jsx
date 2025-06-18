@@ -1,12 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
 import { Trash2, Plus, Minus } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { jwtDecode } from 'jwt-decode';
 import { address } from '../../services/Customer/ApiAuth';
-
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { clearCart, decreaseQuantity, increaseQuantity, removeFromCart } from '../../store/customer/cartSlice';
 const Cart = () => {
     const navigate = useNavigate();
     const accessToken = useSelector((state) => state.customer.accessToken);
@@ -16,9 +28,18 @@ const Cart = () => {
         username ? state.cart.items[username] || [] : []
     );
     const [cartItems, setCartItems] = useState(reduxCartItems);
-
     const [addresses, setAddresses] = useState([]);
     const [selectedAddress, setSelectedAddress] = useState(null);
+    const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false);
+    const [newAddress, setNewAddress] = useState({
+        street: '',
+        ward: '',
+        district: '',
+        province: '',
+        phone: '',
+        isDefault: false
+    });
+    const dispatch = useDispatch();
 
     const getAddress = async () => {
         try {
@@ -28,18 +49,16 @@ const Cart = () => {
             }
         } catch (error) {
             console.log(error);
-
         }
     }
 
     useEffect(() => {
-        const defaultAddress = addresses.find(addr => addr.isDefault);
-        if (defaultAddress) {
-            setSelectedAddress(defaultAddress.id);
-        }
-        getAddress()
+        getAddress();
+    }, []);
+    useEffect(() => {
+        const defaultAddr = addresses.find(a => a.isDefault);
+        if (defaultAddr) setSelectedAddress(defaultAddr.id);
     }, [addresses]);
-
     useEffect(() => {
         setCartItems(reduxCartItems);
     }, [reduxCartItems]);
@@ -57,7 +76,7 @@ const Cart = () => {
 
     // Handle delete all selected items
     const handleDeleteAll = () => {
-        setCartItems(cartItems.filter(item => !item.selected));
+        dispatch(clearCart({ userId: username }))
     };
 
     // Handle individual checkbox change
@@ -68,22 +87,18 @@ const Cart = () => {
     };
 
     // Handle quantity increase
-    const increaseQuantity = (id) => {
-        setCartItems(cartItems.map(item =>
-            item.id === id ? { ...item, quantity: item.quantity + 1 } : item
-        ));
+    const increaseQuantities = (id) => {
+        dispatch(increaseQuantity({ userId: username, productId: id }));
     };
 
     // Handle quantity decrease
-    const decreaseQuantity = (id) => {
-        setCartItems(cartItems.map(item =>
-            item.id === id && item.quantity > 1 ? { ...item, quantity: item.quantity - 1 } : item
-        ));
+    const decreaseQuantities = (id) => {
+        dispatch(decreaseQuantity({ userId: username, productId: id }));
     };
 
     // Handle item removal
     const removeItem = (id) => {
-        setCartItems(cartItems.filter(item => item.id !== id));
+        dispatch(removeFromCart({ userId: username, productId: id }))
     };
 
     // Handle address selection
@@ -99,186 +114,360 @@ const Cart = () => {
         }
     };
 
-    return (
-        <div className="min-h-screen bg-gradient-to-br from-green-50 to-amber-50">
-            {/* Header Section */}
-            <section className="py-12">
-                <div className="container mx-auto px-4">
-                    <h1 className="text-4xl md:text-5xl font-bold text-gray-800 text-center mb-6">
-                        Giỏ Hàng Của Bạn
-                    </h1>
-                    <p className="text-lg text-gray-600 text-center mb-8">
-                        Chọn các sản phẩm và địa chỉ giao hàng để thanh toán
-                    </p>
-                </div>
-            </section>
+    // Handle input change for new address
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setNewAddress(prev => ({
+            ...prev,
+            [name]: value
+        }));
+    };
 
-            {/* Cart Items Section */}
-            <section className="py-16 bg-white/50">
-                <div className="container mx-auto px-4">
-                    {cartItems.length === 0 ? (
-                        <div className="text-center">
-                            <p className="text-xl text-gray-600 mb-4">Giỏ hàng của bạn đang trống</p>
-                            <Button
-                                onClick={() => navigate('/products')}
-                                size="lg"
-                                className="bg-gradient-to-r from-green-600 to-amber-600 hover:from-green-700 hover:to-amber-700 text-lg px-8 py-3"
-                            >
-                                Tiếp Tục Mua Sắm
-                            </Button>
+    const handleAddAddress = () => {
+        if (newAddress.label && newAddress.street && newAddress.ward && newAddress.district && newAddress.province && newAddress.phone) {
+            const newId = Math.max(...addresses.map(addr => addr.id)) + 1;
+            const addressToAdd = {
+                ...newAddress,
+                id: newId
+            };
+            setAddresses([...addresses, addressToAdd]);
+            setNewAddress({
+                label: '',
+                street: '',
+                ward: '',
+                district: '',
+                province: '',
+                phone: '',
+                isDefault: false
+            });
+            setIsAddressDialogOpen(false);
+            setSelectedAddress(newId);
+        }
+    };
+    console.log(cartItems);
+
+
+    if (cartItems.length === 0) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 flex items-center justify-center">
+                <div className="text-center space-y-6 max-w-md mx-auto px-6">
+                    <div className="w-32 h-32 mx-auto bg-gradient-to-br from-emerald-100 to-teal-100 rounded-full flex items-center justify-center">
+                        <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-full opacity-20"></div>
+                    </div>
+                    <h1 className="text-3xl font-bold text-gray-800">Giỏ hàng trống</h1>
+                    <p className="text-gray-600 text-lg">Hãy thêm một số sản phẩm tuyệt vời vào giỏ hàng của bạn!</p>
+                    <Button
+                        onClick={() => navigate('/products')}
+                        size="lg"
+                        className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 px-8 py-3 text-lg font-semibold"
+                    >
+                        Khám Phá Sản Phẩm
+                    </Button>
+                </div>
+            </div>
+        );
+    }
+
+
+    return (
+        <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50">
+            {/* Header */}
+            <div className="bg-white shadow-sm border-b">
+                <div className="container mx-auto px-4 py-6">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h1 className="text-3xl font-bold text-gray-800">Giỏ Hàng</h1>
+                            <p className="text-gray-600 mt-1">{cartItems.length} sản phẩm</p>
                         </div>
-                    ) : (
-                        <div className="space-y-6">
-                            {/* Select All and Delete All */}
-                            <div className="flex items-center justify-between mb-4">
-                                <div className="flex items-center">
-                                    <input
-                                        type="checkbox"
-                                        checked={cartItems.every(item => item.selected)}
-                                        onChange={handleSelectAll}
-                                        className="h-5 w-5 text-green-600 mr-2 rounded"
-                                    />
-                                    <span className="text-gray-800 font-semibold">Chọn tất cả</span>
-                                </div>
-                                <Button
-                                    variant="ghost"
-                                    onClick={handleDeleteAll}
-                                    disabled={!cartItems.some(item => item.selected)}
-                                    className="text-red-600 hover:text-red-700"
-                                >
-                                    <Trash2 className="h-5 w-5 mr-1" />
-                                    Xóa các mục đã chọn
-                                </Button>
-                            </div>
-                            {/* Cart Items */}
-                            {cartItems.map((item) => (
-                                <Card key={item.id} className="hover:shadow-lg transition-shadow duration-300">
-                                    <CardContent className="flex items-center p-6">
+                        <Button
+                            variant="outline"
+                            onClick={() => navigate('/products')}
+                            className="hidden md:flex"
+                        >
+                            Tiếp tục mua sắm
+                        </Button>
+                    </div>
+                </div>
+            </div>
+
+            <div className="container mx-auto px-4 py-8">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    {/* Cart Items */}
+                    <div className="lg:col-span-2 space-y-6">
+                        {/* Select All Controls */}
+                        <Card className="shadow-sm">
+                            <CardContent className="p-4">
+                                <div className="flex items-center justify-between">
+                                    <label className="flex items-center space-x-3 cursor-pointer">
                                         <input
                                             type="checkbox"
-                                            checked={item.selected}
-                                            onChange={() => toggleItemSelection(item.id)}
-                                            className="h-5 w-5 text-green-600 mr-4 rounded"
+                                            checked={cartItems.every(item => item.selected)}
+                                            onChange={handleSelectAll}
+                                            className="h-5 w-5 text-emerald-600 rounded border-gray-300 focus:ring-emerald-500"
                                         />
-                                        <img
-                                            src={item.imageUrl}
-                                            alt={item.name}
-                                            className="h-16 w-16 object-contain mr-4"
-                                        />
-                                        <div className="flex-1 flex items-center justify-between">
-                                            <div>
-                                                <h3 className="text-lg font-semibold text-gray-800">{item.name}</h3>
-                                                <p className="text-gray-600">{item.price.toLocaleString('vi-VN')}đ / đơn vị</p>
-                                                <div className="flex items-center mt-2">
+                                        <span className="text-gray-800 font-medium">Chọn tất cả ({cartItems.length})</span>
+                                    </label>
+                                    <Button
+                                        variant="ghost"
+                                        onClick={handleDeleteAll}
+                                        disabled={!cartItems.some(item => item.selected)}
+                                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                    >
+                                        <Trash2 className="h-4 w-4 mr-2" />
+                                        Xóa đã chọn
+                                    </Button>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+
+                        {/* Cart Items List */}
+                        <div className="space-y-4">
+                            {cartItems.map((item) => (
+                                <Card key={item.id} className="shadow-sm hover:shadow-md transition-shadow duration-300">
+                                    <CardContent className="p-6">
+                                        <div className="flex items-start space-x-4">
+                                            <input
+                                                type="checkbox"
+                                                checked={item.selected}
+                                                onChange={() => toggleItemSelection(item.id)}
+                                                className="h-5 w-5 text-emerald-600 rounded border-gray-300 focus:ring-emerald-500 mt-1"
+                                            />
+
+                                            <div className="w-24 h-24 bg-gray-50 rounded-lg flex-shrink-0 overflow-hidden">
+                                                <img
+                                                    src={item.imageUrl}
+                                                    alt={item.name}
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            </div>
+
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex justify-between items-start">
+                                                    <div className="flex-1">
+                                                        <h3 className="text-lg font-semibold text-gray-800 mb-1 line-clamp-2">
+                                                            {item.name}
+                                                        </h3>
+                                                        <p className="text-emerald-600 font-medium mb-3">
+                                                            {item.price.toLocaleString('vi-VN')}đ
+                                                        </p>
+
+                                                        <div className="flex items-center justify-between">
+                                                            <div className="flex items-center border rounded-lg bg-gray-50">
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="sm"
+                                                                    onClick={() => decreaseQuantities(item.productId)}
+                                                                    className="h-10 w-10 p-0 hover:bg-gray-200"
+                                                                    disabled={item.quantity <= 1}
+                                                                >
+                                                                    <Minus className="h-4 w-4" />
+                                                                </Button>
+                                                                <span className="px-4 py-2 min-w-[60px] text-center font-medium">
+                                                                    {item.quantity}
+                                                                </span>
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="sm"
+                                                                    onClick={() => increaseQuantities(item.productId)}
+                                                                    className="h-10 w-10 p-0 hover:bg-gray-200"
+                                                                >
+                                                                    <Plus className="h-4 w-4" />
+                                                                </Button>
+                                                            </div>
+
+                                                            <div className="text-right">
+                                                                <p className="text-xl font-bold text-gray-800">
+                                                                    {(item.price * item.quantity).toLocaleString('vi-VN')}đ
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
                                                     <Button
-                                                        variant="outline"
+                                                        variant="ghost"
                                                         size="sm"
-                                                        onClick={() => decreaseQuantity(item.id)}
-                                                        className="p-1"
+                                                        onClick={() => removeItem(item.productId)}
+                                                        className="text-red-600 hover:text-red-700 hover:bg-red-50 ml-4"
                                                     >
-                                                        <Minus className="h-4 w-4" />
-                                                    </Button>
-                                                    <span className="mx-3 text-gray-800">{item.quantity}</span>
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        onClick={() => increaseQuantity(item.id)}
-                                                        className="p-1"
-                                                    >
-                                                        <Plus className="h-4 w-4" />
+                                                        <Trash2 className="h-5 w-5" />
                                                     </Button>
                                                 </div>
-                                            </div>
-                                            <div className="flex items-center">
-                                                <p className="text-lg font-bold text-green-600 mr-4">
-                                                    {(item.price * item.quantity).toLocaleString('vi-VN')}đ
-                                                </p>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    onClick={() => removeItem(item.id)}
-                                                    className="text-red-600 hover:text-red-700"
-                                                >
-                                                    <Trash2 className="h-5 w-5" />
-                                                </Button>
                                             </div>
                                         </div>
                                     </CardContent>
                                 </Card>
                             ))}
-                            {/* Shipping Address Section */}
-                            <Card className="mt-8">
-                                <CardHeader>
-                                    <CardTitle className="text-2xl font-bold text-gray-800">
-                                        Địa Chỉ Giao Hàng
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    {addresses.map((address) => (
-                                        <div key={address.id} className="flex items-center mb-4">
-                                            <input
-                                                type="radio"
-                                                name="shipping-address"
-                                                checked={selectedAddress === address.id}
-                                                onChange={() => handleAddressSelection(address.id)}
-                                                className="h-5 w-5 text-green-600 mr-4"
-                                            />
-                                            <div>
-                                                <p className="text-lg font-semibold text-gray-800">{address.label}</p>
-                                                <p className="text-gray-600">{address.details}</p>
-                                                <p className="text-gray-600">SĐT: {address.phone}</p>
+                        </div>
+                    </div>
+
+                    {/* Sidebar */}
+                    <div className="space-y-6">
+                        {/* Shipping Address */}
+                        <Card className="shadow-sm">
+                            <CardHeader className="pb-2">
+                                <CardTitle className="text-xl font-bold text-gray-800 flex items-center">
+                                    Địa Chỉ Giao Hàng
+                                </CardTitle>
+                            </CardHeader>
+
+                            <CardContent className="space-y-4">
+                                {addresses.map((address) => (
+                                    <div key={address.id} className="flex items-center mb-4">
+                                        <input
+                                            type="radio"
+                                            name="shipping-address"
+                                            checked={selectedAddress === address.id}
+                                            onChange={() => handleAddressSelection(address.id)}
+                                            className="h-5 w-5 text-green-600 mr-4"
+                                        />
+                                        <div>
+                                            <p className="text-lg font-semibold text-gray-800">{address.label}</p>
+                                            <p className="text-gray-600">{address.details}</p>
+                                            <p className="text-gray-600">Số điện thoại: {address.phone}</p>
+                                        </div>
+                                    </div>
+                                ))}
+                                <Dialog open={isAddressDialogOpen} onOpenChange={setIsAddressDialogOpen}>
+                                    <DialogTrigger asChild>
+                                        <Button
+                                            variant="outline"
+                                            className="w-full text-emerald-600 border-emerald-600 hover:bg-emerald-50"
+                                        >
+                                            + Thêm Địa Chỉ Mới
+                                        </Button>
+                                    </DialogTrigger>
+                                    <DialogContent className="sm:max-w-[425px]">
+                                        <DialogHeader>
+                                            <DialogTitle>Thêm Địa Chỉ Mới</DialogTitle>
+                                            <DialogDescription>
+                                                Nhập thông tin địa chỉ giao hàng mới của bạn.
+                                            </DialogDescription>
+                                        </DialogHeader>
+                                        <div className="grid gap-4 py-4">
+                                            <div className="grid gap-2">
+                                                <Label htmlFor="street">Số nhà, tên đường</Label>
+                                                <Input
+                                                    id="street"
+                                                    name="street"
+                                                    placeholder="Số nhà, tên đường"
+                                                    value={newAddress.street}
+                                                    onChange={handleInputChange}
+                                                />
+                                            </div>
+                                            <div className="grid gap-2">
+                                                <Label htmlFor="ward">Phường/Xã</Label>
+                                                <Input
+                                                    id="ward"
+                                                    name="ward"
+                                                    placeholder="Phường/Xã"
+                                                    value={newAddress.ward}
+                                                    onChange={handleInputChange}
+                                                />
+                                            </div>
+                                            <div className="grid gap-2">
+                                                <Label htmlFor="district">Quận/Huyện</Label>
+                                                <Input
+                                                    id="district"
+                                                    name="district"
+                                                    placeholder="Quận/Huyện"
+                                                    value={newAddress.district}
+                                                    onChange={handleInputChange}
+                                                />
+                                            </div>
+                                            <div className="grid gap-2">
+                                                <Label htmlFor="province">Tỉnh/Thành phố</Label>
+                                                <Input
+                                                    id="province"
+                                                    name="province"
+                                                    placeholder="Tỉnh/Thành phố"
+                                                    value={newAddress.province}
+                                                    onChange={handleInputChange}
+                                                />
+                                            </div>
+                                            <div className="grid gap-2">
+                                                <Label htmlFor="phone">Số điện thoại</Label>
+                                                <Input
+                                                    id="phone"
+                                                    name="phone"
+                                                    placeholder="Nhập số điện thoại"
+                                                    value={newAddress.phone}
+                                                    onChange={handleInputChange}
+                                                />
                                             </div>
                                         </div>
-                                    ))}
-                                    <Button
-                                        variant="outline"
-                                        className="mt-4 text-green-600 hover:text-green-700"
-                                        onClick={() => navigate('/add-address')}
-                                    >
-                                        Thêm Địa Chỉ Mới
-                                    </Button>
-                                </CardContent>
-                            </Card>
-                            {/* Total Price */}
-                            <Card className="mt-8">
-                                <CardHeader>
-                                    <CardTitle className="text-2xl font-bold text-gray-800">
-                                        Tổng Cộng
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent>
+                                        <DialogFooter>
+                                            <Button variant="outline" onClick={() => setIsAddressDialogOpen(false)}>
+                                                Hủy
+                                            </Button>
+                                            <Button onClick={handleAddAddress}>
+                                                Thêm Địa Chỉ
+                                            </Button>
+                                        </DialogFooter>
+                                    </DialogContent>
+                                </Dialog>
+                            </CardContent>
+                        </Card>
+
+                        {/* Order Summary */}
+                        <Card className="shadow-sm sticky top-4">
+                            <CardHeader className="pb-4">
+                                <CardTitle className="text-xl font-bold text-gray-800">
+                                    Tóm Tắt Đơn Hàng
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <div className="space-y-3">
+                                    <div className="flex justify-between text-gray-600">
+                                        <span>Sản phẩm đã chọn:</span>
+                                        <span>{cartItems.filter(item => item.selected).length}</span>
+                                    </div>
+                                    <div className="flex justify-between text-gray-600">
+                                        <span>Tạm tính:</span>
+                                        <span>{totalPrice.toLocaleString('vi-VN')}đ</span>
+                                    </div>
+                                    <Separator />
                                     <div className="flex justify-between items-center">
-                                        <span className="text-lg text-gray-600">Tổng tiền (đã chọn):</span>
-                                        <span className="text-2xl font-bold text-green-600">
+                                        <span className="text-lg font-semibold text-gray-800">Tổng cộng:</span>
+                                        <span className="text-2xl font-bold text-emerald-600">
                                             {totalPrice.toLocaleString('vi-VN')}đ
                                         </span>
                                     </div>
-                                    <Button
-                                        size="lg"
-                                        className="w-full mt-6 bg-gradient-to-r from-green-600 to-amber-600 hover:from-green-700 hover:to-amber-700 text-lg"
-                                        onClick={handleCheckout}
-                                        disabled={cartItems.filter(item => item.selected).length === 0 || selectedAddress === null}
-                                    >
-                                        Thanh Toán
-                                    </Button>
-                                </CardContent>
-                            </Card>
-                        </div>
-                    )}
+                                </div>
+
+                                <Button
+                                    size="lg"
+                                    className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 py-3 text-lg font-semibold"
+                                    onClick={handleCheckout}
+                                    disabled={cartItems.filter(item => item.selected).length === 0 || selectedAddress === null}
+                                >
+                                    Thanh Toán Ngay
+                                </Button>
+
+                                <p className="text-xs text-gray-500 text-center">
+                                    Bằng cách thanh toán, bạn đồng ý với điều khoản sử dụng
+                                </p>
+                            </CardContent>
+                        </Card>
+                    </div>
                 </div>
-            </section>
+            </div>
 
             {/* CTA Section */}
-            <section className="py-16 bg-gradient-to-r from-green-600 to-amber-600">
+            <section className="bg-gradient-to-r from-emerald-600 to-teal-600 py-16 mt-16">
                 <div className="container mx-auto px-4 text-center">
                     <h2 className="text-3xl font-bold text-white mb-4">
-                        Tiếp Tục Mua Sắm Với NutiGo
+                        Khám Phá Thêm Sản Phẩm
                     </h2>
                     <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
-                        Khám phá thêm các sản phẩm hạt dinh dưỡng chất lượng cao
+                        Những sản phẩm hạt dinh dưỡng chất lượng cao đang chờ bạn
                     </p>
                     <Link to="/products">
-                        <Button size="lg" variant="secondary" className="text-lg px-8 py-3">
+                        <Button
+                            size="lg"
+                            variant="secondary"
+                            className="text-lg px-8 py-3 bg-white text-emerald-600 hover:bg-gray-50 shadow-lg hover:shadow-xl transition-all duration-300"
+                        >
                             Xem Tất Cả Sản Phẩm
                         </Button>
                     </Link>
