@@ -8,7 +8,8 @@ const userRouter = require("./routers/user/index");
 const authRouter = require("./routers/Auth/index");
 const productRouter = require("./routers/ProductManager/index");
 const saleManager = require("./routers/SaleManager/index");
-const chatRouter = require("./routers/chatbot/index")
+const chatRouter = require("./routers/chatbot/index");
+const saleStaffRouter = require("./routers/SaleStaff/index");
 require("dotenv").config();
 
 const corsOptions = {
@@ -27,6 +28,7 @@ productRouter(app);
 saleManager(app);
 chatRouter(app);
 adminRouter(app);
+saleStaffRouter(app);
 const PORT = process.env.PORT || 9999;
 app.listen(PORT, () => {
   connectDb();

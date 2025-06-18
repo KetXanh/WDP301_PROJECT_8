@@ -1,16 +1,20 @@
-import { Eye, Trash2, Filter, Plus, Edit } from "lucide-react";
+import { Eye, Trash2, Filter, Plus, Edit, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getAllProducts, deleteProduct } from "../../services/Admin/AdminAPI";
+import * as Dialog from "@radix-ui/react-dialog";
+import AddProduct from "./Form/AddProduct";
+import UpdateProduct from "./Form/UpdateProduct";
 
 export default function Product() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
-  // Tách mỗi variant thành một sản phẩm riêng biệt
   const flattenProducts = (products) => {
     const flattened = [];
-
     products.forEach((product) => {
       if (product.variants.length === 0) {
         flattened.push({
@@ -18,6 +22,8 @@ export default function Product() {
           price: null,
           stock: null,
           variantId: null,
+          baseProduct: product,
+          productVariant: { _id: null, price: null, stock: null },
         });
       } else {
         product.variants.forEach((variant) => {
@@ -26,11 +32,12 @@ export default function Product() {
             price: variant.price,
             stock: variant.stock,
             variantId: variant._id,
+            baseProduct: product,
+            productVariant: variant,
           });
         });
       }
     });
-
     return flattened;
   };
 
@@ -62,18 +69,49 @@ export default function Product() {
     }
   };
 
+  const handleEditClick = (product) => {
+    setSelectedProduct(product);
+    setIsEditModalOpen(true);
+  };
+
   const filteredProducts = products.filter((p) =>
-    p.name.toLowerCase().includes(searchTerm.toLowerCase())
+    p.baseProduct.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
     <div className="p-6 space-y-6 mt-10">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Product</h1>
-        <button className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-          <Plus size={18} />
-          Add
-        </button>
+        <Dialog.Root open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
+          <Dialog.Trigger asChild>
+            <button className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+              <Plus size={18} />
+              Add
+            </button>
+          </Dialog.Trigger>
+          <Dialog.Portal>
+            <Dialog.Overlay className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40" />
+            <Dialog.Content className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-xl shadow-2xl z-50 w-[90vw] max-w-md min-h-[60vh] max-h-[80vh] overflow-y-auto">
+              <Dialog.Title className="text-xl font-bold">
+                Thêm sản phẩm
+              </Dialog.Title>
+              <Dialog.Description className="text-sm text-gray-500 mb-4">
+                Điền thông tin để thêm một sản phẩm mới.
+              </Dialog.Description>
+              <AddProduct
+                onSuccess={() => {
+                  fetchProducts();
+                  setIsAddModalOpen(false);
+                }}
+              />
+              <Dialog.Close asChild>
+                <button className="absolute top-4 right-4 text-gray-500 hover:text-black">
+                  <X size={20} />
+                </button>
+              </Dialog.Close>
+            </Dialog.Content>
+          </Dialog.Portal>
+        </Dialog.Root>
       </div>
 
       <div className="flex items-center justify-between gap-4 flex-wrap">
@@ -116,12 +154,16 @@ export default function Product() {
           </thead>
           <tbody className="divide-y divide-gray-100 bg-white">
             {filteredProducts.map((product, index) => (
-              <tr key={product._id + "-" + (product.variantId || index)}>
-                <td className="px-6 py-4">{product.name}</td>
+              <tr
+                key={
+                  product.baseProduct._id + "-" + (product.variantId || index)
+                }
+              >
+                <td className="px-6 py-4">{product.baseProduct.name}</td>
                 <td className="px-6 py-4">
                   <img
-                    src={product.image?.url}
-                    alt={product.name}
+                    src={product.baseProduct.image?.url}
+                    alt={product.baseProduct.name}
                     className="h-12 w-12 object-cover rounded"
                   />
                 </td>
@@ -134,15 +176,20 @@ export default function Product() {
                   {product.stock !== null ? product.stock : "—"}
                 </td>
                 <td className="px-6 py-4">
-                  {new Date(product.createdAt).toLocaleDateString("vi-VN")}
+                  {new Date(product.baseProduct.createdAt).toLocaleDateString(
+                    "vi-VN"
+                  )}
                 </td>
                 <td className="px-6 py-4 text-center flex justify-center gap-2">
-                  <button className="text-blue-600 hover:text-blue-800">
+                  <button
+                    className="text-blue-600 hover:text-blue-800"
+                    onClick={() => handleEditClick(product)}
+                  >
                     <Edit size={18} />
                   </button>
                   <button
                     className="text-red-600 hover:text-red-800"
-                    onClick={() => handleDelete(product._id)}
+                    onClick={() => handleDelete(product.baseProduct._id)}
                   >
                     <Trash2 size={18} />
                   </button>
@@ -159,6 +206,34 @@ export default function Product() {
           </tbody>
         </table>
       </div>
+
+      <Dialog.Root open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+        <Dialog.Portal>
+          <Dialog.Overlay className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40" />
+          <Dialog.Content className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-xl shadow-2xl z-50 w-[90vw] max-w-md min-h-[60vh] max-h-[80vh] overflow-y-auto">
+            <Dialog.Title className="text-xl font-bold">
+              Cập nhật sản phẩm
+            </Dialog.Title>
+            <Dialog.Description className="text-sm text-gray-500 mb-4">
+              Chỉnh sửa thông tin sản phẩm.
+            </Dialog.Description>
+            {selectedProduct && (
+              <UpdateProduct
+                product={selectedProduct}
+                onSuccess={() => {
+                  fetchProducts();
+                  setIsEditModalOpen(false);
+                }}
+              />
+            )}
+            <Dialog.Close asChild>
+              <button className="absolute top-4 right-4 text-gray-500 hover:text-black">
+                <X size={20} />
+              </button>
+            </Dialog.Close>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
     </div>
   );
 }

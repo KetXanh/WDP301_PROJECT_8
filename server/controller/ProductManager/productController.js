@@ -129,69 +129,87 @@ module.exports.getProductBySlug = async (req, res) => {
 }
 
 module.exports.createProduct = async (req, res) => {
-    try {
-        const user = req.user;
-        const { name, description, price, stock, subCategoryId } = req.body;
+  try {
+    const user = req.user;
+    const { name, description, price, stock, subCategoryId } = req.body;
 
-        if (!name || !description || !price || !stock || !subCategoryId) {
-            return res.status(400).json({
-                message: "Name, description, price, stock and subCategoryId are required"
-            });
-        }
-
-        const existingProduct = await BaseProduct.findOne({ name });
-        if (existingProduct) {
-            return res.status(400).json({ message: "Product with this name already exists" });
-        }
-
-        const subCategory = await SubCategory.findById(subCategoryId);
-        if (!subCategory) {
-            return res.status(404).json({ message: "Sub category not found" });
-        }
-
-        if (!req.files || !req.files.image) {
-            return res.status(400).json({ message: "Image is required" });
-        }
-
-        const uploadedFiles = Array.isArray(req.files.image) ? req.files.image : [req.files.image];
-        
-        if (uploadedFiles.length > 3) {
-            return res.status(400).json({ message: "Maximum 3 images allowed" });
-        }
-
-        const images = uploadedFiles.map(file => ({
-            url: file.path,
-            public_id: file.filename
-        }));
-
-        const baseProduct = new BaseProduct({
-            name,
-            description,
-            image: images[0],
-            images,
-            subCategory: subCategoryId,
-            createdBy: user.id
-        });
-
-        await baseProduct.save();
-
-        const productVariant = new ProductVariant({
-            baseProduct: baseProduct._id,
-            price,
-            stock
-        });
-
-        await productVariant.save();
-
-        res.status(201).json({
-            message: "Product created successfully !!!",
-            baseProduct,
-            productVariant
-        });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
+    if (!name || !description || !price || !stock || !subCategoryId) {
+      return res.status(400).json({
+        message:
+          "Name, description, price, stock and subCategoryId are required",
+      });
     }
-}
+
+    const existingProduct = await BaseProduct.findOne({ name });
+    if (existingProduct) {
+      return res
+        .status(400)
+        .json({ message: "Product with this name already exists" });
+    }
+
+    // Kiểm tra danh mục con
+    const subCategory = await SubCategory.findById(subCategoryId);
+    if (!subCategory) {
+      return res.status(404).json({ message: "Sub category not found" });
+    }
+
+    if (!req.files || !req.files.image) {
+      return res.status(400).json({ message: "Image is required" });
+    }
+
+    const uploadedFiles = Array.isArray(req.files.image)
+      ? req.files.image
+      : [req.files.image];
+
+    if (uploadedFiles.length > 3) {
+      return res.status(400).json({ message: "Maximum 3 images allowed" });
+    }
+
+    const images = uploadedFiles.map((file) => ({
+      url: file.path,
+      public_id: file.filename,
+    }));
+
+    // Tạo slug duy nhất
+    let slug = slugify(name, { lower: true, strict: true });
+    let uniqueSlug = slug;
+    let counter = 1;
+    while (await BaseProduct.findOne({ slug: uniqueSlug })) {
+      uniqueSlug = `${slug}-${counter}`;
+      counter++;
+    }
+
+    const baseProduct = new BaseProduct({
+      name,
+      slug: uniqueSlug, 
+      description,
+      image: images[0],
+      images,
+      subCategory: subCategoryId,
+      createdBy: user.id,
+    });
+
+    await baseProduct.save();
+
+    // Tạo variant
+    const productVariant = new ProductVariant({
+      baseProduct: baseProduct._id,
+      price,
+      stock,
+    });
+
+    await productVariant.save();
+
+    return res.status(201).json({
+      message: "Product created successfully!",
+      baseProduct,
+      productVariant,
+    });
+  } catch (error) {
+    console.error("Lỗi tạo sản phẩm:", error);
+    return res.status(500).json({ message: error.message });
+  }
+};
 
 module.exports.updateProduct = async (req, res) => {
     try {

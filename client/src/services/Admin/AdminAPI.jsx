@@ -70,12 +70,18 @@ export const updateCategory = (id ,categoryData) => {
   return instance.put(`/productmanager/category/updateCategory/${id}`,categoryData);
 }
 
-//SubCategory
+// SubCategory
 export const getAllSubCategories = () => {
   return instance.get("/productmanager/category/getAllSubCategories");
 };
 
+export const createSubCategory = (subCategoryData) => {
+  return instance.post("/productmanager/category/createSubCategory", subCategoryData);
+};
 
+export const updateSubCategory = (id, subCategoryData) => {
+  return instance.put(`/productmanager/category/updateSubCategory/${id}`, subCategoryData);
+};
 
 export const deleteSubCategory = (id) => {
   return instance.delete(`/productmanager/category/deleteSubCategory/${id}`);
