@@ -1,0 +1,67 @@
+{
+  "buttons": {
+    "save": "Lưu",
+    "cancel": "Hủy",
+    "delete": "Xóa",
+    "edit": "Chỉnh sửa",
+    "update": "Cập nhật",
+    "create": "Tạo mới",
+    "search": "Tìm kiếm",
+    "submit": "Gửi",
+    "reset": "Đặt lại",
+    "back": "Quay lại",
+    "next": "Tiếp theo",
+    "previous": "Trước đó",
+    "confirm": "Xác nhận",
+    "close": "Đóng"
+  },
+  "status": {
+    "loading": "Đang tải...",
+    "success": "Thành công",
+    "error": "Đã xảy ra lỗi",
+    "no_data": "Không có dữ liệu",
+    "not_found": "Không tìm thấy",
+    "required_field": "Trường này là bắt buộc"
+  },
+  "auth": {
+    "login": "Đăng nhập",
+    "logout": "Đăng xuất",
+    "register": "Đăng ký",
+    "username": "Tên đăng nhập",
+    "password": "Mật khẩu",
+    "forgot_password": "Quên mật khẩu?",
+    "remember_me": "Ghi nhớ tôi",
+    "welcome_back": "Chào mừng trở lại!"
+  },
+  "menu": {
+    "home": "Trang chủ",
+    "dashboard": "Bảng điều khiển",
+    "profile": "Hồ sơ cá nhân",
+    "settings": "Cài đặt",
+    "users": "Người dùng",
+    "products": "Sản phẩm",
+    "orders": "Đơn hàng",
+    "sales": "Bán hàng",
+    "admin": "Quản trị"
+  },
+  "form": {
+    "name": "Tên",
+    "email": "Email",
+    "phone": "Số điện thoại",
+    "address": "Địa chỉ",
+    "description": "Mô tả",
+    "quantity": "Số lượng",
+    "price": "Giá"
+  },
+  "message": {
+    "delete_confirm": "Bạn có chắc muốn xóa mục này không?",
+    "saved_successfully": "Đã lưu thành công!",
+    "update_success": "Cập nhật thành công!",
+    "operation_failed": "Thao tác thất bại. Vui lòng thử lại.",
+    "required": "Trường này là bắt buộc"
+  },
+  "language": {
+    "vi": "Tiếng Việt",
+    "en": "English"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "menu": {
+    "categories": "Categories",
+    "subcategories": "SubCategories",
+    "order": "Order",
+    "products": "Products",
+    "task": "Task",
+    "kpi": "Kpi"
+  }
+}

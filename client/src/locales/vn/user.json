@@ -1,0 +1,56 @@
+{
+  "home":{
+    "home": "Trang Chủ",
+    "products": "Sản Phẩm",
+    "aboutUs": "Về Chúng Tôi",
+    "contact": "Liên Hệ",
+    "viewProfile": "Xem Profile",
+    "logout": "Đăng Xuất",
+    "login": "Đăng Nhập",
+    "register": "Đăng Ký",
+    "title": "Hạt Dinh Dưỡng Cao Cấp",
+    "subtitle": "Khám phá thế giới hạt dinh dưỡng tươi ngon, chất lượng cao với những lợi ích tuyệt vời cho sức khỏe của bạn",
+    "buyNow": "Mua Ngay",
+    "learnMore": "Tìm Hiểu Thêm",
+    "featured": "Sản Phẩm Nổi Bật",
+    "why": "Tại Sao Chọn NutiGo?",
+    "benefit1Title": "Giao Hàng Nhanh",
+    "benefit1Desc": "Miễn phí giao hàng cho đơn từ 500k",
+    "benefit2Title": "Chất Lượng Đảm Bảo",
+    "benefit2Desc": "Sản phẩm chính hãng, tươi ngon",
+    "benefit3Title": "Thương Hiệu Uy Tín",
+    "benefit3Desc": "Hơn 10 năm kinh nghiệm",
+    "benefit4Title": "Tư Vấn Tận Tình",
+    "benefit4Desc": "Hỗ trợ 24/7 cho khách hàng",
+    "startJourney": "Bắt Đầu Hành Trình Sức Khỏe Cùng NutiGo",
+    "startDesc": "Đăng ký ngay để nhận ưu đãi đặc biệt và cập nhật những sản phẩm mới nhất",
+    "registerNow": "Đăng Ký Ngay"
+  },
+
+  "footer": {
+    "description": "Cửa hàng hạt dinh dưỡng cao cấp, mang đến sức khỏe và hạnh phúc cho mọi gia đình.",
+    "products": {
+      "title": "Sản Phẩm",
+      "walnut": "Hạt Óc Chó",
+      "almond": "Hạnh Nhân",
+      "cashew": "Hạt Điều",
+      "mix": "Mix Nuts"
+    },
+    "support": {
+      "title": "Hỗ Trợ",
+      "contact": "Liên Hệ",
+      "faq": "FAQ",
+      "policy": "Chính Sách",
+      "shipping": "Giao Hàng"
+    },
+    "contact": {
+      "title": "Liên Hệ",
+      "phone": "0123 456 789",
+      "email": "nutigo93@gmail.com",
+      "address": "Hòa Lạc, TP.Hà Nội"
+    },
+    "rights": "Tất cả quyền được bảo lưu."
+  }
+
+
+}

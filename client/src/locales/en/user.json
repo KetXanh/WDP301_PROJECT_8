@@ -1,0 +1,55 @@
+{
+  "home":{
+    "home": "Home",
+    "products": "Products",
+    "aboutUs": "About Us",
+    "contact": "Contact",
+    "viewProfile": "View Profile",
+    "logout": "Logout",
+    "login": "Login",
+    "register": "Register",
+    "title": "Premium Nutritional Nuts",
+    "subtitle": "Explore the world of fresh, high-quality nutritional nuts with amazing health benefits for you",
+    "buyNow": "Buy Now",
+    "learnMore": "Learn More",
+    "featured": "Featured Products",
+    "why": "Why Choose NutiGo?",
+    "benefit1Title": "Fast Delivery",
+    "benefit1Desc": "Free shipping on orders over 500k",
+    "benefit2Title": "Guaranteed Quality",
+    "benefit2Desc": "Authentic and fresh products",
+    "benefit3Title": "Trusted Brand",
+    "benefit3Desc": "Over 10 years of experience",
+    "benefit4Title": "Dedicated Support",
+    "benefit4Desc": "24/7 customer assistance",
+    "startJourney": "Start Your Health Journey with NutiGo",
+    "startDesc": "Register now to receive special offers and updates on the latest products",
+    "registerNow": "Register Now"
+  },
+  "footer": {
+    "description": "Premium nutritious nut store, bringing health and happiness to every family.",
+    "products": {
+      "title": "Products",
+      "walnut": "Walnut",
+      "almond": "Almond",
+      "cashew": "Cashew",
+      "mix": "Mix Nuts"
+    },
+    "support": {
+      "title": "Support",
+      "contact": "Contact",
+      "faq": "FAQ",
+      "policy": "Policy",
+      "shipping": "Shipping"
+    },
+    "contact": {
+      "title": "Contact",
+      "phone": "0123 456 789",
+      "email": "nutigo93@gmail.com",
+      "address": "Hoa Lac, Hanoi City"
+    },
+    "rights": "All rights reserved."
+  }
+
+
+}

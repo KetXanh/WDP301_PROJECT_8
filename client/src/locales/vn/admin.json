@@ -1,0 +1,10 @@
+{
+  "menu": {
+    "categories": "Danh mục",
+    "subcategories": "Danh mục phụ",
+    "order": "Đơn hàng",
+    "products": "Sản phẩm",
+    "task": "Nhiệm vụ",
+    "kpi": "KPI"
+  }
+}
