@@ -12,11 +12,11 @@ const baseProductSchema = new mongoose.Schema(
     },
     subCategory: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "SubCategory",
+      ref: "SubCategories",
     },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: "Users",
     },
   },
   { timestamps: true }

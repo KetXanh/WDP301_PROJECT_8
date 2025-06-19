@@ -38,6 +38,10 @@ import ManagerDiscount from "./pages/SaleManager/ManagerDiscount";
 import Chat from "./pages/SaleManager/components/Chat";
 import ManagerOrder from "./pages/SaleManager/ManagerOrder";
 
+//Sale Manager Pages
+import AdminDevLayout from "./pages/AdminDev/AdminDevLayout";
+
+
 
 // Customer Layout
 const CustomerLayout = () => (
@@ -131,6 +135,10 @@ function App() {
           <Route path="order" element={<ManagerOrder />} />
         </Route>
 
+          {/* Admin Dev Routes */}
+        <Route path="/admin-dev" element={<AdminDevLayout/>}>
+            
+        </Route>
         {/* Not Found */}
         <Route path="*" element={<NotFound />} />
       </Routes>
