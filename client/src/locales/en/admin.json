@@ -5,6 +5,10 @@
     "order": "Order",
     "products": "Products",
     "task": "Task",
-    "kpi": "Kpi"
+    "kpi": "Kpi",
+    "dashboard": "Dashboard",
+    "logout": "Logout",
+    "register": "Register",
+    "login": "Login"
   }
 }

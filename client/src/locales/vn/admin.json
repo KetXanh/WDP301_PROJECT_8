@@ -5,6 +5,10 @@
     "order": "Đơn hàng",
     "products": "Sản phẩm",
     "task": "Nhiệm vụ",
-    "kpi": "KPI"
+    "kpi": "KPI",
+    "dashboard": "Bảng điều khiển",
+    "logout": "Đăng xuất",
+    "register": "Đăng ký",
+    "login": "Đăng nhập"
   }
 }

@@ -43,12 +43,12 @@ export const links = [
   {
     href: "/login",
     icon: IoIosLogIn,
-    text: "auth.login", 
+    text: "menu.login", 
   },
   {
     href: "/register",
     icon: IoIosPersonAdd, 
-    text: "auth.register", 
+    text: "menu.register", 
   },
  
 ];

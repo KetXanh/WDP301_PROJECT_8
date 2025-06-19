@@ -50,7 +50,27 @@
       "address": "Hòa Lạc, TP.Hà Nội"
     },
     "rights": "Tất cả quyền được bảo lưu."
+  },
+  
+  "product": {
+    "title": "Sản Phẩm",
+    "description": "Khám phá bộ sưu tập hạt dinh dưỡng cao cấp của chúng tôi",
+    "searchPlaceholder": "Tìm kiếm sản phẩm...",
+    "sortPlaceholder": "Sắp xếp theo",
+    "sortName": "Tên A-Z",
+    "sortPriceLow": "Giá: Thấp đến Cao",
+    "sortPriceHigh": "Giá: Cao đến Thấp",
+    "sortRating": "Đánh giá cao nhất",
+    "showing": "Hiển thị {{count}} / {{total}} sản phẩm",
+    "noResults": "Không tìm thấy sản phẩm phù hợp",
+    "clearFilters": "Xóa bộ lọc",
+    "filters": "Bộ Lọc Sản Phẩm",
+    "category": "Danh Mục",
+    "allCategories": "Tất Cả Danh Mục",
+    "priceRange": "Khoảng Giá"
   }
+
+
 
 
 }

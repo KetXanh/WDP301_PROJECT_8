@@ -26,6 +26,24 @@
     "startDesc": "Register now to receive special offers and updates on the latest products",
     "registerNow": "Register Now"
   },
+  "product": {
+    "title": "Products",
+    "description": "Explore our collection of premium nutritional nuts",
+    "searchPlaceholder": "Search products...",
+    "sortPlaceholder": "Sort by",
+    "sortName": "Name A-Z",
+    "sortPriceLow": "Price: Low to High",
+    "sortPriceHigh": "Price: High to Low",
+    "sortRating": "Highest Rating",
+    "showing": "Showing {{count}} / {{total}} products",
+    "noResults": "No matching products found",
+    "clearFilters": "Clear Filters",
+    "filters": "Product Filters",
+    "category": "Category",
+    "allCategories": "All Categories",
+    "priceRange": "Price Range"
+  },
+
   "footer": {
     "description": "Premium nutritious nut store, bringing health and happiness to every family.",
     "products": {
