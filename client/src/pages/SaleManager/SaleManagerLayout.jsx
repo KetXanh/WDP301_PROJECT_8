@@ -10,7 +10,8 @@ import {
   Percent,
   FileText,
   LayoutDashboard,
-  MessageSquare
+  MessageSquare,
+  User
 } from "lucide-react"
 
 export default function SaleManagerLayout() {
@@ -49,6 +50,11 @@ export default function SaleManagerLayout() {
       title: "Chat",
       url: "/sale-manager/chat",
       icon: MessageSquare
+    },
+    {
+      title: "Hồ sơ cá nhân",
+      url: "/sale-manager/profile",
+      icon: User
     }
   ]
 

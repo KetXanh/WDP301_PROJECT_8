@@ -37,7 +37,17 @@ import ManagerKPI from "./pages/SaleManager/ManagerKPI";
 import ManagerDiscount from "./pages/SaleManager/ManagerDiscount";
 import Chat from "./pages/SaleManager/components/Chat";
 import ManagerOrder from "./pages/SaleManager/ManagerOrder";
+import SaleManagerProfile from "./pages/SaleManager/Profile";
 
+//Sale Staff Pages
+import SaleStaffLayout from "./pages/SaleStaff/SaleStaffLayout";
+import SaleStaffDashboard from "./pages/SaleStaff/Dashboard";
+import SaleStaffStatistics from "./pages/SaleStaff/Statistics";
+import SaleStaffKPI from "./pages/SaleStaff/KPI";
+import SaleStaffOrders from "./pages/SaleStaff/Orders";
+import SaleStaffTasks from "./pages/SaleStaff/Tasks";
+import SaleStaffChat from "./pages/SaleStaff/Chat";
+import SaleStaffProfile from "./pages/SaleStaff/Profile";
 
 // Customer Layout
 const CustomerLayout = () => (
@@ -129,6 +139,18 @@ function App() {
           <Route path="discount" element={<ManagerDiscount />} />
           <Route path="chat" element={<Chat />} />
           <Route path="order" element={<ManagerOrder />} />
+          <Route path="profile" element={<SaleManagerProfile />} />
+        </Route>
+
+        {/* Sale Staff Routes */}
+        <Route path="/sale-staff" element={<SaleStaffLayout />}>
+          <Route index element={<SaleStaffDashboard />} />
+          <Route path="statistics" element={<SaleStaffStatistics />} />
+          <Route path="kpi" element={<SaleStaffKPI />} />
+          <Route path="orders" element={<SaleStaffOrders />} />
+          <Route path="tasks" element={<SaleStaffTasks />} />
+          <Route path="chat" element={<SaleStaffChat />} />
+          <Route path="profile" element={<SaleStaffProfile />} />
         </Route>
 
         {/* Not Found */}
