@@ -54,6 +54,10 @@ import ProductDetail from "./pages/Customers/ProductDetail";
 import ProtectedRoute from "./components/protectedRouter/ProtectedRoute";
 import { Car } from "lucide-react";
 import Cart from "./pages/Customers/Cart";
+//Sale Manager Pages
+import AdminDevLayout from "./pages/AdminDev/AdminDevLayout";
+
+
 
 // Customer Layout
 const CustomerLayout = () => (
@@ -169,6 +173,10 @@ function App() {
           <Route path="profile" element={<SaleStaffProfile />} />
         </Route>
 
+          {/* Admin Dev Routes */}
+        <Route path="/admin-dev" element={<AdminDevLayout/>}>
+            
+        </Route>
         {/* Not Found */}
         <Route path="*" element={<NotFound />} />
       </Routes>
