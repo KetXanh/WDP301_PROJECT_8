@@ -1,10 +1,13 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ShoppingCart, Star } from 'lucide-react';
+import { Star } from 'lucide-react';
+import { Link } from 'react-router-dom';
+
+import AddToCartButton from './AddToCartButton';
 const ProductCard = ({ product }) => {
     const discount = Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100);
+
     return (
         <Card className="hover:shadow-lg transition-shadow duration-300 group relative">
             {discount > 0 && (
@@ -13,29 +16,35 @@ const ProductCard = ({ product }) => {
                 </Badge>
             )}
 
-            {!product.inStock && (
+            {!product.stock && (
                 <Badge variant="secondary" className="absolute top-2 left-2 z-10">
                     Hết hàng
                 </Badge>
             )}
 
-            <CardHeader className="text-center pb-4">
-                <div className="text-6xl mb-4 group-hover:scale-110 transition-transform duration-300">
-                    {product.image}
-                </div>
-                <CardTitle className="text-lg font-semibold text-gray-800">
-                    {product.name}
-                </CardTitle>
-                <CardDescription className="text-gray-600">
-                    {product.description}
-                </CardDescription>
-            </CardHeader>
+            <Link to={`/products/${product.slug}`}>
+                <CardHeader className="text-center pb-4 cursor-pointer">
+                    <div className="aspect-square mb-4 group-hover:scale-105 transition-transform duration-300 overflow-hidden rounded-lg">
+                        <img
+                            src={product.image}
+                            alt={product.name}
+                            className="w-full h-full object-cover"
+                        />
+                    </div>
+                    <CardTitle className="text-lg font-semibold text-gray-800 hover:text-green-600 transition-colors">
+                        {product.name}
+                    </CardTitle>
+                    <CardDescription className="text-gray-600">
+                        {product.description}
+                    </CardDescription>
+                </CardHeader>
+            </Link>
 
             <CardContent>
                 <div className="flex items-center justify-center mb-3">
                     <div className="flex items-center">
                         <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                        <span className="ml-1 text-sm text-gray-600">{product.rating}</span>
+                        <span className="ml-1 text-sm text-gray-600">{product.rating || 0}</span>
                     </div>
                 </div>
 
@@ -50,13 +59,7 @@ const ProductCard = ({ product }) => {
                     )}
                 </div>
 
-                <Button
-                    className="w-full bg-gradient-to-r from-green-600 to-amber-600 hover:from-green-700 hover:to-amber-700"
-                    disabled={!product.inStock}
-                >
-                    <ShoppingCart className="h-4 w-4 mr-2" />
-                    {product.inStock ? 'Thêm Vào Giỏ' : 'Hết Hàng'}
-                </Button>
+                <AddToCartButton product={product} quantity={1} />
             </CardContent>
         </Card>
     );

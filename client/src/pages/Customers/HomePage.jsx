@@ -1,51 +1,18 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ShoppingCart, Star, Truck, Shield, Award, Heart, MessageCircle } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { allProducts } from '../../services/Customer/ApiAuth';
+
+import AddToCartButton from '../../components/customer/AddToCartButton';
 import Chatbox from '@/components/Chatbox/Chatbox';
 
-const HomePage = () => {
-    const [isChatOpen, setIsChatOpen] = useState(false);
 
-    const featuredProducts = [
-        {
-            id: 1,
-            name: 'Hạt Óc Chó Cao Cấp',
-            price: '299.000đ',
-            originalPrice: '350.000đ',
-            image: '🥜',
-            rating: 4.8,
-            description: 'Hạt óc chó tươi ngon, giàu omega-3'
-        },
-        {
-            id: 2,
-            name: 'Hạnh Nhân Mỹ',
-            price: '249.000đ',
-            originalPrice: '280.000đ',
-            image: '🌰',
-            rating: 4.9,
-            description: 'Hạnh nhân thơm ngon, bổ dưỡng'
-        },
-        {
-            id: 3,
-            name: 'Hạt Điều Rang Muối',
-            price: '189.000đ',
-            originalPrice: '220.000đ',
-            image: '🥜',
-            rating: 4.7,
-            description: 'Hạt điều rang vàng giòn tan'
-        },
-        {
-            id: 4,
-            name: 'Mix Nuts Premium',
-            price: '399.000đ',
-            originalPrice: '450.000đ',
-            image: '🌟',
-            rating: 5.0,
-            description: 'Hỗn hợp các loại hạt cao cấp'
-        }
-    ];
+const HomePage = () => {
+    const navigate = useNavigate();
+    const [featuredProducts, setFeaturedProducts] = useState([]);
+    const [isChatOpen, setIsChatOpen] = useState(false);
 
     const benefits = [
         {
@@ -69,6 +36,26 @@ const HomePage = () => {
             description: 'Hỗ trợ 24/7 cho khách hàng'
         }
     ];
+
+
+    const products = async () => {
+        try {
+            const res = await allProducts();
+            if (res.data && res.data.code === 200) {
+                setFeaturedProducts(res.data.data)
+            }
+        } catch (error) {
+            console.log("Lấy danh sách product không thành công", error);
+
+        }
+    }
+
+
+    useEffect(() => {
+        products();
+    }, [])
+
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-green-50 to-amber-50">
             {/* Hero Section */}
@@ -84,10 +71,10 @@ const HomePage = () => {
                         Khám phá thế giới hạt dinh dưỡng tươi ngon, chất lượng cao với những lợi ích tuyệt vời cho sức khỏe của bạn
                     </p>
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                        <Button size="lg" className="bg-gradient-to-r from-green-600 to-amber-600 hover:from-green-700 hover:to-amber-700 text-lg px-8 py-3">
+                        <Button onClick={() => navigate('/products')} size="lg" className="bg-gradient-to-r from-green-600 to-amber-600 hover:from-green-700 hover:to-amber-700 text-lg px-8 py-3">
                             Mua Ngay
                         </Button>
-                        <Button size="lg" variant="outline" className="text-lg px-8 py-3">
+                        <Button onClick={() => navigate('/about')} size="lg" variant="outline" className="text-lg px-8 py-3">
                             Tìm Hiểu Thêm
                         </Button>
                     </div>
@@ -101,11 +88,15 @@ const HomePage = () => {
                         Sản Phẩm Nổi Bật
                     </h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        {featuredProducts.map((product) => (
+                        {featuredProducts.slice(0, 4).map((product) => (
                             <Card key={product.id} className="hover:shadow-lg transition-shadow duration-300 group">
-                                <CardHeader className="text-center pb-4">
-                                    <div className="text-6xl mb-4 group-hover:scale-110 transition-transform duration-300">
-                                        {product.image}
+                                <CardHeader onClick={() => navigate(`/products/${product.slug}`)} className="text-center pb-4">
+                                    <div className="mb-4 group-hover:scale-105 transition-transform duration-300">
+                                        <img
+                                            src={product.image}
+                                            alt={product.name}
+                                            className="h-32 w-32 object-contain mx-auto"
+                                        />
                                     </div>
                                     <CardTitle className="text-lg font-semibold text-gray-800">
                                         {product.name}
@@ -118,17 +109,14 @@ const HomePage = () => {
                                     <div className="flex items-center justify-center mb-3">
                                         <div className="flex items-center">
                                             <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                                            <span className="ml-1 text-sm text-gray-600">{product.rating}</span>
+                                            <span className="ml-1 text-sm text-gray-600">{product.rating || 0}</span>
                                         </div>
                                     </div>
                                     <div className="text-center mb-4">
-                                        <span className="text-2xl font-bold text-green-600">{product.price}</span>
+                                        <span className="text-2xl font-bold text-green-600">{product.price.toLocaleString("vi-VN")}đ</span>
                                         <span className="text-sm text-gray-500 line-through ml-2">{product.originalPrice}</span>
                                     </div>
-                                    <Button className="w-full bg-gradient-to-r from-green-600 to-amber-600 hover:from-green-700 hover:to-amber-700">
-                                        <ShoppingCart className="h-4 w-4 mr-2" />
-                                        Thêm Vào Giỏ
-                                    </Button>
+                                    <AddToCartButton product={product} quantity={1} />
                                 </CardContent>
                             </Card>
                         ))}

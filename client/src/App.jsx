@@ -17,6 +17,7 @@ import ForgotPassword from "./pages/Customers/ForgotPassword";
 import ForgotOtp from "./pages/Customers/ForgotOtp";
 import ResetPassword from "./pages/Customers/ResetPassword";
 import Profile from "./pages/Customers/Profile";
+import { useSelector } from "react-redux";
 
 // Admin Pages
 import Sidebar from "./components/admin/Sidebar";
@@ -49,6 +50,11 @@ import SaleStaffTasks from "./pages/SaleStaff/Tasks";
 import SaleStaffChat from "./pages/SaleStaff/Chat";
 import SaleStaffProfile from "./pages/SaleStaff/Profile";
 
+import ProductDetail from "./pages/Customers/ProductDetail";
+import ProtectedRoute from "./components/protectedRouter/ProtectedRoute";
+import { Car } from "lucide-react";
+import Cart from "./pages/Customers/Cart";
+
 // Customer Layout
 const CustomerLayout = () => (
   <div className="min-h-screen flex flex-col">
@@ -57,7 +63,7 @@ const CustomerLayout = () => (
       <Outlet />
     </main>
     <Footer />
-    <ToastContainer position="top-right" autoClose={5000} theme="light" />
+
   </div>
 );
 
@@ -77,9 +83,8 @@ const AdminLayout = ({
     <div className="flex">
       <Sidebar isSidebarOpen={isSidebarOpen} />
       <main
-        className={`flex-1 p-4 pt-20 transition-all duration-300 ${
-          isSidebarOpen ? "md:ml-40" : "md:ml-0"
-        }`}
+        className={`flex-1 p-4 pt-20 transition-all duration-300 ${isSidebarOpen ? "md:ml-40" : "md:ml-0"
+          }`}
       >
         <Outlet />
       </main>
@@ -88,11 +93,14 @@ const AdminLayout = ({
 );
 
 function App() {
+  const accessToken = useSelector((state) => state.customer.accessToken);
   const [darkMode, setDarkMode] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const toggleDarkMode = () => setDarkMode(!darkMode);
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
+
+  console.log(accessToken);
 
   return (
     <div className={darkMode ? "dark" : ""}>
@@ -104,10 +112,18 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/verify/:email" element={<Verify />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/product" element={<Products />} />
           <Route path="/otp" element={<ForgotOtp />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/products" element={<Products />} />
+          <Route path="/products/:slug" element={<ProductDetail />} />
+          {accessToken &&
+            <>
+              <Route path="/profile" element={<ProtectedRoute element={<Profile />} />} />
+              <Route path="/cart" element={<Cart />} />
+            </>
+          }
+
         </Route>
 
         {/* Admin Routes */}
@@ -156,6 +172,7 @@ function App() {
         {/* Not Found */}
         <Route path="*" element={<NotFound />} />
       </Routes>
+      <ToastContainer position="top-right" autoClose={5000} theme="light" />
     </div>
   );
 }

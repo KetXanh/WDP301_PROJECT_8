@@ -470,9 +470,9 @@ module.exports.updateProfile = async (req, res) => {
         const updateData = {
             username: req.body.username || currentUser.username,
             email: req.body.email || currentUser.email,
-            address: req.body.address || currentUser.address,
+            address: { ...req.body.address, isDefault: true } || currentUser.address,
             avatar: req.body.avatar || currentUser.avatar,
-            isDefault: true
+
         };
 
         const avatarFile = req.files?.avatar?.[0];
@@ -525,7 +525,7 @@ module.exports.loginGoogle = async (req, res) => {
             email: userExits.email,
             role: userExits.role
         }
-        const accessToken = jwt.sign(dataToken, process.env.TOKEN_SECRET, { expiresIn: "15m" });
+        const accessToken = jwt.sign(dataToken, process.env.TOKEN_SECRET, { expiresIn: "7m" });
         const refreshToken = jwt.sign(dataToken, process.env.REFRESH_TOKEN_SECRET, { expiresIn: "7d" });
         await Users.findByIdAndUpdate(
             userExits._id,
@@ -537,6 +537,34 @@ module.exports.loginGoogle = async (req, res) => {
             message: "Login successfully",
             accessToken,
             refreshToken,
+        })
+    } catch (error) {
+        res.status(500).json({ message: "Server Error", error: error.message });
+    }
+}
+
+module.exports.address = async (req, res) => {
+    try {
+        const email = req.user.email;
+        const user = await Users.findOne({ email }).select('address');
+        if (!user) {
+            return res.json({
+                code: 404,
+                message: "Not found user"
+            })
+
+        }
+        const address = user.address.map(a => ({
+            id: a._id,
+            label: a.fullName,
+            details: `${a.street}, ${a.ward}, ${a.district}, ${a.province}`,
+            phone: a.phone,
+            isDefault: a.isDefault
+        }))
+        res.json({
+            code: 200,
+            message: "Get Address Successfully",
+            address
         })
     } catch (error) {
         res.status(500).json({ message: "Server Error", error: error.message });

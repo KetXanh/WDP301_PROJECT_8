@@ -26,6 +26,7 @@ import { useEffect } from "react";
 import { useSelector } from "react-redux";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Camera } from "lucide-react";
+
 const Profile = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [avatarFile, setAvatarFile] = useState(null);
@@ -49,6 +50,7 @@ const Profile = () => {
   });
   const accessToken = useSelector((state) => state.customer.accessToken);
   const [isLoading, setIsLoading] = useState(false);
+
   const handleAvatarUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -63,6 +65,7 @@ const Profile = () => {
       }));
     }
   };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     if (
@@ -143,6 +146,7 @@ const Profile = () => {
       console.log(error);
     }
   };
+
   const getDisplayName = () => {
     return formData.address?.[0]?.fullName || formData.username || "User";
   };
