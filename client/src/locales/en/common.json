@@ -42,7 +42,7 @@
     "products": "Products",
     "orders": "Orders",
     "sales": "Sales",
-    "admin": "Admin"
+    "admin": "Warehouse Management"
   },
   "form": {
     "name": "Name",
