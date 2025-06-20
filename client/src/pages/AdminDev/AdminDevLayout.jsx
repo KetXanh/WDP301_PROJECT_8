@@ -8,12 +8,10 @@ import {
   ClipboardList,
   Users,
   Percent,
-  FileText,
-  LayoutDashboard,
-  MessageSquare
+  LayoutDashboard
 } from "lucide-react"
 
-export default function SaleManagerLayout() {
+export default function AdminDevLayout() {
   const navigationItems = [
     {
       title: "Tổng quan",
@@ -22,33 +20,23 @@ export default function SaleManagerLayout() {
     },
     {
       title: "Thống kê",
-      url: "/sale-manager/statistics",
+      url: "/admin-dev/statistics",
       icon: BarChart3
     },
     {
-      title: "Quản lý task",
-      url: "/sale-manager/task",
+      title: "Thay đổi vai trò người dùng",
+      url: "/admin-dev/changerole",
       icon: ClipboardList
     },
     {
-      title: "KPI nhân viên",
-      url: "/sale-manager/kpi",
+      title: "Quản lý người dùng",
+      url: "/admin-dev/banuser",
       icon: Users
     },
     {
-      title: "Khuyến mãi",
-      url: "/sale-manager/discount",
+      title: "Quản lý sản phẩm",
+      url: "/admin-dev/product",
       icon: Percent
-    },
-    {
-      title: "Quản lý order",
-      url: "/sale-manager/order",
-      icon: FileText
-    },
-    {
-      title: "Chat",
-      url: "/sale-manager/chat",
-      icon: MessageSquare
     }
   ]
 

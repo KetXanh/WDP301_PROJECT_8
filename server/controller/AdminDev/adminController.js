@@ -240,3 +240,60 @@ module.exports.deleteProduct = async (req, res) => {
         });
     }
 }
+
+module.exports.getUserStats = async (req, res) => {
+    try {
+        const currentUser = req.user;
+
+        // Chỉ admin dev (role >= 1) mới được xem thống kê
+        if (!currentUser || currentUser.role < 1) {
+            return res.status(403).json({
+                message: "Access denied. Only admin can view user statistics."
+            });
+        }
+
+        const totalUsers = await User.countDocuments();
+        const activeUsers = await User.countDocuments({ status: "active" });
+        const inactiveUsers = await User.countDocuments({ status: "inactive" });
+
+        const usersByRole = await User.aggregate([
+            {
+                $group: {
+                    _id: "$role",
+                    count: { $sum: 1 }
+                }
+            },
+            {
+                $sort: { _id: 1 }
+            }
+        ]);
+
+        const roleMap = {
+            0: "User",
+            1: "Admin Dev",
+            2: "Sale Manager",
+            3: "Product Manager",
+            4: "Sale Staff"
+        };
+
+        const formattedUsersByRole = usersByRole.map(roleStat => ({
+            role: roleMap[roleStat._id] || `Unknown Role (${roleStat._id})`,
+            count: roleStat.count
+        }));
+
+        res.status(200).json({
+            message: "User statistics fetched successfully",
+            statistics: {
+                totalUsers,
+                activeUsers,
+                inactiveUsers,
+                usersByRole: formattedUsersByRole
+            }
+        });
+    } catch (error) {
+        res.status(500).json({
+            message: "Server Error",
+            error: error.message
+        });
+    }
+};
