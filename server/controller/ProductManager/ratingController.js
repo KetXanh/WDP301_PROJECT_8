@@ -22,7 +22,7 @@ exports.createRating = async (req, res) => {
   }
 };
 
-// Lấy đánh giá theo sản phẩm
+
 exports.getRatingsByProduct = async (req, res) => {
   try {
     const { productId } = req.params;
