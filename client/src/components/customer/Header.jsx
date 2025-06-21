@@ -15,19 +15,32 @@ import { customerProfile } from '../../services/Customer/ApiAuth';
 import { logout } from '../../store/customer/authSlice';
 import logo from '../../assets/NutiGo.png';
 import { jwtDecode } from 'jwt-decode';
+import { GUEST_ID } from '../../store/customer/constans';
 
 const Header = () => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const [username, setUsername] = useState(null);
+
     const [user, setUser] = useState(null);
     const navigate = useNavigate();
     const dispatch = useDispatch();
 
     const accessToken = useSelector((state) => state.customer.accessToken);
-    const cartItems = useSelector((state) =>
-        username && isLoggedIn ? state.cart.items[username] || [] : []
+    const username = React.useMemo(() => {
+        if (typeof accessToken === 'string' && accessToken.trim()) {
+            try {
+                const decoded = jwtDecode(accessToken);
+                return decoded.username || GUEST_ID;
+            } catch {
+                return GUEST_ID;
+            }
+        }
+        return GUEST_ID;
+    }, [accessToken]);
+    const cartItems = useSelector(
+        state => state.cart.items[username] ?? []
     );
-    const badgeCount = cartItems.reduce((s, i) => s + i.quantity, 0);
+
+    const badgeCount = cartItems.length === 0 ? 0 : cartItems.length;
 
     const profile = async () => {
         try {
@@ -37,7 +50,6 @@ const Header = () => {
             } else if (res.data && res.data.code === 401) {
                 dispatch(logout());
                 setIsLoggedIn(false);
-                setUsername(null);
                 setUser(null);
             }
         } catch (error) {
@@ -45,7 +57,6 @@ const Header = () => {
             if (error.response?.status === 403 || error.response?.status === 401) {
                 dispatch(logout());
                 setIsLoggedIn(false);
-                setUsername(null);
                 setUser(null);
             }
         }
@@ -55,7 +66,6 @@ const Header = () => {
         if (accessToken) {
             try {
                 const decoded = jwtDecode(accessToken);
-                setUsername(decoded.username);
                 if (decoded.role === 0) {
                     profile();
                     setIsLoggedIn(true);
@@ -64,19 +74,16 @@ const Header = () => {
                 console.error('Invalid token:', error);
                 dispatch(logout());
                 setIsLoggedIn(false);
-                setUsername(null);
                 setUser(null);
             }
         } else {
             setIsLoggedIn(false);
-            setUsername(null);
             setUser(null);
         }
     }, [accessToken, dispatch]);
 
     const handleLogout = () => {
         setIsLoggedIn(false);
-        setUsername(null);
         setUser(null);
         dispatch(logout());
         navigate('/');

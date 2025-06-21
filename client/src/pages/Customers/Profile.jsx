@@ -274,7 +274,7 @@ const Profile = () => {
                                             className="mt-1"
                                         />
                                     ) : (
-                                        <p className="mt-1 text-gray-900">{formData.address[0].phone || "Hãy Cập Nhật Thông Tin Cá Nhân"}</p>
+                                        <p className="mt-1 text-gray-900">{formData?.address[0]?.phone || "Hãy Cập Nhật Thông Tin Cá Nhân"}</p>
                                     )}
                                 </div>
                             </div>

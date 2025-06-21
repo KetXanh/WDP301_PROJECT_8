@@ -1,85 +1,13 @@
-// import { createSlice } from "@reduxjs/toolkit";
-
-// const initialState = {
-//   userId: null,
-//   items: [],
-//   totalQuantity: 0,
-//   totalPrice: 0,
-//   status: "idle",
-//   error: null,
-// };
-
-// const calcTotals = (state) => {
-//   state.totalQuantity = state.items.reduce((s, i) => s + i.quantity, 0);
-//   state.totalPrice = state.items.reduce((s, i) => s + i.quantity * i.price, 0);
-// };
-
-// const cartSlice = createSlice({
-//   name: "cart",
-//   initialState,
-//   reducers: {
-//     setUser(state, { payload }) {
-//       state.userId = payload;
-//       if (!state.items.length) {
-//         state.items = [];
-//         state.totalQuantity = 0;
-//         state.totalPrice = 0;
-//       }
-//     },
-//     addItem(state, { payload }) {
-//       const item = {
-//         ...payload,
-//         quantity: Number(payload.quantity) || 0,
-//         price: Number(payload.price) || 0,
-//       };
-//       const existing = state.items.find((i) => i.productId === item.productId);
-//       if (existing) {
-//         existing.quantity += item.quantity;
-//       } else {
-//         state.items.push(item);
-//       }
-//       calcTotals(state);
-//     },
-//     removeItem(state, { payload }) {
-//       state.items = state.items.filter((i) => i.productId !== payload);
-//       calcTotals(state);
-//     },
-//     updateQuantity(state, { payload }) {
-//       const item = state.items.find((i) => i.productId === payload.productId);
-//       if (item) {
-//         item.quantity = Math.max(1, payload.quantity);
-//       }
-//       calcTotals(state);
-//     },
-//     clearCart(state) {
-//       state.items = [];
-//       calcTotals(state);
-//     },
-//     syncCart(state, { payload }) {
-//       state.items = payload.items || [];
-//       state.totalQuantity = payload.totalQuantity || 0;
-//       state.totalPrice = payload.totalPrice || 0;
-//     },
-//   },
-// });
-
-// export const { setUser, addItem, removeItem, updateQuantity, clearCart, syncCart } = cartSlice.actions;
-// export default cartSlice.reducer;
 
 
 import { createSlice } from "@reduxjs/toolkit";
+import { GUEST_ID } from "./constans";
 
-/**
- * State dạng:
- * {
- *   items: {
- *     userId1: [ { productId, quantity, price, ... } ],
- *     userId2: [ ... ]
- *   }
- * }
- */
+
 const initialState = {
-  items: {},
+  items: {
+    [GUEST_ID]: [],
+  },
 };
 
 const cartSlice = createSlice({
@@ -87,7 +15,7 @@ const cartSlice = createSlice({
   initialState,
   reducers: {
     addToCart(state, { payload }) {
-      const { userId, item } = payload;
+      const { userId = GUEST_ID, item } = payload;
       if (!state.items[userId]) {
         state.items = {
           ...state.items,
@@ -135,6 +63,27 @@ const cartSlice = createSlice({
       const item = state.items[userId]?.find((i) => i.productId === productId);
       if (item && item.quantity > 1) item.quantity -= 1;
     },
+    mergeGuestCart(state, { payload }) {
+      const { userId } = payload;
+      if (!userId) return;
+
+      if (!state.items[userId]) state.items[userId] = [];
+
+      const guestItems = state.items[GUEST_ID] || [];
+
+      guestItems.forEach((gItem) => {
+        const existing = state.items[userId].find(
+          (uItem) => uItem.productId === gItem.productId
+        );
+        if (existing) {
+          existing.quantity = Math.min(existing.quantity + gItem.quantity, 10);
+        } else {
+          state.items[userId].push({ ...gItem });
+        }
+      });
+
+      state.items[GUEST_ID] = [];
+    },
   },
 });
 
@@ -144,5 +93,6 @@ export const {
   clearCart,
   increaseQuantity,
   decreaseQuantity,
+  mergeGuestCart,
 } = cartSlice.actions;
 export default cartSlice.reducer;

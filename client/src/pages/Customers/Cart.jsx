@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Trash2, Plus, Minus } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
+import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 import { jwtDecode } from 'jwt-decode';
 import { address } from '../../services/Customer/ApiAuth';
 import {
@@ -19,19 +19,33 @@ import {
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { clearCart, decreaseQuantity, increaseQuantity, removeFromCart } from '../../store/customer/cartSlice';
+import { GUEST_ID } from '../../store/customer/constans';
+const EMPTY_ARRAY = [];
 const Cart = () => {
     const navigate = useNavigate();
     const accessToken = useSelector((state) => state.customer.accessToken);
-    const decoded = jwtDecode(accessToken);
-    const username = decoded.username;
-    const reduxCartItems = useSelector((state) =>
-        username ? state.cart.items[username] || [] : []
+    const username = useMemo(() => {
+        if (typeof accessToken !== 'string' || !accessToken.trim()) return GUEST_ID;
+
+        try {
+            const decoded = jwtDecode(accessToken);
+            return decoded.username || GUEST_ID;
+        } catch {
+            // token hỏng / hết hạn → xem như guest
+            return GUEST_ID;
+        }
+    }, [accessToken]);
+    const reduxCartItems = useSelector(
+        (state) => state.cart.items[username] ?? EMPTY_ARRAY,
+        shallowEqual
     );
     const [cartItems, setCartItems] = useState(reduxCartItems);
     const [addresses, setAddresses] = useState([]);
     const [selectedAddress, setSelectedAddress] = useState(null);
     const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false);
     const [newAddress, setNewAddress] = useState({
+        fullname: '',
+        label: '',
         street: '',
         ward: '',
         district: '',
@@ -53,8 +67,9 @@ const Cart = () => {
     }
 
     useEffect(() => {
+        if (username === GUEST_ID) return;
         getAddress();
-    }, []);
+    }, [username]);
     useEffect(() => {
         const defaultAddr = addresses.find(a => a.isDefault);
         if (defaultAddr) setSelectedAddress(defaultAddr.id);
@@ -346,6 +361,27 @@ const Cart = () => {
                                         </DialogHeader>
                                         <div className="grid gap-4 py-4">
                                             <div className="grid gap-2">
+                                                <Label htmlFor="fullname">Tên người nhận</Label>
+                                                <Input
+                                                    id="fullname"
+                                                    name="fullname"
+                                                    placeholder="Nhập tên người nhận"
+                                                    value={newAddress.fullname}
+                                                    onChange={handleInputChange}
+                                                />
+                                            </div>
+
+                                            <div className="grid gap-2">
+                                                <Label htmlFor="label">Loại địa chỉ</Label>
+                                                <Input
+                                                    id="label"
+                                                    name="label"
+                                                    placeholder="Nhà riêng, công ty, v.v..."
+                                                    value={newAddress.label}
+                                                    onChange={handleInputChange}
+                                                />
+                                            </div>
+                                            <div className="grid gap-2">
                                                 <Label htmlFor="street">Số nhà, tên đường</Label>
                                                 <Input
                                                     id="street"
@@ -441,7 +477,7 @@ const Cart = () => {
                                     onClick={handleCheckout}
                                     disabled={cartItems.filter(item => item.selected).length === 0 || selectedAddress === null}
                                 >
-                                    Thanh Toán Ngay
+                                    Thanh Toán
                                 </Button>
 
                                 <p className="text-xs text-gray-500 text-center">
