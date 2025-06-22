@@ -107,3 +107,17 @@ export const getCategoryStats = () => {
 export const getProductCountByCategory = () => {
   return instance.get("/productmanager/category/product-by-category");
 };
+
+export const getAllOrders = () => {
+  return instance.get("productmanager/product/orders");
+};
+
+export const updateOrderSatatus = (orderId, status) => {
+  return instance.put(`productmanager/product/order/status/${orderId}`, {
+    status,
+  });
+};
+
+export const getOrderDetailByID = (orderId) => {
+  return instance.get(`productmanager/product/orders/${orderId}`);
+};

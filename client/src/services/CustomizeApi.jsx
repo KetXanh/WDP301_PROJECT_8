@@ -36,16 +36,16 @@ instance.interceptors.request.use(
 instance.interceptors.response.use(
     response => response,
     async (error) => {
+        const { status } = error.response || {};
         const originalRequest = error.config;
 
+        const isAuthError = [401, 403].includes(status);
+
         // Nếu đã retry rồi thì không retry nữa (tránh vòng lặp vô tận)
-        if (error.response?.status === 401 && !originalRequest._retry) {
+        if (isAuthError && !originalRequest._retry) {
             originalRequest._retry = true;
 
-            const state = store.getState();
-          
-            const refreshToken = state.customer?.refreshToken;
-
+            const { refreshToken } = store.getState().customer || {};
             if (!refreshToken) {
                 store.dispatch(logout());
                 return Promise.reject(error);

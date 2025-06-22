@@ -9,17 +9,15 @@ import { useNavigate } from 'react-router-dom';
 
 const AddToCartButton = ({ product, quantity }) => {
     const dispatch = useDispatch();
-    // Lấy userId từ auth slice
     const accessToken = useSelector((state) => state.customer.accessToken);
     const navigate = useNavigate();
 
     const handleAddToCart = () => {
-        const decoded = jwtDecode(accessToken);
-
-        if (!accessToken) {
-            toast.info("Vui lòng đăng nhập để mua hàng");
+        if (!accessToken || typeof accessToken !== 'string') {
+            toast.error("Vui lòng đăng nhập để mua hàng");
             return navigate("/login");
         }
+        const decoded = jwtDecode(accessToken);
 
         if (!product.stock || product.stock < 1) {
             return toast.error("Sản phẩm đã hết hàng");

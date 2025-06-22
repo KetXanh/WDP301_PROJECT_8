@@ -13,5 +13,7 @@ router.post('/resend-otp', controller.resendOtp);
 router.get('/profile', Authozation.authenticateToken, Authozation.authorizeRoles(0), controller.getProfile);
 router.post('/profile', Authozation.authenticateToken, Authozation.authorizeRoles(0), upload.fields([{ name: 'avatar', maxCount: 1 }]), controller.updateProfile);
 router.post('/login-google', controller.loginGoogle);
+router.get('/address', Authozation.authenticateToken, Authozation.authorizeRoles(0), controller.address);
+
 
 module.exports = router;

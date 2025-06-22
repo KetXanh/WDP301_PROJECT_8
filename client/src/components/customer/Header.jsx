@@ -105,7 +105,12 @@ const Header = () => {
           </nav>
 
           <div className="flex items-center space-x-4">
-            <Button variant="ghost" size="icon" className="relative">
+            <Button
+              onClick={() => navigate("/cart")}
+              variant="ghost"
+              size="icon"
+              className="relative"
+            >
               <ShoppingCart className="h-5 w-5" />
               {badgeCount > 0 && (
                 <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] leading-none rounded-full px-1.5 h-4 min-w-4 flex items-center justify-center">

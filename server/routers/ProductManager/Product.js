@@ -20,8 +20,10 @@ router.post("/consolidateProductVariants/:id", Authozation.authenticateToken, Au
 router.post("/update-all-slugs", Authozation.authenticateToken, Authozation.authorizeRoles(3), controller.updateAllProductSlugs);
 router.post("/import-excel",uploadExcel.single("file"),controller.importProductsFromExcel);
 router.get("/export-excel", controller.exportProductsToExcel);
-router.get("/orders/my", ordersController.getOrdersByUser);
-router.put("/status/:orderId", Authozation.authenticateToken, Auth.authorizeRoles(3), ordersController.updateOrderStatus);
+router.get("/orders",  Authozation.authenticateToken, Authozation.authorizeRoles(3),ordersController.getAllOrders);
+router.get("/orders/:orderId",  Authozation.authenticateToken, Authozation.authorizeRoles(3),ordersController.getOrderDetailById);
+router.post("/orders",  Authozation.authenticateToken, Authozation.authorizeRoles(3),ordersController.createOrder);
+router.put("/order/status/:orderId", Authozation.authenticateToken, Authozation.authorizeRoles(3), ordersController.updateOrderStatus);
 router.get("/ratings/:productId", ratingController.getRatingsByProduct);
 router.post("/ratings", Authozation.authenticateToken, Authozation.authorizeRoles(3), ratingController.createRating);
 

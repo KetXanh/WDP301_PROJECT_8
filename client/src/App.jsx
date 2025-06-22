@@ -3,6 +3,7 @@ import { Routes, Route, Outlet } from "react-router-dom";
 import "./App.css";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { useSelector } from "react-redux";
 
 // Customer Pages
 import Login from "./pages/Customers/Login";
@@ -17,7 +18,9 @@ import ForgotPassword from "./pages/Customers/ForgotPassword";
 import ForgotOtp from "./pages/Customers/ForgotOtp";
 import ResetPassword from "./pages/Customers/ResetPassword";
 import Profile from "./pages/Customers/Profile";
-import { useSelector } from "react-redux";
+import ProductDetail from "./pages/Customers/ProductDetail";
+import Cart from "./pages/Customers/Cart";
+import ProtectedRoute from "./components/protectedRouter/ProtectedRoute";
 
 // Admin Pages
 import Sidebar from "./components/admin/Sidebar";
@@ -27,12 +30,8 @@ import Order from "./pages/admin/Order";
 import Category from "./pages/admin/Category";
 import Dashboard from "./pages/admin/DashBoard";
 import SubCategory from "./pages/admin/SubCategory";
-import ProductDetail from "./pages/Customers/ProductDetail";
-import ProtectedRoute from "./components/protectedRouter/ProtectedRoute";
 import Task from "./pages/admin/Task";
 import Kpi from "./pages/admin/Kpi";
-
-
 
 // Customer Layout
 const CustomerLayout = () => (
@@ -42,7 +41,6 @@ const CustomerLayout = () => (
       <Outlet />
     </main>
     <Footer />
-
   </div>
 );
 
@@ -62,8 +60,9 @@ const AdminLayout = ({
     <div className="flex">
       <Sidebar isSidebarOpen={isSidebarOpen} />
       <main
-        className={`flex-1 p-4 pt-20 transition-all duration-300 ${isSidebarOpen ? "md:ml-40" : "md:ml-0"
-          }`}
+        className={`flex-1 p-4 pt-20 transition-all duration-300 ${
+          isSidebarOpen ? "md:ml-40" : "md:ml-0"
+        }`}
       >
         <Outlet />
       </main>
@@ -85,25 +84,23 @@ function App() {
         {/* Customer Routes */}
         <Route path="/" element={<CustomerLayout />}>
           <Route index element={<HomePage />} />
+          <Route path="login" element={<Login />} />
+          <Route path="register" element={<Register />} />
+          <Route path="verify/:email" element={<Verify />} />
+          <Route path="forgot-password" element={<ForgotPassword />} />
+          <Route path="otp" element={<ForgotOtp />} />
+          <Route path="reset-password" element={<ResetPassword />} />
 
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/verify/:email" element={<Verify />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/otp" element={<ForgotOtp />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
-          {accessToken && (
-            <>
-              <Route
-                path="/profile"
-                element={<ProtectedRoute element={<Profile />} />}
-              />
-              <Route path="/products" element={<Products />} />
-              <Route path="/products/:slug" element={<ProductDetail />} />
-            </>
-          )}
+          {/* Công khai */}
+          <Route path="products" element={<Products />} />
+          <Route path="products/:slug" element={<ProductDetail />} />
 
-          <Route path="/profile" element={<Profile />} />
+          {/* Cần đăng nhập */}
+          <Route
+            path="profile"
+            element={<ProtectedRoute element={<Profile />} />}
+          />
+          <Route path="cart" element={<ProtectedRoute element={<Cart />} />} />
         </Route>
 
         {/* Admin Routes */}
@@ -124,7 +121,7 @@ function App() {
           <Route path="subcategory" element={<SubCategory />} />
           <Route path="category" element={<Category />} />
           <Route path="task" element={<Task />} />
-          <Route path="kpi" element={<Kpi/>} />
+          <Route path="kpi" element={<Kpi />} />
         </Route>
 
         {/* Not Found */}
