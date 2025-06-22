@@ -20,7 +20,6 @@ const customerSlice = createSlice({
             localStorage.removeItem('refreshToken');
         }
 
-
     },
 });
 

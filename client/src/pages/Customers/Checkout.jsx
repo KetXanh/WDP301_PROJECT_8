@@ -7,7 +7,7 @@ import {
     Truck,
     Package,
 } from 'lucide-react';
-
+import { toast } from 'react-toastify';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -15,43 +15,25 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import { userOrder } from '../../services/Customer/ApiProduct';
 
-// ======== DATA CỨNG ========
-const mockAddress = {
-    id: 1,
-    label: 'Nhà riêng',
-    details: '12 Ngõ 34, P. Dịch Vọng, Q. Cầu Giấy, Hà Nội',
-    phone: '090 123 4567',
-    isDefault: true,
-};
-
-const mockItems = [
-    {
-        id: 'v1',
-        name: 'Hạt Macca Úc 250g',
-        imageUrl: 'https://picsum.photos/seed/macca/120',
-        price: 120_000,
-        quantity: 2,
-    },
-    {
-        id: 'v2',
-        name: 'Hạt Óc Chó Mỹ 250g',
-        imageUrl: 'https://picsum.photos/seed/walnut/120',
-        price: 98_000,
-        quantity: 1,
-    },
-];
-// ======================================
 
 const CheckoutDemo = () => {
     const navigate = useNavigate();
-
-    const [selectedAddress, setSelectedAddress] = useState(mockAddress);
     const [orderNote, setOrderNote] = useState('');
-    const [selectedItems] = useState(mockItems);
     const [paymentMethod, setPaymentMethod] = useState('cod');
     const [isProcessing, setIsProcessing] = useState(false);
+    const location = useLocation();
+    const { selectedItems, selectedAddress } = location.state || {};
+
+    useEffect(() => {
+        if (!selectedItems || !selectedAddress) {
+            navigate('/cart');
+        }
+    }, [selectedItems, selectedAddress, navigate]);
+
 
     const subtotal = selectedItems.reduce(
         (sum, i) => sum + i.price * i.quantity,
@@ -60,13 +42,39 @@ const CheckoutDemo = () => {
     const shippingFee = 30_000;
     const total = subtotal + shippingFee;
 
-    const handlePlaceOrder = () => {
-        setIsProcessing(true);
-        setTimeout(() => {
-            alert('Đặt hàng demo thành công!');
-            setIsProcessing(false);
-        }, 2000);
+
+    const handlePlaceOrder = async () => {
+        try {
+
+            const items = selectedItems.map(i => ({
+                product: i.productId,
+                quantity: i.quantity
+            }))
+            const shippingAddress = selectedAddress.details.split(",").map(s => s.trim());
+            const [street, ward, district, province] = shippingAddress;
+            const dataShipping = {
+                lable: selectedAddress.lable || "",
+                fullName: selectedAddress.fullName,
+                street,
+                ward,
+                district,
+                province,
+                phone: selectedAddress.phone,
+            }
+            const res = await userOrder(items, dataShipping);
+            if (res.data && res.data.code === 201) {
+                toast.success("Đặt hàng thành công")
+                navigate('/')
+            } else if (res.data && res.data.code === 401) {
+                toast.error("Địa chỉ giao hàng không hợp lệ")
+            }
+            setIsProcessing(false)
+        } catch (error) {
+            console.log(error);
+
+        }
     };
+
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50">
@@ -74,7 +82,7 @@ const CheckoutDemo = () => {
             <div className="bg-white shadow-sm border-b">
                 <div className="container mx-auto px-4 py-6">
                     <div className="flex items-center space-x-4">
-                        <Button variant="ghost" onClick={() => navigate(-1)} className="p-2">
+                        <Button variant="ghost" onClick={() => navigate('/cart')} className="p-2">
                             <ArrowLeft className="h-5 w-5" />
                         </Button>
                         <div>
@@ -106,7 +114,7 @@ const CheckoutDemo = () => {
                                                 {selectedAddress.label}
                                             </p>
                                             <p className="text-gray-600 mb-2">
-                                                {selectedAddress.details}
+                                                {selectedAddress.fullName}-{selectedAddress.details}
                                             </p>
                                             <p className="text-gray-600">
                                                 Số điện thoại: {selectedAddress.phone}

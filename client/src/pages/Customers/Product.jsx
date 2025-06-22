@@ -5,8 +5,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Search, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
 import ProductCard from '../../components/customer/ProductCard';
 import ProductFilters from '../../components/customer/ProductFilters';
-import { allProducts } from '../../services/Customer/ApiAuth';
 import { useNavigate } from 'react-router-dom';
+import { allProducts } from '../../services/Customer/ApiProduct';
 
 const Product = () => {
     const [searchTerm, setSearchTerm] = useState('');

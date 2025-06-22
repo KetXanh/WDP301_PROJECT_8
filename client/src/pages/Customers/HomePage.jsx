@@ -3,9 +3,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { ShoppingCart, Star, Truck, Shield, Award, Heart } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import React, { useEffect, useState } from 'react';
-import { allProducts } from '../../services/Customer/ApiAuth';
 
 import AddToCartButton from '../../components/customer/AddToCartButton';
+import { allProducts } from '../../services/Customer/ApiProduct';
 
 
 const HomePage = () => {

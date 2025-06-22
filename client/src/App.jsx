@@ -78,7 +78,6 @@ function App() {
   const toggleDarkMode = () => setDarkMode(!darkMode);
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
-  console.log(accessToken);
 
   return (
     <div className={darkMode ? "dark" : ""}>

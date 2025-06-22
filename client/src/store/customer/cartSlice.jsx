@@ -2,7 +2,7 @@
 
 import { createSlice } from "@reduxjs/toolkit";
 import { GUEST_ID } from "./constans";
-
+import { logout } from "./authSlice";
 
 const initialState = {
   items: {
@@ -40,7 +40,7 @@ const cartSlice = createSlice({
     },
 
     removeFromCart(state, { payload }) {
-      const { userId, productId } = payload;
+      const { userId = GUEST_ID, productId } = payload;
       if (state.items[userId])
         state.items[userId] = state.items[userId].filter(
           (i) => i.productId !== productId
@@ -48,18 +48,18 @@ const cartSlice = createSlice({
     },
 
     clearCart(state, { payload }) {
-      const { userId } = payload;
+      const { userId = GUEST_ID } = payload;
       if (state.items[userId]) state.items[userId] = [];
     },
 
     increaseQuantity(state, { payload }) {
-      const { userId, productId } = payload;
+      const { userId = GUEST_ID, productId } = payload;
       const item = state.items[userId]?.find((i) => i.productId === productId);
       if (item && item.quantity < 10) item.quantity += 1;
     },
 
     decreaseQuantity(state, { payload }) {
-      const { userId, productId } = payload;
+      const { userId = GUEST_ID, productId } = payload;
       const item = state.items[userId]?.find((i) => i.productId === productId);
       if (item && item.quantity > 1) item.quantity -= 1;
     },
@@ -84,6 +84,11 @@ const cartSlice = createSlice({
 
       state.items[GUEST_ID] = [];
     },
+  },
+  extraReducers: (builder) => {
+    builder.addCase(logout, (state) => {
+      state.items[GUEST_ID] = [];
+    });
   },
 });
 
