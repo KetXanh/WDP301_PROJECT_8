@@ -2,6 +2,7 @@ const { Orders } = require("../../models/product/order");
 const productBase = require("../../models/product/productBase");
 const ProductVariant = require("../../models/product/ProductVariant");
 const Users = require("../../models/user");
+const generateCOD = require('../../utils/generateCOD')
 
 module.exports.userOrder = async (req, res) => {
     try {
@@ -12,6 +13,12 @@ module.exports.userOrder = async (req, res) => {
         if (!user) {
             return res.json({
                 message: "Not Found User"
+            })
+        }
+        if (!req.body.shippingAddress) {
+            return res.json({
+                code: 401,
+                message: "Shipping address not empty"
             })
         }
         const itemsInput = req.body.items;
@@ -42,11 +49,15 @@ module.exports.userOrder = async (req, res) => {
             };
         });
 
+        const cod = generateCOD();
+
         const order = await Orders.create({
             user: user._id,
             items,
             totalAmount: total,
-            totalQuantity
+            totalQuantity,
+            shippingAddress: req.body.shippingAddress,
+            COD: cod
         });
         res.json({
             code: 201,

@@ -556,7 +556,8 @@ module.exports.address = async (req, res) => {
         }
         const address = user.address.map(a => ({
             id: a._id,
-            label: a.fullName,
+            fullName: a.fullName,
+            label: a.lable,
             details: `${a.street}, ${a.ward}, ${a.district}, ${a.province}`,
             phone: a.phone,
             isDefault: a.isDefault
