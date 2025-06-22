@@ -87,12 +87,33 @@ exports.addComment = async (req, res) => {
   }
 };
 
-// Xóa comment khỏi blog (embedded)
+// Cập nhật comment
+exports.updateComments = async (req, res) => {
+  try {
+    const { blogId, commentId } = req.params;
+    const author = req.user;
+    const blog = await Blog.findById(blogId);
+    if (author.toString() !== blog.author.toString()) return res.status(403).json({ code: 403, message: "Bạn không có quyền cập nhật comment này" });
+    const { text } = req.body;
+    if (!blog) return res.status(404).json({ code: 404, message: "Không tìm thấy blog" });
+    const comment = blog.comments.find(c => c._id.toString() === commentId);
+    if (!comment) return res.status(404).json({ code: 404, message: "Không tìm thấy comment" });
+    comment.text = text;
+    await blog.save();
+    res.json({ code: 200, message: "Cập nhật comment thành công", data: comment });
+  } catch (err) {
+    res.status(500).json({ code: 500, message: "Lỗi server", error: err.message });
+  }
+};
+
+// Xóa comment khỏi blog
 exports.deleteComment = async (req, res) => {
   try {
     const { blogId, commentId } = req.params;
     const blog = await Blog.findById(blogId);
+    const author = req.user;
     if (!blog) return res.status(404).json({ code: 404, message: "Không tìm thấy blog" });
+    if (author.toString() !== blog.author.toString()) return res.status(403).json({ code: 403, message: "Bạn không có quyền xóa comment này" });
     const commentIndex = blog.comments.findIndex(c => c._id.toString() === commentId);
     if (commentIndex === -1) return res.status(404).json({ code: 404, message: "Không tìm thấy comment" });
     blog.comments.splice(commentIndex, 1);
