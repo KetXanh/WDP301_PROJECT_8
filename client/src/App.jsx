@@ -32,6 +32,7 @@ import Dashboard from "./pages/admin/DashBoard";
 import SubCategory from "./pages/admin/SubCategory";
 import Task from "./pages/admin/Task";
 import Kpi from "./pages/admin/Kpi";
+import Checkout from "./pages/Customers/Checkout";
 
 // Customer Layout
 const CustomerLayout = () => (
@@ -78,6 +79,7 @@ function App() {
   const toggleDarkMode = () => setDarkMode(!darkMode);
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
+
   return (
     <div className={darkMode ? "dark" : ""}>
       <Routes>
@@ -93,7 +95,22 @@ function App() {
 
           {/* Công khai */}
           <Route path="products" element={<Products />} />
-          <Route path="products/:slug" element={<ProductDetail />} />
+        
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/verify/:email" element={<Verify />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/otp" element={<ForgotOtp />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/products" element={<Products />} />
+          <Route path="/products/:slug" element={<ProductDetail />} />
+          <Route path="/cart" element={<Cart />} />
+          {accessToken &&
+            <>
+              <Route path="/profile" element={<ProtectedRoute element={<Profile />} />} />
+              <Route path="/checkout" element={<Checkout />} />
+            </>
+          }
 
           {/* Cần đăng nhập */}
           <Route

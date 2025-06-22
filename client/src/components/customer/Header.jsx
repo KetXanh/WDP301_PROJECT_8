@@ -3,68 +3,93 @@ import { Button } from "@/components/ui/button";
 import { ShoppingCart, LogOut, User } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useDispatch, useSelector } from "react-redux";
-import { customerProfile } from "../../services/Customer/ApiAuth";
-import { logout } from "../../store/customer/authSlice";
-import logo from "../../assets/NutiGo.png";
-import { jwtDecode } from "jwt-decode";
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useDispatch, useSelector } from 'react-redux';
+import { customerProfile } from '../../services/Customer/ApiAuth';
+import { logout } from '../../store/customer/authSlice';
+import logo from '../../assets/NutiGo.png';
+import { jwtDecode } from 'jwt-decode';
+import { GUEST_ID } from '../../store/customer/constans';
 import { useTranslation } from "react-i18next";
 
 const Header = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [username, setUsername] = useState(null);
-  const [user, setUser] = useState(null);
-  const navigate = useNavigate();
-  const { t, i18n } = useTranslation("user");
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const { t, i18n } = useTranslation("user");
+    const [user, setUser] = useState(null);
+    const navigate = useNavigate();
+    const dispatch = useDispatch();
 
-  const accessToken = useSelector((state) => state.customer.accessToken);
-  const dispatch = useDispatch();
+    const accessToken = useSelector((state) => state.customer.accessToken);
+    const username = React.useMemo(() => {
+        if (typeof accessToken === 'string' && accessToken.trim()) {
+            try {
+                const decoded = jwtDecode(accessToken);
+                return decoded.username || GUEST_ID;
+            } catch {
+                return GUEST_ID;
+            }
+        }
+        return GUEST_ID;
+    }, [accessToken]);
+    const cartItems = useSelector(
+        state => state.cart.items[username] ?? []
+    );
 
-  const profile = async () => {
-    try {
-      const res = await customerProfile();
-      if (res.data && res.data.code === 200) {
-        setUser(res.data.user);
-      } else if (res.data && res.data.code === 401) {
+    const badgeCount = cartItems.length === 0 ? 0 : cartItems.length;
+
+    const profile = async () => {
+        try {
+            const res = await customerProfile();
+            if (res.data && res.data.code === 200) {
+                setUser(res.data.user);
+            } else if (res.data && res.data.code === 401) {
+                dispatch(logout());
+                setIsLoggedIn(false);
+                setUser(null);
+            }
+        } catch (error) {
+            console.log('Lỗi gọi profile:', error.response?.status);
+            if (error.response?.status === 403 || error.response?.status === 401) {
+                dispatch(logout());
+                setIsLoggedIn(false);
+                setUser(null);
+            }
+        }
+    };
+
+    useEffect(() => {
+        if (accessToken) {
+            try {
+                const decoded = jwtDecode(accessToken);
+                if (decoded.role === 0) {
+                    profile();
+                    setIsLoggedIn(true);
+                }
+            } catch (error) {
+                console.error('Invalid token:', error);
+                dispatch(logout());
+                setIsLoggedIn(false);
+                setUser(null);
+            }
+        } else {
+            setIsLoggedIn(false);
+            setUser(null);
+        }
+    }, [accessToken, dispatch]);
+
+    const handleLogout = () => {
+        setIsLoggedIn(false);
+        setUser(null);
         dispatch(logout());
-      }
-    } catch (error) {
-      if (error.response?.status === 403 || error.response?.status === 401) {
-        dispatch(logout());
-      }
-    }
-  };
-
-  const cartItems = useSelector((state) =>
-    username ? state.cart.items[username] || [] : []
-  );
-  const badgeCount = cartItems.reduce((s, i) => s + i.quantity, 0);
-
-  useEffect(() => {
-    if (accessToken) {
-      const decoded = jwtDecode(accessToken);
-      setUsername(decoded.username);
-      if (decoded.role === 0) {
-        profile();
-        setIsLoggedIn(true);
-      }
-    } else {
-      setIsLoggedIn(false);
-    }
-  }, [accessToken]);
-
-  const handleLogout = () => {
-    setIsLoggedIn(false);
-    dispatch(logout());
-    navigate("/");
-  };
+        navigate('/');
+        console.log('Đăng xuất thành công');
+    };
 
   return (
     <header className="bg-white/95 backdrop-blur-sm shadow-sm sticky top-0 z-50">

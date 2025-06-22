@@ -43,7 +43,7 @@ export default function OrderDetail({ orderId, onClose }) {
               <strong>Trạng thái:</strong> {order.status}
             </p>
             <p>
-              <strong>Phương thức thanh toán:</strong> {order.paymentMethod}
+              <strong>Phương thức thanh toán:</strong> {order.payment}
             </p>
             <p>
               <strong>Địa chỉ:</strong>{" "}

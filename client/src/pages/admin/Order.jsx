@@ -102,7 +102,7 @@ export default function Order() {
                 className="w-full px-3 py-2 border rounded"
               >
                 <option value="">Tất cả</option>
-                <option value="cod">COD</option>
+                <option value="cash">CASH</option>
                 <option value="vnpay">VNPay</option>
                 <option value="momo">Momo</option>
               </select>
@@ -153,7 +153,7 @@ export default function Order() {
               .filter(
                 (order) =>
                   (statusFilter ? order.status === statusFilter : true) &&
-                  (paymentFilter ? order.paymentMethod === paymentFilter : true)
+                  (paymentFilter ? order.payment === paymentFilter.toUpperCase() : true)
               )
               .map((order) => (
                 <tr key={order._id}>
@@ -196,7 +196,7 @@ export default function Order() {
                     </DropdownMenu.Root>
                   </td>
                   <td className="px-6 py-4 text-center">
-                    {order.paymentMethod}
+                    {order.payment}
                   </td>
                   <td className="px-6 py-4 text-center">
                     <button

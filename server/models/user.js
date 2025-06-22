@@ -16,6 +16,7 @@ const userSchema = new mongoose.Schema({
             ward: String,
             district: String,
             province: String,
+            lable: { type: String, default: "Nhà riêng" },
             isDefault: { type: Boolean, default: false }
         }
     ],

@@ -296,31 +296,25 @@ const Profile = () => {
                 </div>
               </div>
 
-              <div className="flex items-center space-x-3">
-                <Phone className="h-5 w-5 text-gray-500" />
-                <div className="flex-1">
-                  <Label
-                    htmlFor="phone"
-                    className="text-sm font-medium text-gray-700"
-                  >
-                    Số điện thoại
-                  </Label>
-                  {isEditing ? (
-                    <Input
-                      id="phone"
-                      name="phone"
-                      value={formData?.address[0]?.phone || ""}
-                      onChange={handleInputChange}
-                      className="mt-1"
-                    />
-                  ) : (
-                    <p className="mt-1 text-gray-900">
-                      {formData?.address[0]?.phone ||
-                        "Hãy Cập Nhật Thông Tin Cá Nhân"}
-                    </p>
-                  )}
-                </div>
-              </div>
+                            <div className="flex items-center space-x-3">
+                                <Phone className="h-5 w-5 text-gray-500" />
+                                <div className="flex-1">
+                                    <Label htmlFor="phone" className="text-sm font-medium text-gray-700">
+                                        Số điện thoại
+                                    </Label>
+                                    {isEditing ? (
+                                        <Input
+                                            id="phone"
+                                            name="phone"
+                                            value={formData?.address[0]?.phone || ''}
+                                            onChange={handleInputChange}
+                                            className="mt-1"
+                                        />
+                                    ) : (
+                                        <p className="mt-1 text-gray-900">{formData?.address[0]?.phone || "Hãy Cập Nhật Thông Tin Cá Nhân"}</p>
+                                    )}
+                                </div>
+                            </div>
 
               <div className="flex items-start space-x-3">
                 <MapPin className="h-5 w-5 text-gray-500 mt-1" />
