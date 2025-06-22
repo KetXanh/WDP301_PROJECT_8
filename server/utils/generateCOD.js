@@ -14,3 +14,5 @@ function generateCodCode(digitCount = 6) {
 
     return `${firstTwo}${numbers}`; // Ví dụ: "QZ438210"
 }
+
+module.exports = generateCodCode;
