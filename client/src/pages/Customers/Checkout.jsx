@@ -48,7 +48,9 @@ const CheckoutDemo = () => {
     const handlePlaceOrder = async () => {
         try {
             const decoded = jwtDecode(accessToken);
-
+            if ([1, 2, 3, 4].includes(decoded.role)) {
+                return toast.error("Bạn Không có quyền đặt hàng")
+            }
             if (!accessToken) {
                 toast.error("Vui lòng đăng nhập để thực hiện đặt hàng")
                 navigate('/login')

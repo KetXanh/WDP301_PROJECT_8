@@ -33,10 +33,12 @@ const Product = () => {
         products();
     }, []);
 
+
     const filteredProducts = allProduct.filter(product => {
         const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory;
+        const matchesCategory = selectedCategory === 'all' || product.category?.name === selectedCategory;
         const matchesPrice = product.price >= priceRange[0] && product.price <= priceRange[1];
+
         return matchesSearch && matchesCategory && matchesPrice;
     });
 
@@ -78,6 +80,7 @@ const Product = () => {
         }
     };
 
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-green-50 to-amber-50">
             <div className="container mx-auto px-4 py-8">
@@ -105,7 +108,7 @@ const Product = () => {
                             <SelectItem value="name">Tên A-Z</SelectItem>
                             <SelectItem value="price-low">Giá thấp đến cao</SelectItem>
                             <SelectItem value="price-high">Giá cao đến thấp</SelectItem>
-                            <SelectItem value="rating">Đánh giá cao nhất</SelectItem>
+                            {/* <SelectItem value="rating">Đánh giá cao nhất</SelectItem> */}
                         </SelectContent>
                     </Select>
                 </div>
