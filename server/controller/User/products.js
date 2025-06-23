@@ -118,28 +118,53 @@ module.exports.detailProducts = async (req, res) => {
 //[GET] user/products/categories
 module.exports.allCategories = async (req, res) => {
     try {
-        const categories = await Category.find();
-        const subCategories = await SubCategory.find();
+        const categories = await Category.find({ status: true }).lean();
+        const subCategories = await SubCategory.find({ status: true }).lean();
+        const grouped = categories.map(cat => {
+            const children = subCategories
+                .filter(sub => sub.category?.toString() === cat._id.toString())
+                .map(sub => ({
+                    id: sub.slug || sub._id,
+                    name: sub.name,
+                }));
+
+            return {
+                id: cat.slug || cat._id,
+                name: cat.name,
+                children,
+            };
+        });
+
+        res.json({
+            code: 200,
+            data: grouped
+        });
     } catch (error) {
         return res.status(500).json({
             code: 500,
             message: 'Server Error',
-            error: error.message
+            error: error.message,
         });
     }
 }
 
-// [GET] user/products/:sort
+// [GET] user/products/sort/:sort
 module.exports.sortProduct = async (req, res) => {
     try {
         const { sort } = req.params;
         const productsV = await ProductVariant.find({
-            stock: { $gte: 0 }
+            stock: { $gte: 0 },
         }).populate({
             path: 'baseProduct',
-            populate:
-                { path: 'subCategory', select: '-createdBy', populate: { path: 'category', select: 'name description' } }
-        })
+            populate: {
+                path: 'subCategory',
+                select: '-createdBy',
+                populate: {
+                    path: 'category',
+                    select: 'name description'
+                }
+            }
+        });
         switch (sort) {
             case "A-Z":
                 productsV.sort((a, b) => {
@@ -167,12 +192,90 @@ module.exports.sortProduct = async (req, res) => {
                     code: 400,
                     message: "Not find sort option"
                 })
-                break;
+                return;
         }
-        res.json({
+
+
+        const formatProduct = productsV.map(product => ({
+            id: product._id,
+            name: product?.baseProduct?.name,
+            description: product?.baseProduct?.description,
+            imageUrl: product?.baseProduct?.image?.url,
+            slug: product?.baseProduct?.slug,
+            price: product?.price,
+            stock: product?.stock,
+            category: {
+                name: product?.baseProduct?.subCategory?.category?.name,
+                description: product?.baseProduct?.subCategory?.category?.description
+            },
+            subCategory: {
+                name: product?.baseProduct?.subCategory?.name,
+                description: product?.baseProduct?.subCategory?.description
+            },
+            createdAt: product?.createdAt,
+            updatedAt: product?.updatedAt
+        }));
+
+        return res.json({
             code: 200,
-            message: "Sort products successfully"
-        })
+            data: formatProduct
+        });
+    } catch (error) {
+        return res.status(500).json({
+            code: 500,
+            message: 'Server Error',
+            error: error.message
+        });
+    }
+}
+
+//[GET] user/products/search/:search
+module.exports.searchProduct = async (req, res) => {
+    try {
+        const { search } = req.params;
+        const baseProducts = await productBase.find({
+            name: { $regex: search, $options: 'i' }
+        });
+        const baseProductIds = baseProducts.map(bp => bp._id);
+        const productsV = await ProductVariant.find({
+            baseProduct: { $in: baseProductIds },
+            stock: { $gte: 0 },
+        }).populate({
+            path: 'baseProduct',
+            populate: {
+                path: 'subCategory',
+                select: '-createdBy',
+                populate: {
+                    path: 'category',
+                    select: 'name description'
+                }
+            }
+        });
+
+        const formatProduct = productsV.map(product => ({
+            id: product._id,
+            name: product?.baseProduct?.name,
+            description: product?.baseProduct?.description,
+            imageUrl: product?.baseProduct?.image?.url,
+            slug: product?.baseProduct?.slug,
+            price: product?.price,
+            stock: product?.stock,
+            category: {
+                name: product?.baseProduct?.subCategory?.category?.name,
+                description: product?.baseProduct?.subCategory?.category?.description
+            },
+            subCategory: {
+                name: product?.baseProduct?.subCategory?.name,
+                description: product?.baseProduct?.subCategory?.description
+            },
+            createdAt: product?.createdAt,
+            updatedAt: product?.updatedAt
+        }));
+
+        return res.json({
+            code: 200,
+            data: formatProduct
+        });
     } catch (error) {
         return res.status(500).json({
             code: 500,
