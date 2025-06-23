@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import {
   getAllSubCategories,
   deleteSubCategory,
@@ -13,6 +14,7 @@ export default function SubCategory() {
   const [subCategories, setSubCategories] = useState([]);
   const [categories, setCategories] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [openAdd, setOpenAdd] = useState(false);
@@ -24,7 +26,7 @@ export default function SubCategory() {
     setError(null);
     try {
       const res = await getAllSubCategories();
-      console.log("Dữ liệu subCategories:", res.data); // Log để kiểm tra
+      console.log("Dữ liệu subCategories:", res.data); 
       if (Array.isArray(res.data.subCategories)) {
         setSubCategories(res.data.subCategories);
       } else {
@@ -71,8 +73,14 @@ export default function SubCategory() {
     setOpenEdit(true);
   };
 
-  const filteredSubCategories = subCategories.filter((subCategory) =>
-    subCategory.name?.toLowerCase().includes(searchTerm.toLowerCase())
+  // Updated filter logic to include status filter
+  const filteredSubCategories = subCategories.filter(
+    (subCategory) =>
+      (subCategory.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        false) &&
+      (statusFilter === ""
+        ? true
+        : subCategory.status === (statusFilter === "true"))
   );
 
   const getCategoryName = (categoryId) => {
@@ -129,10 +137,30 @@ export default function SubCategory() {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
-        <button className="flex items-center gap-2 px-4 py-2 border rounded hover:bg-gray-100">
-          <Filter size={18} />
-          Lọc
-        </button>
+        <DropdownMenu.Root>
+          <DropdownMenu.Trigger asChild>
+            <button className="flex items-center gap-2 px-4 py-2 border rounded hover:bg-gray-100">
+              <Filter size={18} />
+              Lọc
+            </button>
+          </DropdownMenu.Trigger>
+          <DropdownMenu.Content className="bg-white p-4 rounded shadow w-64 space-y-4 z-50">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Trạng thái
+              </label>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="w-full px-3 py-2 border rounded"
+              >
+                <option value="">Tất cả</option>
+                <option value="true">Kích hoạt</option>
+                <option value="false">Chưa kích hoạt</option>
+              </select>
+            </div>
+          </DropdownMenu.Content>
+        </DropdownMenu.Root>
       </div>
 
       {isLoading && <div className="text-center py-6">Đang tải...</div>}
@@ -206,7 +234,7 @@ export default function SubCategory() {
               {filteredSubCategories.length === 0 && (
                 <tr>
                   <td colSpan="7" className="text-center py-6 text-gray-500">
-                    Không có danh mục con nào.
+                    Không tìm thấy danh mục con nào.
                   </td>
                 </tr>
               )}

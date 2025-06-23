@@ -121,3 +121,7 @@ export const updateOrderSatatus = (orderId, status) => {
 export const getOrderDetailByID = (orderId) => {
   return instance.get(`productmanager/product/orders/${orderId}`);
 };
+
+export const getTotalOrders = async () => {
+    return instance.get("productmanager/product/orders/total"); 
+};

@@ -21,6 +21,7 @@ router.post("/update-all-slugs", Authozation.authenticateToken, Authozation.auth
 router.post("/import-excel",uploadExcel.single("file"),controller.importProductsFromExcel);
 router.get("/export-excel", controller.exportProductsToExcel);
 router.get("/orders",  Authozation.authenticateToken, Authozation.authorizeRoles(3),ordersController.getAllOrders);
+router.get("/orders/total",  ordersController.getTotalOrders);
 router.get("/orders/:orderId",  Authozation.authenticateToken, Authozation.authorizeRoles(3),ordersController.getOrderDetailById);
 router.post("/orders",  Authozation.authenticateToken, Authozation.authorizeRoles(3),ordersController.createOrder);
 router.put("/order/status/:orderId", Authozation.authenticateToken, Authozation.authorizeRoles(3), ordersController.updateOrderStatus);

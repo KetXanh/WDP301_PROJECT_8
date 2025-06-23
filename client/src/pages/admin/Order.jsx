@@ -30,6 +30,7 @@ export default function Order() {
   const [selectedOrderId, setSelectedOrderId] = useState(null);
   const [statusFilter, setStatusFilter] = useState("");
   const [paymentFilter, setPaymentFilter] = useState("");
+  const [searchTerm, setSearchTerm] = useState(""); 
 
   useEffect(() => {
     fetchOrders();
@@ -53,17 +54,28 @@ export default function Order() {
     }
   };
 
+  // Filter orders based on search term, status, and payment
+  const filteredOrders = orders.filter(
+    (order) =>
+      (statusFilter ? order.status === statusFilter : true) &&
+      (paymentFilter ? order.payment === paymentFilter.toUpperCase() : true) &&
+      (searchTerm
+        ? order.user?.username?.toLowerCase().includes(searchTerm.toLowerCase())
+        : true)
+  );
+
   return (
     <div className="p-6 space-y-6 mt-10">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Order</h1>
-     
       </div>
 
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <input
           type="text"
-          placeholder="🔍 Search orders..."
+          placeholder="🔍 Tìm kiếm theo tên khách hàng..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
           className="flex-1 min-w-[200px] px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
         <DropdownMenu.Root>
@@ -112,6 +124,7 @@ export default function Order() {
               onClick={() => {
                 setStatusFilter("");
                 setPaymentFilter("");
+                setSearchTerm(""); 
               }}
               className="text-sm text-red-600 hover:underline"
             >
@@ -149,69 +162,61 @@ export default function Order() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100 bg-white">
-            {orders
-              .filter(
-                (order) =>
-                  (statusFilter ? order.status === statusFilter : true) &&
-                  (paymentFilter ? order.payment === paymentFilter.toUpperCase() : true)
-              )
-              .map((order) => (
-                <tr key={order._id}>
-                  <td className="px-6 py-4">{order._id}</td>
-                  <td className="px-6 py-4">
-                    <div className="font-semibold">
-                      {order.user?.username || "Không rõ"}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    {new Date(order.createdAt).toLocaleDateString()}
-                  </td>
-                  <td className="px-6 py-4">
-                    {order.totalAmount.toLocaleString()} đ
-                  </td>
-                  <td className="px-6 py-4">
-                    <DropdownMenu.Root>
-                      <DropdownMenu.Trigger asChild>
-                        <button
-                          className={`px-2 py-1 text-xs font-medium rounded ${
-                            getStatusOption(order.status).color
-                          }`}
+            {filteredOrders.map((order) => (
+              <tr key={order._id}>
+                <td className="px-6 py-4">{order._id}</td>
+                <td className="px-6 py-4">
+                  <div className="font-semibold">
+                    {order.user?.username || "Không rõ"}
+                  </div>
+                </td>
+                <td className="px-6 py-4">
+                  {new Date(order.createdAt).toLocaleDateString()}
+                </td>
+                <td className="px-6 py-4">
+                  {order.totalAmount.toLocaleString()} đ
+                </td>
+                <td className="px-6 py-4">
+                  <DropdownMenu.Root>
+                    <DropdownMenu.Trigger asChild>
+                      <button
+                        className={`px-2 py-1 text-xs font-medium rounded ${
+                          getStatusOption(order.status).color
+                        }`}
+                      >
+                        {getStatusOption(order.status).label}
+                      </button>
+                    </DropdownMenu.Trigger>
+                    <DropdownMenu.Content className="bg-white border rounded shadow-md z-50">
+                      {statusOptions.map((option) => (
+                        <DropdownMenu.Item
+                          key={option.value}
+                          onSelect={() =>
+                            handleChangeStatus(order._id, option.value)
+                          }
+                          className={`px-4 py-2 text-sm cursor-pointer hover:bg-gray-100 ${option.color}`}
                         >
-                          {getStatusOption(order.status).label}
-                        </button>
-                      </DropdownMenu.Trigger>
-                      <DropdownMenu.Content className="bg-white border rounded shadow-md z-50">
-                        {statusOptions.map((option) => (
-                          <DropdownMenu.Item
-                            key={option.value}
-                            onSelect={() =>
-                              handleChangeStatus(order._id, option.value)
-                            }
-                            className={`px-4 py-2 text-sm cursor-pointer hover:bg-gray-100 ${option.color}`}
-                          >
-                            {option.label}
-                          </DropdownMenu.Item>
-                        ))}
-                      </DropdownMenu.Content>
-                    </DropdownMenu.Root>
-                  </td>
-                  <td className="px-6 py-4 text-center">
-                    {order.payment}
-                  </td>
-                  <td className="px-6 py-4 text-center">
-                    <button
-                      onClick={() => setSelectedOrderId(order._id)}
-                      className="text-blue-600 hover:text-blue-800"
-                    >
-                      <Eye size={18} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            {orders.length === 0 && (
+                          {option.label}
+                        </DropdownMenu.Item>
+                      ))}
+                    </DropdownMenu.Content>
+                  </DropdownMenu.Root>
+                </td>
+                <td className="px-6 py-4 text-center">{order.payment}</td>
+                <td className="px-6 py-4 text-center">
+                  <button
+                    onClick={() => setSelectedOrderId(order._id)}
+                    className="text-blue-600 hover:text-blue-800"
+                  >
+                    <Eye size={18} />
+                  </button>
+                </td>
+              </tr>
+            ))}
+            {filteredOrders.length === 0 && (
               <tr>
                 <td colSpan="7" className="text-center py-6 text-gray-500">
-                  Không có đơn hàng nào.
+                  Không tìm thấy đơn hàng nào.
                 </td>
               </tr>
             )}

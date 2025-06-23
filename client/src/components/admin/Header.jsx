@@ -34,7 +34,7 @@ const Header = ({ darkMode, toggleDarkMode, toggleSidebar }) => {
 
         {/* Right: Tools */}
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
+          {/* <div className="flex items-center gap-2">
             <label className="relative inline-flex items-center cursor-pointer">
               <input
                 type="checkbox"
@@ -48,7 +48,7 @@ const Header = ({ darkMode, toggleDarkMode, toggleSidebar }) => {
             <span className="text-sm text-gray-700 dark:text-gray-300 select-none">
               {i18n.language === "vi" ? "VN" : "EN"}
             </span>
-          </div>
+          </div> */}
 
           <button
             onClick={toggleDarkMode}

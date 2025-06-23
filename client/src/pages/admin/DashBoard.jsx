@@ -1,18 +1,18 @@
 import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Box, Package, ShoppingCart, Tag } from "lucide-react";
-import { getTotalStock ,getCategoryStats} from "../../services/Admin/AdminAPI";
-import ProductByCategoryChart from "./Form/ProductChart";
-
-// Move data outside the component to avoid redefinition on each render
+import { getTotalStock ,getCategoryStats,getTotalOrders} from "../../services/Admin/AdminAPI";
+import{ ProductChart } from "./Form/ProductChart";
+import { useTranslation } from "react-i18next";
 
 const Dashboard = () => {
-  // Move state declaration inside the component
+  const { t } = useTranslation("admin");
   const [totalStock, setTotalStock] = useState(0);
+  const [totalOrders, setTotalOrders] = useState(0);
   const [categoryCount, setCategoryCount] = useState(0);
   const [subcategoryCount, setSubcategoryCount] = useState(0);
 
-  // Move useEffect inside the component
+
 useEffect(() => {
   getTotalStock()
     .then((res) => {
@@ -30,12 +30,18 @@ useEffect(() => {
     .catch((err) => {
       console.error("Error fetching category stats:", err);
     });
+    getTotalOrders()
+      .then((res) => {
+        setTotalOrders(res.data.totalOrders); 
+      })
+      .catch((err) => {
+        console.error("Error fetching total orders:", err);
+      });
 }, []);
 
 
   return (
     <div className="p-6 space-y-6">
-      {/* Cards summary */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -46,7 +52,7 @@ useEffect(() => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{categoryCount}</div>
-            <p className="text-xs text-muted-foreground">Tổng danh mục chính</p>
+            <p className="text-xs text-muted-foreground">Tổng danh mục</p>
           </CardContent>
         </Card>
 
@@ -58,10 +64,8 @@ useEffect(() => {
             <ShoppingCart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">0</div>
-            <p className="text-xs text-muted-foreground">
-              +15% from last month
-            </p>
+            <div className="text-2xl font-bold">{totalOrders}</div>
+            <p className="text-xs text-muted-foreground">Tổng số đơn hàng</p>
           </CardContent>
         </Card>
 
@@ -87,16 +91,19 @@ useEffect(() => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalStock}</div>
-            <p className="text-xs text-muted-foreground">+8 new products</p>
+            <p className="text-xs text-muted-foreground">Tổng số sản phẩm</p>
           </CardContent>
         </Card>
       </div>
-
-      {/* Revenue Chart */}
       <Card>
-        
+        <CardTitle>Thống kê tổng quan</CardTitle>
         <CardContent className="h-[300px]">
-          <ProductByCategoryChart/>
+          <ProductChart
+            categoryCount={categoryCount}
+            subcategoryCount={subcategoryCount}
+            totalOrders={totalOrders}
+            totalStock={totalStock}
+          />
         </CardContent>
       </Card>
     </div>

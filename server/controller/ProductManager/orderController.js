@@ -135,3 +135,17 @@ exports.getOrderDetailById = async (req, res) => {
     res.status(500).json({ message: "Lỗi server", error: err.message });
   }
 };
+exports.getTotalOrders = async (req, res) => {
+  try {
+    const totalOrders = await Orders.countDocuments(); 
+    res.status(200).json({
+      totalOrders 
+    });
+  } catch (error) {
+    console.error("Error fetching total orders:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error while fetching total orders",
+    });
+  }
+};

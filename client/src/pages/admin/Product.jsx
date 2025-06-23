@@ -1,6 +1,21 @@
-import { Eye, Trash2, Filter, Plus, Edit, X,FileSpreadsheet,Download } from "lucide-react";
+import {
+  Eye,
+  Trash2,
+  Filter,
+  Plus,
+  Edit,
+  X,
+  FileSpreadsheet,
+  Download,
+} from "lucide-react";
 import { useEffect, useState } from "react";
-import { getAllProducts, deleteProduct,importProductFromExcel,exportProductToExcel } from "../../services/Admin/AdminAPI";
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
+import {
+  getAllProducts,
+  deleteProduct,
+  importProductFromExcel,
+  exportProductToExcel,
+} from "../../services/Admin/AdminAPI";
 import * as Dialog from "@radix-ui/react-dialog";
 import AddProduct from "./Form/AddProduct";
 import UpdateProduct from "./Form/UpdateProduct";
@@ -9,6 +24,8 @@ export default function Product() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [priceFilter, setPriceFilter] = useState({ min: "", max: "" }); 
+  const [dateFilter, setDateFilter] = useState({ start: "", end: "" }); 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -74,9 +91,24 @@ export default function Product() {
     setIsEditModalOpen(true);
   };
 
-  const filteredProducts = products.filter((p) =>
-    p.baseProduct.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+
+  const filteredProducts = products.filter((p) => {
+    const matchesName = p.baseProduct.name
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    const matchesPrice =
+      (priceFilter.min === "" ||
+        (p.price !== null && p.price >= Number(priceFilter.min))) &&
+      (priceFilter.max === "" ||
+        (p.price !== null && p.price <= Number(priceFilter.max)));
+    const matchesDate =
+      (dateFilter.start === "" ||
+        new Date(p.baseProduct.createdAt) >= new Date(dateFilter.start)) &&
+      (dateFilter.end === "" ||
+        new Date(p.baseProduct.createdAt) <= new Date(dateFilter.end));
+    return matchesName && matchesPrice && matchesDate;
+  });
+
   const handleExportExcel = async () => {
     try {
       const res = await exportProductToExcel();
@@ -172,15 +204,93 @@ export default function Product() {
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <input
           type="text"
-          placeholder="🔍 Search products..."
+          placeholder="🔍 Tìm kiếm sản phẩm..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="flex-1 min-w-[200px] px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
-        <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded hover:bg-gray-100">
-          <Filter size={18} />
-          Filter
-        </button>
+        <DropdownMenu.Root>
+          <DropdownMenu.Trigger asChild>
+            <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded hover:bg-gray-100">
+              <Filter size={18} />
+              Lọc
+            </button>
+          </DropdownMenu.Trigger>
+          <DropdownMenu.Content className="bg-white p-4 rounded shadow w-64 space-y-4 z-50">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Giá tối thiểu (VNĐ)
+              </label>
+              <input
+                type="number"
+                value={priceFilter.min}
+                onChange={(e) =>
+                  setPriceFilter({ ...priceFilter, min: e.target.value })
+                }
+                placeholder="Nhập giá tối thiểu"
+                className="w-full px-3 py-2 border rounded"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Giá tối đa (VNĐ)
+              </label>
+              <input
+                type="number"
+                value={priceFilter.max}
+                onChange={(e) =>
+                  setPriceFilter({ ...priceFilter, max: e.target.value })
+                }
+                placeholder="Nhập giá tối đa"
+                className="w-full px-3 py-2 border rounded"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Từ ngày
+              </label>
+              <input
+                type="date"
+                value={dateFilter.start}
+                onChange={(e) =>
+                  setDateFilter({ ...dateFilter, start: e.target.value })
+                }
+                className="w-full px-3 py-2 border rounded"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Đến ngày
+              </label>
+              <input
+                type="date"
+                value={dateFilter.end}
+                onChange={(e) => {
+                  const newEnd = e.target.value;
+                  if (
+                    dateFilter.start &&
+                    new Date(newEnd) < new Date(dateFilter.start)
+                  ) {
+                    alert("Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu!");
+                    return;
+                  }
+                  setDateFilter({ ...dateFilter, end: newEnd });
+                }}
+                className="w-full px-3 py-2 border rounded"
+              />
+            </div>
+            <button
+              onClick={() => {
+                setPriceFilter({ min: "", max: "" });
+                setDateFilter({ start: "", end: "" });
+                setSearchTerm("");
+              }}
+              className="text-sm text-red-600 hover:underline"
+            >
+              Xoá lọc
+            </button>
+          </DropdownMenu.Content>
+        </DropdownMenu.Root>
       </div>
 
       <div className="overflow-x-auto rounded-lg border border-gray-200 shadow">
@@ -254,7 +364,7 @@ export default function Product() {
             {filteredProducts.length === 0 && (
               <tr>
                 <td colSpan="6" className="text-center py-6 text-gray-500">
-                  Không có sản phẩm nào.
+                  Không tìm thấy sản phẩm nào.
                 </td>
               </tr>
             )}

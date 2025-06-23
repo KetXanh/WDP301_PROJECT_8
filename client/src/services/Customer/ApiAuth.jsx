@@ -35,6 +35,6 @@ export const getProfile = () => {
   return instance.get("/user/auth/profile");
 };
 export const updateProfile = (formData) => {
-  return instance.post("/user/auth/profile", formData);
-};
+    return instance.put('/user/auth/profile', formData)
+}
 

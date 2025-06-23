@@ -1,41 +1,42 @@
-import React, { useEffect, useState } from "react";
+// Form/ProductChart.jsx
 import {
   BarChart,
   Bar,
   XAxis,
   YAxis,
+  CartesianGrid,
   Tooltip,
-  ResponsiveContainer,
+  Legend,
+  Cell,
 } from "recharts";
-import { getProductCountByCategory } from "../../../services/Admin/AdminAPI";
 
-const ProductByCategoryChart = () => {
-  const [data, setData] = useState([]);
+const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
 
-  useEffect(() => {
-    getProductCountByCategory()
-      .then((res) => {
-        console.log("Product by category data:", res.data); 
-        setData(res.data);
-      })
-      .catch((err) => {
-        console.error("Error fetching product count:", err);
-      });
-  }, []);
+export const ProductChart = ({
+  categoryCount,
+  subcategoryCount,
+  totalOrders,
+  totalStock,
+}) => {
+  const data = [
+    { name: "Category", value: categoryCount || 0 },
+    { name: "Subcategory", value: subcategoryCount || 0 },
+    { name: "Orders", value: Math.abs(totalOrders) || 0 },
+    { name: "Products", value: totalStock || 0 },
+  ];
 
   return (
-    <div className="w-full h-full">
-      <h2 className="font-semibold text-lg mb-2">Sản phẩm theo danh mục</h2>
-      <ResponsiveContainer width="100%" height={300}>
-        <BarChart data={data}>
-          <XAxis dataKey="category" />
-          <YAxis />
-          <Tooltip />
-          <Bar dataKey="total" fill="#4f46e5" />
-        </BarChart>
-      </ResponsiveContainer>
-    </div>
+    <BarChart width={900} height={400} data={data}>
+      <CartesianGrid strokeDasharray="3 3" />
+      <XAxis dataKey="name" />
+      <YAxis />
+      <Tooltip />
+      <Legend />
+      <Bar dataKey="value" fill="#8884d8">
+        {data.map((entry, index) => (
+          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+        ))}
+      </Bar>
+    </BarChart>
   );
 };
-
-export default ProductByCategoryChart;

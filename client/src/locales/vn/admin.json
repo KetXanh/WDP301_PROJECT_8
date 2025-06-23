@@ -9,6 +9,24 @@
     "dashboard": "Bảng điều khiển",
     "logout": "Đăng xuất",
     "register": "Đăng ký",
-    "login": "Đăng nhập"
+    "login": "Đăng nhập",
+    "totalOrder": "Tổng số đơn hàng",
+    "totalProduct": "Tổng số sản phẩm",
+    "totalSubcategory": "Tổng danh mục con",
+    "totalCategory": "Tổng danh mục",
+    "Overview": "Thống kê tổng quan",
+    "noData":"Không có dữ liệu"
+  },
+  "category": {
+    "title": "Danh mục",
+    "add": "Thêm danh mục",
+    "search": "🔍 Tìm kiếm danh mục theo tên",
+    "filter": "Lọc",
+    "id": "Mã danh mục",
+    "name": "Tên danh mục",
+    "description": "Mô tả",
+    "status": "Trạng thái",
+    "createdDate": "Ngày tạo",
+    "actions": "Hành động"
   }
 }

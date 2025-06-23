@@ -18,6 +18,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { userOrder } from '../../services/Customer/ApiProduct';
+import { useSelector } from 'react-redux';
+import { jwtDecode } from 'jwt-decode';
 
 
 const CheckoutDemo = () => {
@@ -27,7 +29,7 @@ const CheckoutDemo = () => {
     const [isProcessing, setIsProcessing] = useState(false);
     const location = useLocation();
     const { selectedItems, selectedAddress } = location.state || {};
-
+    const accessToken = useSelector((state) => state.customer.accessToken);
     useEffect(() => {
         if (!selectedItems || !selectedAddress) {
             navigate('/cart');
@@ -45,6 +47,13 @@ const CheckoutDemo = () => {
 
     const handlePlaceOrder = async () => {
         try {
+            const decoded = jwtDecode(accessToken);
+
+            if (!accessToken) {
+                toast.error("Vui lòng đăng nhập để thực hiện đặt hàng")
+                navigate('/login')
+                return;
+            }
 
             const items = selectedItems.map(i => ({
                 product: i.productId,
