@@ -3,40 +3,28 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Slider } from '@/components/ui/slider';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChevronDown, ChevronUp } from 'lucide-react';
+import { getCategories } from '../../services/Customer/ApiProduct';
+import { useEffect } from 'react';
 
 const ProductFilters = ({ selectedCategory, onCategoryChange, priceRange, onPriceRangeChange }) => {
     const [openParent, setOpenParent] = useState(null);
 
-    // Sample category data with parent and child categories
-    const categories = [
-        {
-            id: 'nuts',
-            name: 'Hạt dinh dưỡng',
-            children: [
-                { id: 'almonds', name: 'Hạnh nhân' },
-                { id: 'cashews', name: 'Hạt điều' },
-                { id: 'walnuts', name: 'Óc chó' },
-            ],
-        },
-        {
-            id: 'seeds',
-            name: 'Hạt giống',
-            children: [
-                { id: 'chia', name: 'Hạt chia' },
-                { id: 'flax', name: 'Hạt lanh' },
-                { id: 'pumpkin', name: 'Hạt bí' },
-            ],
-        },
-        {
-            id: 'dried-fruits',
-            name: 'Trái cây sấy',
-            children: [
-                { id: 'raisins', name: 'Nho khô' },
-                { id: 'apricots', name: 'Mơ khô' },
-                { id: 'dates', name: 'Chà là' },
-            ],
-        },
-    ];
+    const [categories, setCategories] = useState([])
+    const getAllCategories = async () => {
+        try {
+            const res = await getCategories();
+            if (res.data && res.data.code === 200) {
+                setCategories(res.data.data)
+            }
+        } catch (error) {
+            console.log(error);
+
+        }
+    }
+
+    useEffect(() => {
+        getAllCategories()
+    }, [])
 
     const toggleParent = (parentId) => {
         setOpenParent(openParent === parentId ? null : parentId);
@@ -77,7 +65,7 @@ const ProductFilters = ({ selectedCategory, onCategoryChange, priceRange, onPric
                                         {parent.children.map((child) => (
                                             <button
                                                 key={child.id}
-                                                onClick={() => onCategoryChange(child.id)}
+                                                onClick={() => onCategoryChange(child.name)}
                                                 className={`w-full text-left px-4 py-2 text-sm rounded-lg ${selectedCategory === child.id ? 'bg-green-100 text-green-600' : 'hover:bg-gray-100'
                                                     }`}
                                             >

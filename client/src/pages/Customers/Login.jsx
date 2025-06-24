@@ -12,6 +12,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { login } from '../../store/customer/authSlice';
 import LoginGoogle from '../../components/customer/LoginGoogle';
 import { jwtDecode } from "jwt-decode";
+import { mergeGuestCart } from '../../store/customer/cartSlice';
 const Login = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [formData, setFormData] = useState({
@@ -50,6 +51,8 @@ const Login = () => {
                 }
                 const decoded = jwtDecode(dataToken.accessToken);
                 dispatch(login(dataToken))
+                dispatch(mergeGuestCart({ userId: decoded.username }));
+
                 toast.success("Đăng Nhập Thành Công")
                 if (decoded?.role === 0) {
                     navigate('/')

@@ -4,23 +4,32 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Button } from '@/components/ui/button';
 import { ShoppingCart } from 'lucide-react';
 import { toast } from 'react-toastify';
+import { GUEST_ID } from '../../store/customer/constans';
 import { jwtDecode } from 'jwt-decode';
-import { useNavigate } from 'react-router-dom';
 
 const AddToCartButton = ({ product, quantity }) => {
     const dispatch = useDispatch();
     const accessToken = useSelector((state) => state.customer.accessToken);
-    const navigate = useNavigate();
-
-    const handleAddToCart = () => {
-        if (!accessToken || typeof accessToken !== 'string') {
-            toast.error("Vui lòng đăng nhập để mua hàng");
-            return navigate("/login");
+    let decoded;
+    if (accessToken) {
+        decoded = jwtDecode(accessToken);
+    }
+    const username = React.useMemo(() => {
+        if (typeof accessToken === 'string' && accessToken.trim()) {
+            try {
+                return decoded.username || GUEST_ID;
+            } catch {
+                return GUEST_ID;
+            }
         }
-        const decoded = jwtDecode(accessToken);
-
+        return GUEST_ID;
+    }, [accessToken]);
+    const handleAddToCart = () => {
         if (!product.stock || product.stock < 1) {
             return toast.error("Sản phẩm đã hết hàng");
+        }
+        if ([1, 2, 3, 4].includes(decoded.role)) {
+            return toast.error("Bạn Không có quyền mua hàng")
         }
 
         const itemPayload = {
@@ -33,7 +42,7 @@ const AddToCartButton = ({ product, quantity }) => {
             stock: product.stock,
         };
 
-        dispatch(addToCart({ userId: decoded.username, item: itemPayload }));
+        dispatch(addToCart({ item: itemPayload, userId: username }));
         toast.success("Đã thêm vào giỏ");
     };
 

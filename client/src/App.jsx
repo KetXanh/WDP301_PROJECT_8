@@ -58,6 +58,7 @@ import Cart from "./pages/Customers/Cart";
 import AdminDevLayout from "./pages/AdminDev/AdminDevLayout";
 
 
+import Checkout from "./pages/Customers/Checkout";
 
 // Customer Layout
 const CustomerLayout = () => (
@@ -104,7 +105,6 @@ function App() {
   const toggleDarkMode = () => setDarkMode(!darkMode);
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
-  console.log(accessToken);
 
   return (
     <div className={darkMode ? "dark" : ""}>
@@ -121,10 +121,11 @@ function App() {
           <Route path="/profile" element={<Profile />} />
           <Route path="/products" element={<Products />} />
           <Route path="/products/:slug" element={<ProductDetail />} />
+          <Route path="/cart" element={<Cart />} />
           {accessToken &&
             <>
               <Route path="/profile" element={<ProtectedRoute element={<Profile />} />} />
-              <Route path="/cart" element={<Cart />} />
+              <Route path="/checkout" element={<Checkout />} />
             </>
           }
 

@@ -6,6 +6,7 @@ const sendEmail = require('../../utils/sendEmail')
 // const { jwtDecode } = require('jwt-decode')
 const { cloudinary } = require('../../middleware/upload.middleware')
 var jwt = require('jsonwebtoken');
+const buildAddress = require('../../utils/buildAddress')
 module.exports.register = async (req, res) => {
     try {
         const { email, username } = req.body;
@@ -439,7 +440,6 @@ module.exports.getProfile = async (req, res) => {
 module.exports.updateProfile = async (req, res) => {
     try {
         const currentEmail = req.user.email;
-
         const currentUser = await Users.findOne({ email: currentEmail });
         if (!currentUser) {
             return res.json({ code: 404, message: "User not found or inactive" });
@@ -470,7 +470,7 @@ module.exports.updateProfile = async (req, res) => {
         const updateData = {
             username: req.body.username || currentUser.username,
             email: req.body.email || currentUser.email,
-            address: { ...req.body.address, isDefault: true } || currentUser.address,
+            address: buildAddress(req.body, currentUser),
             avatar: req.body.avatar || currentUser.avatar,
 
         };
@@ -556,7 +556,8 @@ module.exports.address = async (req, res) => {
         }
         const address = user.address.map(a => ({
             id: a._id,
-            label: a.fullName,
+            fullName: a.fullName,
+            label: a.lable,
             details: `${a.street}, ${a.ward}, ${a.district}, ${a.province}`,
             phone: a.phone,
             isDefault: a.isDefault
