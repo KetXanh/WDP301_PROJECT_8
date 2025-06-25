@@ -8,88 +8,27 @@ import {
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { getAnalytics, getSalesAnalytics } from '@/services/SaleStaff/ApiSaleStaff';
+import { toast } from 'sonner';
 
 const Statistics = () => {
   const [timeRange, setTimeRange] = useState('month');
-  const [stats, setStats] = useState({
-    tasks: {
-      total: 0,
-      completed: 0,
-      pending: 0,
-      inProgress: 0,
-      completionRate: 0
-    },
-    orders: {
-      total: 0,
-      completed: 0,
-      pending: 0,
-      revenue: 0,
-      averageOrderValue: 0
-    },
-    kpis: {
-      active: 0,
-      achieved: 0,
-      achievementRate: 0
-    }
-  });
-
-  const [chartData, setChartData] = useState({
-    taskProgress: [],
-    orderTrend: [],
-    revenueTrend: []
-  });
+  const [stats, setStats] = useState(null);
+  const [chartData, setChartData] = useState(null);
 
   useEffect(() => {
-    // TODO: Fetch statistics data from API
-    // fetchStatisticsData(timeRange);
-    
-    // Mock data
-    setStats({
-      tasks: {
-        total: 45,
-        completed: 32,
-        pending: 8,
-        inProgress: 5,
-        completionRate: 71.1
-      },
-      orders: {
-        total: 28,
-        completed: 22,
-        pending: 4,
-        revenue: 25000000,
-        averageOrderValue: 892857
-      },
-      kpis: {
-        active: 8,
-        achieved: 5,
-        achievementRate: 62.5
-      }
-    });
-
-    setChartData({
-      taskProgress: [
-        { name: 'Hoàn thành', value: 32, color: 'bg-green-500' },
-        { name: 'Đang làm', value: 5, color: 'bg-blue-500' },
-        { name: 'Chờ xử lý', value: 8, color: 'bg-yellow-500' }
-      ],
-      orderTrend: [
-        { month: 'T1', orders: 12, revenue: 8000000 },
-        { month: 'T2', orders: 15, revenue: 10000000 },
-        { month: 'T3', orders: 18, revenue: 12000000 },
-        { month: 'T4', orders: 22, revenue: 15000000 },
-        { month: 'T5', orders: 25, revenue: 18000000 },
-        { month: 'T6', orders: 28, revenue: 25000000 }
-      ],
-      revenueTrend: [
-        { month: 'T1', value: 8000000 },
-        { month: 'T2', value: 10000000 },
-        { month: 'T3', value: 12000000 },
-        { month: 'T4', value: 15000000 },
-        { month: 'T5', value: 18000000 },
-        { month: 'T6', value: 25000000 }
-      ]
-    });
+    fetchStatistics(timeRange);
   }, [timeRange]);
+
+  const fetchStatistics = async (period) => {
+    try {
+      const res = await getAnalytics(period);
+      setStats(res.data.stats || {});
+      setChartData(res.data.chartData || {});
+    } catch (error) {
+      toast.error('Không thể tải dữ liệu thống kê');
+    }
+  };
 
   const StatCard = ({ title, value, change, changeType, icon: Icon }) => (
     <Card>
@@ -158,28 +97,28 @@ const Statistics = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
           title="Tổng Task"
-          value={stats.tasks.total}
+          value={stats?.tasks?.total || 0}
           change="+12%"
           changeType="increase"
           icon={BarChart3}
         />
         <StatCard
           title="Task hoàn thành"
-          value={stats.tasks.completed}
+          value={stats?.tasks?.completed || 0}
           change="+8%"
           changeType="increase"
           icon={TrendingUp}
         />
         <StatCard
           title="Tỷ lệ hoàn thành"
-          value={`${stats.tasks.completionRate}%`}
+          value={`${stats?.tasks?.completionRate || 0}%`}
           change="+5%"
           changeType="increase"
           icon={TrendingUp}
         />
         <StatCard
           title="Doanh thu"
-          value={`${stats.orders.revenue.toLocaleString('vi-VN')}đ`}
+          value={`${stats?.orders?.revenue?.toLocaleString('vi-VN') || 0}đ`}
           change="+15%"
           changeType="increase"
           icon={DollarSign}
@@ -195,14 +134,14 @@ const Statistics = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {chartData.taskProgress.map((item, index) => (
+              {chartData?.taskProgress?.map((item, index) => (
                 <div key={index}>
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-sm font-medium text-gray-700">{item.name}</span>
                     <span className="text-sm text-gray-500">{item.value}</span>
                   </div>
                   <ProgressBar 
-                    percentage={(item.value / stats.tasks.total) * 100} 
+                    percentage={(item.value / stats?.tasks?.total) * 100} 
                     color={item.color}
                   />
                 </div>
@@ -220,14 +159,14 @@ const Statistics = () => {
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <span className="text-sm font-medium text-gray-700">KPI đạt được</span>
-                <span className="text-sm text-gray-500">{stats.kpis.achieved}/{stats.kpis.active}</span>
+                <span className="text-sm text-gray-500">{stats?.kpis?.achieved}/{stats?.kpis?.active}</span>
               </div>
               <ProgressBar 
-                percentage={stats.kpis.achievementRate} 
+                percentage={stats?.kpis?.achievementRate || 0} 
                 color="bg-purple-500"
               />
               <div className="text-center">
-                <p className="text-2xl font-bold text-purple-600">{stats.kpis.achievementRate}%</p>
+                <p className="text-2xl font-bold text-purple-600">{stats?.kpis?.achievementRate || 0}%</p>
                 <p className="text-sm text-gray-500">Tỷ lệ đạt KPI</p>
               </div>
             </div>
@@ -242,7 +181,7 @@ const Statistics = () => {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
-            {chartData.orderTrend.map((item, index) => (
+            {chartData?.orderTrend?.map((item, index) => (
               <div key={index} className="text-center">
                 <div className="bg-blue-50 rounded-lg p-4">
                   <p className="text-sm font-medium text-gray-700">{item.month}</p>
@@ -268,24 +207,24 @@ const Statistics = () => {
             <div className="space-y-3">
               <div className="flex justify-between">
                 <span className="text-sm text-gray-600">Tổng số task</span>
-                <span className="text-sm font-medium">{stats.tasks.total}</span>
+                <span className="text-sm font-medium">{stats?.tasks?.total || 0}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm text-gray-600">Đã hoàn thành</span>
-                <span className="text-sm font-medium text-green-600">{stats.tasks.completed}</span>
+                <span className="text-sm font-medium text-green-600">{stats?.tasks?.completed || 0}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm text-gray-600">Đang thực hiện</span>
-                <span className="text-sm font-medium text-blue-600">{stats.tasks.inProgress}</span>
+                <span className="text-sm font-medium text-blue-600">{stats?.tasks?.inProgress || 0}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm text-gray-600">Chờ xử lý</span>
-                <span className="text-sm font-medium text-yellow-600">{stats.tasks.pending}</span>
+                <span className="text-sm font-medium text-yellow-600">{stats?.tasks?.pending || 0}</span>
               </div>
               <hr className="my-3" />
               <div className="flex justify-between">
                 <span className="text-sm font-medium">Tỷ lệ hoàn thành</span>
-                <span className="text-sm font-bold text-green-600">{stats.tasks.completionRate}%</span>
+                <span className="text-sm font-bold text-green-600">{stats?.tasks?.completionRate || 0}%</span>
               </div>
             </div>
           </CardContent>
@@ -300,24 +239,24 @@ const Statistics = () => {
             <div className="space-y-3">
               <div className="flex justify-between">
                 <span className="text-sm text-gray-600">Tổng đơn hàng</span>
-                <span className="text-sm font-medium">{stats.orders.total}</span>
+                <span className="text-sm font-medium">{stats?.orders?.total || 0}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm text-gray-600">Đã hoàn thành</span>
-                <span className="text-sm font-medium text-green-600">{stats.orders.completed}</span>
+                <span className="text-sm font-medium text-green-600">{stats?.orders?.completed || 0}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm text-gray-600">Chờ xử lý</span>
-                <span className="text-sm font-medium text-yellow-600">{stats.orders.pending}</span>
+                <span className="text-sm font-medium text-yellow-600">{stats?.orders?.pending || 0}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm text-gray-600">Giá trị trung bình</span>
-                <span className="text-sm font-medium">{stats.orders.averageOrderValue.toLocaleString('vi-VN')}đ</span>
+                <span className="text-sm font-medium">{stats?.orders?.averageOrderValue?.toLocaleString('vi-VN') || 0}đ</span>
               </div>
               <hr className="my-3" />
               <div className="flex justify-between">
                 <span className="text-sm font-medium">Tổng doanh thu</span>
-                <span className="text-sm font-bold text-green-600">{stats.orders.revenue.toLocaleString('vi-VN')}đ</span>
+                <span className="text-sm font-bold text-green-600">{stats?.orders?.revenue?.toLocaleString('vi-VN') || 0}đ</span>
               </div>
             </div>
           </CardContent>

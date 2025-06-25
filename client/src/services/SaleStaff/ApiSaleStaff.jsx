@@ -66,4 +66,32 @@ export const exportOrders = (filters) => {
     return instance.post('/saleStaff/export/orders', filters, {
         responseType: 'blob'
     })
+}
+
+export const getKPIs = () => {
+    return instance.get('/saleStaff/kpis');
+}
+
+export const updateKPI = (kpiId, kpiData) => {
+    return instance.put(`/saleStaff/kpis/${kpiId}`, kpiData);
+}
+
+export const getMyOrderById = (orderId) => {
+    return instance.get(`/saleStaff/order/${orderId}`);
+}
+
+export const getMyOrders = () => {
+    return instance.get('/saleStaff/order');
+}
+
+export const updateMyOrderStatus = (orderId, data) => {
+    return instance.put(`/saleStaff/order/${orderId}`, data);
+}
+
+export const getTaskAssignment = () => {
+    return instance.get('/saleStaff/get-task-assignment');
+}
+
+export const updateTaskAssignment = (taskAssignmentId, data) => {
+    return instance.put(`/saleStaff/update-task-assignment/${taskAssignmentId}`, data);
 } 

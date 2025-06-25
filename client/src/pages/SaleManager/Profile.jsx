@@ -19,37 +19,31 @@ import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { getProfile, updateProfile, changeSaleManagerPassword } from "@/services/SaleManager/ApiSaleManager";
+import { toast } from "sonner";
 
 const Profile = () => {
-  const [profile, setProfile] = useState({
-    id: 1,
-    username: 'sale_staff_001',
-    fullName: 'Nguyễn Văn A',
-    email: 'nguyenvana@company.com',
-    phone: '0123456789',
-    avatar: 'https://via.placeholder.com/150',
-    position: 'Sale Staff',
-    department: 'Sales',
-    joinDate: '2023-01-15',
-    address: '123 Đường ABC, Quận 1, TP.HCM',
-    bio: 'Nhân viên bán hàng có kinh nghiệm 2 năm trong lĩnh vực bán hàng B2B.',
-    status: 'active',
-    manager: 'Manager A',
-    team: 'Team Sales 1'
-  });
-
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState({});
   const [showChangePassword, setShowChangePassword] = useState(false);
-  const [passwordForm, setPasswordForm] = useState({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: ''
-  });
+  const [passwordForm, setPasswordForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
 
   useEffect(() => {
-    setEditForm(profile);
-  }, [profile]);
+    fetchProfile();
+  }, []);
+
+  const fetchProfile = async () => {
+    setLoading(true);
+    try {
+      const res = await getProfile();
+      setProfile(res.data.profile || {});
+    } catch (error) {
+      toast.error("Không thể tải thông tin cá nhân");
+    }
+    setLoading(false);
+  };
 
   const handleSave = () => {
     setProfile(editForm);
@@ -69,25 +63,24 @@ const Profile = () => {
     setPasswordForm({ ...passwordForm, [field]: value });
   };
 
-  const handleChangePassword = () => {
-    // TODO: Implement password change logic
-    console.log('Changing password:', passwordForm);
-    setShowChangePassword(false);
-    setPasswordForm({
-      currentPassword: '',
-      newPassword: '',
-      confirmPassword: ''
-    });
+  const handleChangePassword = async () => {
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      toast.error("Mật khẩu mới không khớp");
+      return;
+    }
+    try {
+      await changeSaleManagerPassword(passwordForm.currentPassword, passwordForm.newPassword);
+      toast.success("Đổi mật khẩu thành công");
+      setShowChangePassword(false);
+      setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    } catch (error) {
+      toast.error("Không thể đổi mật khẩu");
+    }
   };
 
-  const stats = {
-    totalOrders: 45,
-    completedOrders: 38,
-    totalRevenue: 25000000,
-    averageRating: 4.5,
-    tasksCompleted: 28,
-    kpisAchieved: 5
-  };
+  if (loading || !profile) {
+    return <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -219,8 +212,8 @@ const Profile = () => {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-500">Đơn hàng</p>
-                <p className="text-2xl font-semibold text-gray-900">{stats.totalOrders}</p>
-                <p className="text-sm text-green-600">+{stats.completedOrders} hoàn thành</p>
+                <p className="text-2xl font-semibold text-gray-900">{profile.stats?.totalOrders || 0}</p>
+                <p className="text-sm text-green-600">+{profile.stats?.completedOrders || 0} hoàn thành</p>
               </div>
             </div>
           </CardContent>
@@ -235,7 +228,7 @@ const Profile = () => {
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-500">Doanh thu</p>
                 <p className="text-2xl font-semibold text-gray-900">
-                  {stats.totalRevenue.toLocaleString('vi-VN')}đ
+                  {profile.stats?.totalRevenue?.toLocaleString('vi-VN') || '0'}đ
                 </p>
                 <p className="text-sm text-green-600">+12% tháng này</p>
               </div>
@@ -251,7 +244,7 @@ const Profile = () => {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-500">Đánh giá</p>
-                <p className="text-2xl font-semibold text-gray-900">{stats.averageRating}/5</p>
+                <p className="text-2xl font-semibold text-gray-900">{profile.stats?.averageRating?.toFixed(1) || '0.0'}/5</p>
                 <p className="text-sm text-green-600">+0.2 tháng này</p>
               </div>
             </div>

@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Plus, Pencil, Trash2, Users, UserPlus } from "lucide-react"
 import {
@@ -21,47 +21,41 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { toast } from "react-toastify"
-
-// Mock data cho sale staff
-const saleStaff = [
-  { id: 1, name: "Nguyễn Văn A", email: "nguyenvana@example.com" },
-  { id: 2, name: "Trần Thị B", email: "tranthib@example.com" },
-  { id: 3, name: "Lê Văn C", email: "levanc@example.com" },
-]
+import { toast } from "sonner"
+import { getAllTasks, createTask, updateTask, deleteTask, getAllSaleStaff, createTaskAssignment } from "@/services/SaleManager/ApiSaleManager"
 
 export default function ManagerTask() {
-  const [tasks, setTasks] = useState([
-    {
-      id: 1,
-      title: "Tìm kiếm khách hàng tiềm năng",
-      description: "Tìm kiếm và liên hệ với khách hàng tiềm năng trong khu vực",
-      deadline: "2024-05-30",
-      priority: "high",
-      status: "pending",
-      assignedTo: ["Nguyễn Văn A"],
-      assignedBy: "Trần Thị B",
-      notes: "Ưu tiên khách hàng trong khu vực trung tâm"
-    },
-    {
-      id: 2,
-      title: "Báo cáo doanh số tháng 5",
-      description: "Tổng hợp và phân tích doanh số bán hàng tháng 5",
-      deadline: "2024-06-05",
-      priority: "medium",
-      status: "in-progress",
-      assignedTo: ["Lê Văn C"],
-      assignedBy: "Trần Thị B",
-      notes: "Báo cáo chi tiết theo từng sản phẩm"
-    }
-  ])
-
+  const [tasks, setTasks] = useState([])
+  const [saleStaff, setSaleStaff] = useState([])
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [isAssignmentFormOpen, setIsAssignmentFormOpen] = useState(false)
   const [selectedTask, setSelectedTask] = useState(null)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [taskToDelete, setTaskToDelete] = useState(null)
   const [isAssignAllDialogOpen, setIsAssignAllDialogOpen] = useState(false)
+
+  useEffect(() => {
+    fetchTasks()
+    fetchSaleStaff()
+  }, [])
+
+  const fetchTasks = async () => {
+    try {
+      const res = await getAllTasks()
+      setTasks(res.data.tasks || [])
+    } catch (error) {
+      toast.error("Không thể tải danh sách task")
+    }
+  }
+
+  const fetchSaleStaff = async () => {
+    try {
+      const res = await getAllSaleStaff()
+      setSaleStaff(res.data.users || [])
+    } catch (error) {
+      toast.error("Không thể tải danh sách nhân viên")
+    }
+  }
 
   const getPriorityColor = (priority) => {
     switch (priority) {
@@ -127,67 +121,45 @@ export default function ManagerTask() {
   }
 
   const handleAssignToAll = () => {
-    const pendingTasks = tasks.filter(task => task.status === 'pending')
-    if (pendingTasks.length === 0) {
-      toast.warning("Không có công việc nào đang chờ giao")
-      return
+    toast.info("Chức năng này chưa được hỗ trợ trên API")
+  }
+
+  const confirmDelete = async () => {
+    try {
+      await deleteTask(taskToDelete._id)
+      toast.success("Xóa công việc thành công")
+      fetchTasks()
+    } catch (error) {
+      toast.error("Không thể xóa công việc")
     }
-    setIsAssignAllDialogOpen(true)
+    setIsDeleteDialogOpen(false)
   }
 
-  const confirmAssignToAll = () => {
-    const updatedTasks = tasks.map(task => {
-      if (task.status === 'pending') {
-        return {
-          ...task,
-          assignedTo: saleStaff.map(staff => staff.name)
-        }
+  const handleSubmit = async (data) => {
+    try {
+      if (selectedTask) {
+        await updateTask(selectedTask._id, data)
+        toast.success("Cập nhật công việc thành công")
+      } else {
+        await createTask(data)
+        toast.success("Thêm công việc mới thành công")
       }
-      return task
-    })
-    setTasks(updatedTasks)
-    toast.success("Đã gán tất cả công việc đang chờ cho nhân viên")
-    setIsAssignAllDialogOpen(false)
-  }
-
-  const handleSubmit = (data) => {
-    if (selectedTask) {
-      // Update task
-      setTasks(tasks.map(task => 
-        task.id === selectedTask.id ? { ...task, ...data } : task
-      ))
-      toast.success("Cập nhật công việc thành công")
-    } else {
-      // Create new task
-      const newTask = {
-        id: tasks.length + 1,
-        ...data,
-        assignedTo: [],
-        assignedBy: "Trần Thị B" // Mock data - sẽ thay bằng user thật
-      }
-      setTasks([...tasks, newTask])
-      toast.success("Thêm công việc mới thành công")
+      fetchTasks()
+    } catch (error) {
+      toast.error("Không thể lưu công việc")
     }
     setIsFormOpen(false)
   }
 
-  const handleAssignmentSubmit = (data) => {
-    const updatedTask = {
-      ...selectedTask,
-      assignedTo: data.selectedStaff,
-      notes: data.notes
+  const handleAssignmentSubmit = async (data) => {
+    try {
+      await createTaskAssignment({ taskId: selectedTask._id, assignedTo: data.selectedStaff, notes: data.notes })
+      toast.success("Đã gán công việc cho nhân viên được chọn")
+      fetchTasks()
+    } catch (error) {
+      toast.error("Không thể gán công việc")
     }
-    setTasks(tasks.map(task => 
-      task.id === selectedTask.id ? updatedTask : task
-    ))
-    toast.success("Đã gán công việc cho nhân viên được chọn")
     setIsAssignmentFormOpen(false)
-  }
-
-  const confirmDelete = () => {
-    setTasks(tasks.filter(task => task.id !== taskToDelete.id))
-    setIsDeleteDialogOpen(false)
-    toast.success("Xóa công việc thành công")
   }
 
   return (
@@ -330,7 +302,7 @@ export default function ManagerTask() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Hủy</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmAssignToAll}>Xác nhận</AlertDialogAction>
+            <AlertDialogAction onClick={handleAssignToAll}>Xác nhận</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

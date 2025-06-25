@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Plus, Pencil, Trash2 } from "lucide-react"
 import {
@@ -20,32 +20,28 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { toast } from "react-toastify"
+import { toast } from "sonner"
+import { getAllKPIs, createKPI, updateKPI, deleteKPI } from "@/services/SaleManager/ApiSaleManager"
 
 export default function ManagerKPI() {
-  const [kpis, setKpis] = useState([
-    {
-      id: 1,
-      staffName: "Nguyễn Văn A",
-      target: 100000000,
-      achieved: 85000000,
-      completion: 85,
-      status: "in-progress"
-    },
-    {
-      id: 2,
-      staffName: "Trần Thị B",
-      target: 100000000,
-      achieved: 120000000,
-      completion: 120,
-      status: "completed"
-    }
-  ])
-
+  const [kpis, setKpis] = useState([])
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [selectedKPI, setSelectedKPI] = useState(null)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [kpiToDelete, setKpiToDelete] = useState(null)
+
+  useEffect(() => {
+    fetchKPIs()
+  }, [])
+
+  const fetchKPIs = async () => {
+    try {
+      const res = await getAllKPIs()
+      setKpis(res.data.kpis || [])
+    } catch (error) {
+      toast.error("Không thể tải danh sách KPI")
+    }
+  }
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -88,29 +84,31 @@ export default function ManagerKPI() {
     setIsDeleteDialogOpen(true)
   }
 
-  const handleSubmit = (data) => {
-    if (selectedKPI) {
-      // Update KPI
-      setKpis(kpis.map(kpi => 
-        kpi.id === selectedKPI.id ? { ...kpi, ...data } : kpi
-      ))
-      toast.success("Cập nhật KPI thành công")
-    } else {
-      // Create new KPI
-      const newKPI = {
-        id: kpis.length + 1,
-        ...data
+  const handleSubmit = async (data) => {
+    try {
+      if (selectedKPI) {
+        await updateKPI(selectedKPI._id, data)
+        toast.success("Cập nhật KPI thành công")
+      } else {
+        await createKPI(data)
+        toast.success("Thêm KPI mới thành công")
       }
-      setKpis([...kpis, newKPI])
-      toast.success("Thêm KPI mới thành công")
+      fetchKPIs()
+    } catch (error) {
+      toast.error("Không thể lưu KPI")
     }
     setIsFormOpen(false)
   }
 
-  const confirmDelete = () => {
-    setKpis(kpis.filter(kpi => kpi.id !== kpiToDelete.id))
+  const confirmDelete = async () => {
+    try {
+      await deleteKPI(kpiToDelete._id)
+      toast.success("Xóa KPI thành công")
+      fetchKPIs()
+    } catch (error) {
+      toast.error("Không thể xóa KPI")
+    }
     setIsDeleteDialogOpen(false)
-    toast.success("Xóa KPI thành công")
   }
 
   return (

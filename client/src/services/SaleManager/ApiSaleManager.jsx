@@ -5,6 +5,8 @@ export const updateSaleManagerProfile = (formData) => {
     return instance.put('/saleManager/profile', formData)
 }
 
+export const updateProfile = updateSaleManagerProfile;
+
 export const changeSaleManagerPassword = (currentPassword, newPassword) => {
     return instance.put('/saleManager/change-password', { currentPassword, newPassword })
 }
@@ -143,4 +145,13 @@ export const getStaffById = (staffId) => {
 
 export const updateStaffRole = (staffId, role) => {
     return instance.put(`/saleManager/staff/${staffId}/role`, { role })
-} 
+}
+
+export const getProfile = () => {
+    return instance.get('/saleManager/profile');
+}
+
+
+export const getMyOrderById = (orderId) => {
+    return instance.get(`/saleManager/orders/${orderId}`)
+}

@@ -1,7 +1,29 @@
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card"
 import { DollarSign, ShoppingCart, Users, Package, ClipboardList } from "lucide-react"
+import { getDashboardStats } from "@/services/SaleManager/ApiSaleManager";
+import { toast } from "sonner";
 
 export default function Dashboard() {
+  const [stats, setStats] = useState(null);
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  const fetchStats = async () => {
+    try {
+      const res = await getDashboardStats();
+      setStats(res.data.stats || {});
+    } catch (error) {
+      toast.error("Không thể tải dữ liệu dashboard");
+    }
+  };
+
+  if (!stats) {
+    return <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>;
+  }
+
   return (
     <div className="space-y-6">
       {/* Welcome Section */}
@@ -20,8 +42,8 @@ export default function Dashboard() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">2,350,000₫</div>
-            <p className="text-xs text-muted-foreground">+20.1% so với hôm qua</p>
+            <div className="text-2xl font-bold">{(stats.todayRevenue || 0).toLocaleString('vi-VN')}₫</div>
+            <p className="text-xs text-muted-foreground">+{stats.todayRevenueChange || 0}% so với hôm qua</p>
           </CardContent>
         </Card>
 
@@ -31,8 +53,8 @@ export default function Dashboard() {
             <ShoppingCart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">12</div>
-            <p className="text-xs text-muted-foreground">+2 đơn so với hôm qua</p>
+            <div className="text-2xl font-bold">{stats.newOrders || 0}</div>
+            <p className="text-xs text-muted-foreground">+{stats.newOrdersChange || 0} đơn so với hôm qua</p>
           </CardContent>
         </Card>
 
@@ -42,8 +64,8 @@ export default function Dashboard() {
             <ClipboardList className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">5</div>
-            <p className="text-xs text-muted-foreground">3 task khẩn cấp</p>
+            <div className="text-2xl font-bold">{stats.pendingTasks || 0}</div>
+            <p className="text-xs text-muted-foreground">{stats.urgentTasks || 0} task khẩn cấp</p>
           </CardContent>
         </Card>
 
@@ -53,7 +75,7 @@ export default function Dashboard() {
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">8</div>
+            <div className="text-2xl font-bold">{stats.lowStockProducts || 0}</div>
             <p className="text-xs text-muted-foreground">Cần nhập hàng gấp</p>
           </CardContent>
         </Card>

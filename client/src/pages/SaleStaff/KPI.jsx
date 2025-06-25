@@ -13,6 +13,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { getKPIs, updateKPI } from '@/services/SaleStaff/ApiSaleStaff';
+import { toast } from 'sonner';
 
 const KPI = () => {
   const [kpis, setKpis] = useState([]);
@@ -25,66 +27,19 @@ const KPI = () => {
   });
 
   useEffect(() => {
-    // TODO: Fetch KPIs from API
-    // fetchKPIs();
-    
-    // Mock data
-    setKpis([
-      {
-        id: 1,
-        title: 'Doanh số bán hàng tháng',
-        description: 'Đạt doanh số 50 triệu VND trong tháng',
-        targetValue: 50000000,
-        currentValue: 35000000,
-        unit: 'VND',
-        status: 'in_progress',
-        progressPercentage: 70,
-        assignedBy: 'Manager A',
-        deadline: '2024-01-31',
-        notes: 'Đang thực hiện tốt, cần tăng cường liên hệ khách hàng'
-      },
-      {
-        id: 2,
-        title: 'Số lượng đơn hàng mới',
-        description: 'Ký được 20 đơn hàng mới trong tháng',
-        targetValue: 20,
-        currentValue: 15,
-        unit: 'đơn hàng',
-        status: 'in_progress',
-        progressPercentage: 75,
-        assignedBy: 'Manager B',
-        deadline: '2024-01-31',
-        notes: 'Cần tập trung vào khách hàng tiềm năng'
-      },
-      {
-        id: 3,
-        title: 'Tỷ lệ chuyển đổi khách hàng',
-        description: 'Đạt tỷ lệ chuyển đổi 25%',
-        targetValue: 25,
-        currentValue: 28,
-        unit: '%',
-        status: 'achieved',
-        progressPercentage: 112,
-        assignedBy: 'Manager A',
-        deadline: '2024-01-31',
-        notes: 'Vượt chỉ tiêu! Làm việc rất hiệu quả'
-      },
-      {
-        id: 4,
-        title: 'Số cuộc gọi tư vấn',
-        description: 'Thực hiện 100 cuộc gọi tư vấn',
-        targetValue: 100,
-        currentValue: 45,
-        unit: 'cuộc gọi',
-        status: 'pending',
-        progressPercentage: 45,
-        assignedBy: 'Manager C',
-        deadline: '2024-01-31',
-        notes: 'Cần tăng cường số lượng cuộc gọi'
-      }
-    ]);
-    setLoading(false);
+    fetchKPIs();
   }, []);
+
+  const fetchKPIs = async () => {
+    setLoading(true);
+    try {
+      const res = await getKPIs();
+      setKpis(res.data.kpis || []);
+    } catch (error) {
+      toast.error('Không thể tải danh sách KPI');
+    }
+    setLoading(false);
+  };
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -115,27 +70,21 @@ const KPI = () => {
   const handleUpdateKPI = (kpi) => {
     setSelectedKPI(kpi);
     setUpdateForm({
-      currentValue: kpi.currentValue.toString(),
+      currentValue: kpi.currentValue?.toString() || '',
       notes: kpi.notes || ''
     });
     setShowUpdateModal(true);
   };
 
-  const handleSubmitUpdate = () => {
-    // TODO: Submit update to API
-    const updatedKPI = {
-      ...selectedKPI,
-      currentValue: parseFloat(updateForm.currentValue),
-      notes: updateForm.notes,
-      progressPercentage: ((parseFloat(updateForm.currentValue) / selectedKPI.targetValue) * 100).toFixed(2),
-      status: parseFloat(updateForm.currentValue) >= selectedKPI.targetValue ? 'achieved' : 
-              parseFloat(updateForm.currentValue) > 0 ? 'in_progress' : 'pending'
-    };
-
-    setKpis(kpis.map(kpi => kpi.id === selectedKPI.id ? updatedKPI : kpi));
-    setShowUpdateModal(false);
-    setSelectedKPI(null);
-    setUpdateForm({ currentValue: '', notes: '' });
+  const handleSubmitUpdate = async () => {
+    try {
+      await updateKPI(selectedKPI._id, { currentValue: updateForm.currentValue });
+      toast.success('Cập nhật KPI thành công');
+      setShowUpdateModal(false);
+      fetchKPIs();
+    } catch (error) {
+      toast.error('Không thể cập nhật KPI');
+    }
   };
 
   const ProgressBar = ({ percentage, color = 'bg-blue-500' }) => (

@@ -18,6 +18,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { getTaskAssignment, updateTaskAssignment } from '@/services/SaleStaff/ApiSaleStaff';
+import { toast } from 'sonner';
 
 const Tasks = () => {
   const [tasks, setTasks] = useState([]);
@@ -33,84 +35,19 @@ const Tasks = () => {
   const [filter, setFilter] = useState('all');
 
   useEffect(() => {
-    // TODO: Fetch tasks from API
-    // fetchTasks();
-    
-    // Mock data
-    setTasks([
-      {
-        id: 1,
-        title: 'Liên hệ khách hàng ABC',
-        description: 'Gọi điện và tư vấn sản phẩm cho khách hàng ABC',
-        status: 'completed',
-        priority: 'high',
-        progress: 100,
-        assignedBy: 'Manager A',
-        assignedTo: 'Sale Staff 1',
-        deadline: '2024-01-25',
-        createdAt: '2024-01-20',
-        updatedAt: '2024-01-22',
-        notes: 'Đã liên hệ thành công, khách hàng quan tâm đến sản phẩm A'
-      },
-      {
-        id: 2,
-        title: 'Chuẩn bị báo cáo tháng',
-        description: 'Tổng hợp báo cáo doanh số và KPI tháng 1',
-        status: 'in_progress',
-        priority: 'medium',
-        progress: 60,
-        assignedBy: 'Manager B',
-        assignedTo: 'Sale Staff 1',
-        deadline: '2024-01-31',
-        createdAt: '2024-01-15',
-        updatedAt: '2024-01-23',
-        notes: 'Đã thu thập 60% dữ liệu, cần hoàn thiện phần phân tích'
-      },
-      {
-        id: 3,
-        title: 'Gửi proposal cho dự án XYZ',
-        description: 'Chuẩn bị và gửi proposal chi tiết cho dự án XYZ',
-        status: 'pending',
-        priority: 'high',
-        progress: 0,
-        assignedBy: 'Manager A',
-        assignedTo: 'Sale Staff 1',
-        deadline: '2024-01-28',
-        createdAt: '2024-01-18',
-        updatedAt: '2024-01-18',
-        notes: 'Chờ thông tin chi tiết từ khách hàng để hoàn thiện proposal'
-      },
-      {
-        id: 4,
-        title: 'Tham gia hội thảo sản phẩm',
-        description: 'Tham gia hội thảo giới thiệu sản phẩm mới',
-        status: 'completed',
-        priority: 'low',
-        progress: 100,
-        assignedBy: 'Manager C',
-        assignedTo: 'Sale Staff 1',
-        deadline: '2024-01-20',
-        createdAt: '2024-01-10',
-        updatedAt: '2024-01-20',
-        notes: 'Hội thảo diễn ra thành công, thu thập được nhiều lead tiềm năng'
-      },
-      {
-        id: 5,
-        title: 'Cập nhật CRM',
-        description: 'Cập nhật thông tin khách hàng và tương tác trong CRM',
-        status: 'in_progress',
-        priority: 'medium',
-        progress: 30,
-        assignedBy: 'Manager B',
-        assignedTo: 'Sale Staff 1',
-        deadline: '2024-01-30',
-        createdAt: '2024-01-22',
-        updatedAt: '2024-01-24',
-        notes: 'Đã cập nhật 30% thông tin, cần tiếp tục với các khách hàng còn lại'
-      }
-    ]);
-    setLoading(false);
+    fetchTasks();
   }, []);
+
+  const fetchTasks = async () => {
+    setLoading(true);
+    try {
+      const res = await getTaskAssignment();
+      setTasks(res.data.taskAssignment || []);
+    } catch (error) {
+      toast.error('Không thể tải danh sách task');
+    }
+    setLoading(false);
+  };
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -191,26 +128,21 @@ const Tasks = () => {
     setSelectedTask(task);
     setUpdateForm({
       status: task.status,
-      progress: task.progress.toString(),
+      progress: task.progress?.toString() || '',
       notes: task.notes || ''
     });
     setShowUpdateModal(true);
   };
 
-  const handleSubmitUpdate = () => {
-    // TODO: Submit update to API
-    const updatedTask = {
-      ...selectedTask,
-      status: updateForm.status,
-      progress: parseInt(updateForm.progress),
-      notes: updateForm.notes,
-      updatedAt: new Date().toISOString().split('T')[0]
-    };
-
-    setTasks(tasks.map(task => task.id === selectedTask.id ? updatedTask : task));
-    setShowUpdateModal(false);
-    setSelectedTask(null);
-    setUpdateForm({ status: '', progress: '', notes: '' });
+  const handleSubmitUpdate = async () => {
+    try {
+      await updateTaskAssignment(selectedTask._id, { status: updateForm.status });
+      toast.success('Cập nhật task thành công');
+      setShowUpdateModal(false);
+      fetchTasks();
+    } catch (error) {
+      toast.error('Không thể cập nhật task');
+    }
   };
 
   const stats = {

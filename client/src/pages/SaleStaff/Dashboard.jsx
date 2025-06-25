@@ -11,66 +11,29 @@ import {
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { getDashboardData, getRecentActivities } from '@/services/SaleStaff/ApiSaleStaff';
+import { toast } from 'sonner';
 
 const Dashboard = () => {
-  const [stats, setStats] = useState({
-    tasks: {
-      total: 0,
-      completed: 0,
-      pending: 0,
-      inProgress: 0
-    },
-    kpis: {
-      active: 0,
-      achieved: 0
-    },
-    orders: {
-      total: 0,
-      completed: 0,
-      pending: 0,
-      revenue: 0
-    }
-  });
-
+  const [stats, setStats] = useState(null);
   const [recentTasks, setRecentTasks] = useState([]);
   const [recentOrders, setRecentOrders] = useState([]);
 
   useEffect(() => {
-    // TODO: Fetch dashboard data from API
-    // fetchDashboardData();
-    
-    // Mock data for now
-    setStats({
-      tasks: {
-        total: 15,
-        completed: 8,
-        pending: 4,
-        inProgress: 3
-      },
-      kpis: {
-        active: 5,
-        achieved: 2
-      },
-      orders: {
-        total: 25,
-        completed: 18,
-        pending: 5,
-        revenue: 15000000
-      }
-    });
-
-    setRecentTasks([
-      { id: 1, title: 'Liên hệ khách hàng ABC', status: 'completed', priority: 'high' },
-      { id: 2, title: 'Chuẩn bị báo cáo tháng', status: 'in_progress', priority: 'medium' },
-      { id: 3, title: 'Gửi proposal cho dự án XYZ', status: 'pending', priority: 'high' }
-    ]);
-
-    setRecentOrders([
-      { id: 1, customer: 'Công ty ABC', amount: 5000000, status: 'completed' },
-      { id: 2, customer: 'Công ty XYZ', amount: 3000000, status: 'pending' },
-      { id: 3, customer: 'Công ty DEF', amount: 7000000, status: 'in_progress' }
-    ]);
+    fetchDashboard();
   }, []);
+
+  const fetchDashboard = async () => {
+    try {
+      const res = await getDashboardData();
+      setStats(res.data.stats || {});
+      // Nếu API trả về recentTasks, recentOrders
+      setRecentTasks(res.data.recentTasks || []);
+      setRecentOrders(res.data.recentOrders || []);
+    } catch (error) {
+      toast.error('Không thể tải dữ liệu dashboard');
+    }
+  };
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -111,6 +74,10 @@ const Dashboard = () => {
     }
   };
 
+  if (!stats) {
+    return <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>;
+  }
+
   return (
     <div className="space-y-6">
       {/* Welcome Section */}
@@ -134,10 +101,10 @@ const Dashboard = () => {
             <ClipboardList className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.tasks.total}</div>
+            <div className="text-2xl font-bold">{stats.tasks?.total}</div>
             <div className="flex justify-between text-xs text-muted-foreground mt-2">
-              <span className="text-green-600">Hoàn thành: {stats.tasks.completed}</span>
-              <span className="text-yellow-600">Đang làm: {stats.tasks.inProgress}</span>
+              <span className="text-green-600">Hoàn thành: {stats.tasks?.completed}</span>
+              <span className="text-yellow-600">Đang làm: {stats.tasks?.inProgress}</span>
             </div>
           </CardContent>
         </Card>
@@ -149,10 +116,10 @@ const Dashboard = () => {
             <Target className="h-4 w-4 text-purple-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.kpis.active}</div>
+            <div className="text-2xl font-bold">{stats.kpis?.active}</div>
             <div className="flex justify-between text-xs text-muted-foreground mt-2">
-              <span className="text-green-600">Đạt được: {stats.kpis.achieved}</span>
-              <span className="text-blue-600">Đang theo dõi: {stats.kpis.active - stats.kpis.achieved}</span>
+              <span className="text-green-600">Đạt được: {stats.kpis?.achieved}</span>
+              <span className="text-blue-600">Đang theo dõi: {stats.kpis?.active - stats.kpis?.achieved}</span>
             </div>
           </CardContent>
         </Card>
@@ -164,10 +131,10 @@ const Dashboard = () => {
             <ShoppingCart className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.orders.total}</div>
+            <div className="text-2xl font-bold">{stats.orders?.total}</div>
             <div className="flex justify-between text-xs text-muted-foreground mt-2">
-              <span className="text-green-600">Hoàn thành: {stats.orders.completed}</span>
-              <span className="text-yellow-600">Chờ xử lý: {stats.orders.pending}</span>
+              <span className="text-green-600">Hoàn thành: {stats.orders?.completed}</span>
+              <span className="text-yellow-600">Chờ xử lý: {stats.orders?.pending}</span>
             </div>
           </CardContent>
         </Card>
@@ -179,9 +146,7 @@ const Dashboard = () => {
             <BarChart3 className="h-4 w-4 text-indigo-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {stats.orders.revenue.toLocaleString('vi-VN')}đ
-            </div>
+            <div className="text-2xl font-bold">{(stats.orders?.revenue || 0).toLocaleString('vi-VN')}đ</div>
             <div className="flex items-center text-xs text-green-600 mt-2">
               <TrendingUp className="h-3 w-3 mr-1" />
               +12% so với tháng trước
@@ -234,7 +199,7 @@ const Dashboard = () => {
                     <div>
                       <p className="text-sm font-medium text-gray-900">{order.customer}</p>
                       <p className="text-sm text-gray-500">
-                        {order.amount.toLocaleString('vi-VN')}đ
+                        {order.amount?.toLocaleString('vi-VN')}đ
                       </p>
                     </div>
                   </div>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -6,6 +6,7 @@ import { Users } from "lucide-react";
 import { toast } from "sonner";
 import OrderAssignmentForm from "./components/OrderAssignmentForm";
 import { OrderFilter } from "./components/OrderFilter";
+import { getAllOrders, assignOrder } from "@/services/SaleManager/ApiSaleManager";
 
 // Mock data for testing
 const DEMO_ORDERS = [
@@ -45,10 +46,23 @@ const DEMO_STAFF = [
 ];
 
 export default function ManagerOrder() {
-  const [orders, setOrders] = useState(DEMO_ORDERS);
+  const [orders, setOrders] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showAssignmentForm, setShowAssignmentForm] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all");
+
+  useEffect(() => {
+    fetchOrders();
+  }, []);
+
+  const fetchOrders = async () => {
+    try {
+      const res = await getAllOrders();
+      setOrders(res.data.orders || []);
+    } catch (error) {
+      toast.error("Không thể tải danh sách order");
+    }
+  };
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -88,32 +102,21 @@ export default function ManagerOrder() {
     setShowAssignmentForm(true);
   };
 
-  const handleAssignToAll = () => {
-    const pendingOrders = orders.filter(order => order.status === "pending");
-    if (pendingOrders.length === 0) {
-      toast.error("Không có order nào đang chờ xử lý");
-      return;
-    }
-
-    // TODO: Replace with actual API call
-    const updatedOrders = orders.map(order => {
-      if (order.status === "pending") {
-        return { ...order, status: "assigned", assignedTo: "Tất cả nhân viên" };
-      }
-      return order;
-    });
-    setOrders(updatedOrders);
-    toast.success("Đã giao tất cả order cho nhân viên");
+  const handleAssignToAll = async () => {
+    // TODO: Gọi API giao tất cả order cho nhân viên (nếu có)
+    toast.info("Chức năng này chưa được hỗ trợ trên API");
   };
 
-  const handleAssignmentComplete = () => {
-    // TODO: Replace with actual API call
-    setOrders(orders.map(order => 
-      order._id === selectedOrder._id 
-        ? { ...order, status: "assigned" }
-        : order
-    ));
-    toast.success("Cập nhật trạng thái order thành công");
+  const handleAssignmentComplete = async (staffId) => {
+    if (!selectedOrder) return;
+    try {
+      await assignOrder(selectedOrder._id, staffId);
+      toast.success("Giao order thành công");
+      fetchOrders();
+    } catch (error) {
+      toast.error("Không thể giao order");
+    }
+    setShowAssignmentForm(false);
   };
 
   // Filter orders based on status
@@ -161,10 +164,10 @@ export default function ManagerOrder() {
           <TableBody>
             {filteredOrders.map((order) => (
               <TableRow key={order._id}>
-                <TableCell className="font-medium">{order.orderNumber}</TableCell>
-                <TableCell>{order.customerName}</TableCell>
+                <TableCell className="font-medium">{order.orderNumber || order._id}</TableCell>
+                <TableCell>{order.customerName || (order.user && order.user.username) || "-"}</TableCell>
                 <TableCell>{formatCurrency(order.totalAmount)}</TableCell>
-                <TableCell>{order.quantity}</TableCell>
+                <TableCell>{order.totalQuantity}</TableCell>
                 <TableCell>
                   <Badge className={getStatusColor(order.status)}>
                     {getStatusText(order.status)}
@@ -200,7 +203,7 @@ export default function ManagerOrder() {
         open={showAssignmentForm}
         onOpenChange={setShowAssignmentForm}
         order={selectedOrder}
-        staffList={DEMO_STAFF}
+        staffList={[]} // TODO: Lấy danh sách staff thật từ API
         onAssign={handleAssignmentComplete}
       />
     </div>
