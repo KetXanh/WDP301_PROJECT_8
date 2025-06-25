@@ -7,12 +7,13 @@ import ProductCard from '../../components/customer/ProductCard';
 import ProductFilters from '../../components/customer/ProductFilters';
 import { useNavigate } from 'react-router-dom';
 import { allProducts } from '../../services/Customer/ApiProduct';
+import { MAX_PRICE } from '../../constants';
 
 const Product = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [sortBy, setSortBy] = useState('name');
     const [selectedCategory, setSelectedCategory] = useState('all');
-    const [priceRange, setPriceRange] = useState([0, 500000]);
+    const [priceRange, setPriceRange] = useState([0, MAX_PRICE]);
     const [allProduct, setAllProducts] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
     const productsPerPage = 9;
