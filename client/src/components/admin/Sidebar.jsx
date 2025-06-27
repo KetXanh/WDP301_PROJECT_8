@@ -3,6 +3,7 @@ import { links } from "../../constants";
 import LinkItem from "./LinkItem";
 
 const Sidebar = ({ isSidebarOpen }) => {
+ 
   return (
     <aside
       className={`fixed top-0 left-0 z-40  h-screen pt-20 

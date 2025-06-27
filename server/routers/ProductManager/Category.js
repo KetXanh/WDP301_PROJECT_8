@@ -12,8 +12,9 @@ router.post('/createCategory', Authozation.authenticateToken, Authozation.author
 router.put('/updateCategory/:id', Authozation.authenticateToken, Authozation.authorizeRoles(3), controller.updateCategory);
 router.delete('/deleteCategory/:id', Authozation.authenticateToken, Authozation.authorizeRoles(3), controller.deleteCategory);
 router.put('/activeCategory/:id', Authozation.authenticateToken, Authozation.authorizeRoles(3), controller.activeCategory);
-
+router.get("/category-stats", controller.getCategoryAndSubCategoryStats);
 router.get('/getAllSubCategories', controller.getAllSubCategories);
+router.get("/product-by-category", controller.getProductCountByCategory);
 // router.get('/getSubCategoryById/:id', controller.getSubCategoryById);
 router.get('/getSubCategoryBySlug/:slug', controller.getSubCategoryBySlug);
 router.post('/createSubCategory', Authozation.authenticateToken, Authozation.authorizeRoles(3), controller.createSubCategory);

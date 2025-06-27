@@ -1,5 +1,6 @@
 const { Category } = require("../../models/product/category");
 const { SubCategory } = require("../../models/product/subCategory");
+const ProductBase = require("../../models/product/productBase");
 const { User } = require("../../models/user");
 const slugify = require('slugify');
 
@@ -153,6 +154,22 @@ module.exports.deleteCategory = async (req, res) => {
     }
 }
 
+module.exports.getCategoryAndSubCategoryStats = async (req, res) => {
+  try {
+    const categoryCount = await Category.countDocuments();
+    const subcategoryCount = await SubCategory.countDocuments();
+
+    return res.status(200).json({
+      categoryCount,
+      subcategoryCount,
+    });
+  } catch (error) {
+    console.error("Error getting category stats:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+
 module.exports.activeCategory = async (req, res) => {
     try {
         const { id } = req.params;
@@ -256,3 +273,46 @@ module.exports.activeSubCategory = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 }
+
+module.exports.getProductCountByCategory = async (req, res) => {
+  try {
+    const result = await ProductBase.aggregate([
+      {
+        $lookup: {
+          from: "subcategories",
+          localField: "subCategory",
+          foreignField: "_id",
+          as: "subCategory",
+        },
+      },
+      { $unwind: "$subCategory" },
+      {
+        $lookup: {
+          from: "categories",
+          localField: "subCategory.category",
+          foreignField: "_id",
+          as: "category",
+        },
+      },
+      { $unwind: "$category" },
+      {
+        $group: {
+          _id: "$category.name",
+          total: { $sum: 1 },
+        },
+      },
+      {
+        $project: {
+          category: "$_id",
+          total: 1,
+          _id: 0,
+        },
+      },
+    ]);
+
+    res.json(result);
+  } catch (error) {
+    console.error("Error in getProductCountByCategory:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};

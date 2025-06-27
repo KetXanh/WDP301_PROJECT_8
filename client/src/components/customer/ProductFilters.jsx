@@ -5,9 +5,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { getCategories } from '../../services/Customer/ApiProduct';
 import { useEffect } from 'react';
-
-const ProductFilters = ({ selectedCategory, onCategoryChange, priceRange, onPriceRangeChange }) => {
-    const [openParent, setOpenParent] = useState(null);
+import { useTranslation } from "react-i18next";
+const ProductFilters = ({
+  selectedCategory,
+  onCategoryChange,
+  priceRange,
+  onPriceRangeChange,
+}) => {
+  const [openParent, setOpenParent] = useState(null);
+  const { t } = useTranslation("user");
 
     const [categories, setCategories] = useState([])
     const getAllCategories = async () => {
@@ -26,9 +32,9 @@ const ProductFilters = ({ selectedCategory, onCategoryChange, priceRange, onPric
         getAllCategories()
     }, [])
 
-    const toggleParent = (parentId) => {
-        setOpenParent(openParent === parentId ? null : parentId);
-    };
+  const toggleParent = (parentId) => {
+    setOpenParent(openParent === parentId ? null : parentId);
+  };
 
     return (
         <Card className="bg-white shadow-lg">

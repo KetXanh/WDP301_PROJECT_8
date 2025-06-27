@@ -3,6 +3,8 @@ const ProductVariant = require("../../models/product/ProductVariant");
 const { SubCategory } = require("../../models/product/subCategory");
 const { cloudinary } = require("../../middleware/upload.middleware")
 const slugify = require('slugify');
+const xlsx = require("xlsx");
+const ExcelJS = require("exceljs");
 
 module.exports.getAllProducts = async (req, res) => {
     try {
@@ -129,69 +131,87 @@ module.exports.getProductBySlug = async (req, res) => {
 }
 
 module.exports.createProduct = async (req, res) => {
-    try {
-        const user = req.user;
-        const { name, description, price, stock, subCategoryId } = req.body;
+  try {
+    const user = req.user;
+    const { name, description, price, stock, subCategoryId } = req.body;
 
-        if (!name || !description || !price || !stock || !subCategoryId) {
-            return res.status(400).json({
-                message: "Name, description, price, stock and subCategoryId are required"
-            });
-        }
-
-        const existingProduct = await BaseProduct.findOne({ name });
-        if (existingProduct) {
-            return res.status(400).json({ message: "Product with this name already exists" });
-        }
-
-        const subCategory = await SubCategory.findById(subCategoryId);
-        if (!subCategory) {
-            return res.status(404).json({ message: "Sub category not found" });
-        }
-
-        if (!req.files || !req.files.image) {
-            return res.status(400).json({ message: "Image is required" });
-        }
-
-        const uploadedFiles = Array.isArray(req.files.image) ? req.files.image : [req.files.image];
-        
-        if (uploadedFiles.length > 3) {
-            return res.status(400).json({ message: "Maximum 3 images allowed" });
-        }
-
-        const images = uploadedFiles.map(file => ({
-            url: file.path,
-            public_id: file.filename
-        }));
-
-        const baseProduct = new BaseProduct({
-            name,
-            description,
-            image: images[0],
-            images,
-            subCategory: subCategoryId,
-            createdBy: user.id
-        });
-
-        await baseProduct.save();
-
-        const productVariant = new ProductVariant({
-            baseProduct: baseProduct._id,
-            price,
-            stock
-        });
-
-        await productVariant.save();
-
-        res.status(201).json({
-            message: "Product created successfully !!!",
-            baseProduct,
-            productVariant
-        });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
+    if (!name || !description || !price || !stock || !subCategoryId) {
+      return res.status(400).json({
+        message:
+          "Name, description, price, stock and subCategoryId are required",
+      });
     }
-}
+
+    const existingProduct = await BaseProduct.findOne({ name });
+    if (existingProduct) {
+      return res
+        .status(400)
+        .json({ message: "Product with this name already exists" });
+    }
+
+    // Kiểm tra danh mục con
+    const subCategory = await SubCategory.findById(subCategoryId);
+    if (!subCategory) {
+      return res.status(404).json({ message: "Sub category not found" });
+    }
+
+    if (!req.files || !req.files.image) {
+      return res.status(400).json({ message: "Image is required" });
+    }
+
+    const uploadedFiles = Array.isArray(req.files.image)
+      ? req.files.image
+      : [req.files.image];
+
+    if (uploadedFiles.length > 3) {
+      return res.status(400).json({ message: "Maximum 3 images allowed" });
+    }
+
+    const images = uploadedFiles.map((file) => ({
+      url: file.path,
+      public_id: file.filename,
+    }));
+
+    // Tạo slug duy nhất
+    let slug = slugify(name, { lower: true, strict: true });
+    let uniqueSlug = slug;
+    let counter = 1;
+    while (await BaseProduct.findOne({ slug: uniqueSlug })) {
+      uniqueSlug = `${slug}-${counter}`;
+      counter++;
+    }
+
+    const baseProduct = new BaseProduct({
+      name,
+      slug: uniqueSlug, 
+      description,
+      image: images[0],
+      images,
+      subCategory: subCategoryId,
+      createdBy: user.id,
+    });
+
+    await baseProduct.save();
+
+    // Tạo variant
+    const productVariant = new ProductVariant({
+      baseProduct: baseProduct._id,
+      price,
+      stock,
+    });
+
+    await productVariant.save();
+
+    return res.status(201).json({
+      message: "Product created successfully!",
+      baseProduct,
+      productVariant,
+    });
+  } catch (error) {
+    console.error("Lỗi tạo sản phẩm:", error);
+    return res.status(500).json({ message: error.message });
+  }
+};
 
 module.exports.updateProduct = async (req, res) => {
     try {
@@ -502,5 +522,117 @@ module.exports.deleteProduct = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 }
+
+module.exports.importProductsFromExcel = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: "Excel file is required" });
+    }
+
+    const workbook = xlsx.readFile(req.file.path);
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    const rows = xlsx.utils.sheet_to_json(sheet);
+
+    let imported = 0;
+    for (const row of rows) {
+      const { name, description, subCategoryName, price, stock, imageUrl } =
+        row;
+
+      if (
+        !name ||
+        !description ||
+        !subCategoryName ||
+        !price ||
+        !stock ||
+        !imageUrl
+      ) {
+        console.log("⚠️ Thiếu dữ liệu dòng:", row);
+        continue;
+      }
+
+      const subCategory = await SubCategory.findOne({ name: subCategoryName });
+      if (!subCategory) {
+        console.log(`❌ Không tìm thấy subCategory: ${subCategoryName}`);
+        continue;
+      }
+
+      let slug = slugify(name, { lower: true, strict: true });
+      let uniqueSlug = slug;
+      let count = 1;
+      while (await BaseProduct.findOne({ slug: uniqueSlug })) {
+        uniqueSlug = `${slug}-${count++}`;
+      }
+
+      const baseProduct = await BaseProduct.create({
+        name,
+        slug: uniqueSlug,
+        description,
+        image: {
+          url: imageUrl,
+          public_id: "",
+        },
+        subCategory: subCategory._id,
+        createdBy: req.user?.id || null, // nếu có login
+      });
+
+      await ProductVariant.create({
+        baseProduct: baseProduct._id,
+        price,
+        stock,
+      });
+
+      imported++;
+    }
+
+    return res
+      .status(200)
+      .json({ message: `Đã import ${imported} sản phẩm thành công` });
+  } catch (error) {
+    console.error("❌ Lỗi import:", error);
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+
+exports.exportProductsToExcel = async (req, res) => {
+  try {
+    const products = await BaseProduct.find().populate("subCategory");
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Products");
+
+    worksheet.columns = [
+      { header: "Tên sản phẩm", key: "name", width: 30 },
+      { header: "Mô tả", key: "description", width: 40 },
+      { header: "Giá", key: "price", width: 15 },
+      { header: "Tồn kho", key: "stock", width: 15 },
+      { header: "Danh mục con", key: "subCategory", width: 25 },
+    ];
+
+    for (const product of products) {
+      const variant = await ProductVariant.findOne({
+        baseProduct: product._id,
+      });
+      worksheet.addRow({
+        name: product.name,
+        description: product.description,
+        price: variant?.price || "",
+        stock: variant?.stock || "",
+        subCategory: product.subCategory?.name || "",
+      });
+    }
+
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+    res.setHeader("Content-Disposition", "attachment; filename=productsList.xlsx");
+
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (error) {
+    console.error("Export error:", error);
+    res.status(500).json({ message: "Export failed" });
+  }
+};
 
 

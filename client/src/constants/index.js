@@ -16,6 +16,7 @@ import {
   FaMoon,
   FaSun,
   FaCartPlus,
+  FaBox,
 } from "react-icons/fa";
 import { HiOutlineMenuAlt2 } from "react-icons/hi";
 import { MdCategory, MdOutlineCategory, MdSpaceDashboard } from "react-icons/md";
@@ -29,37 +30,47 @@ export const links = [
   {
     href: "/admin",
     icon: FaChartBar,
-    text: "Dashboard",
+    text: "menu.dashboard",
   },
   {
     href: "/admin/category",
     icon: MdOutlineCategory,
-    text: "Categories",
+    text: "menu.categories",
+  },
+  {
+    href: "/admin/subcategory",
+    icon: MdOutlineCategory,
+    text: "menu.subcategories",
   },
   {
     href: "/admin/order",
     icon: FaCartPlus,
-    text: "Order",
-  },
-  {
-    href: "/admin/subcategory",
-    icon: MdCategory,
-    text: "SubCategories",
+    text: "menu.order",
   },
   {
     href: "/admin/product",
+    icon: FaBox,
+    text: "menu.products",
+  },
+  {
+    href: "/admin/task",
     icon: FaListAlt,
-    text: "Products",
+    text: "menu.task",
   },
   {
-    href: "/login", // khách hàng login
+    href: "/admin/kpi",
+    icon: FaUsersCog,
+    text: "menu.kpi",
+  },
+  {
+    href: "/login",
     icon: IoIosLogIn,
-    text: "Sign In",
+    text: "menu.login",
   },
   {
-    href: "/register", // khách hàng register
-    icon: IoIosLogOut,
-    text: "Sign Up",
+    href: "/register",
+    icon: IoIosPersonAdd,
+    text: "menu.register",
   },
 ];
 
