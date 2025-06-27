@@ -4,7 +4,7 @@ const taskAssignmentController = require("../../controller/SaleManager/taskAssig
 const authMiddleware = require("../../middleware/auth");
 const { authorizeRoles } = require("../../middleware/auth");
 
-// Các route yêu cầu role 2 (Sale Manager)
+// Task assignment routes
 router.post("/assign", authMiddleware.authenticateToken, authorizeRoles(2), taskAssignmentController.assignTask);
 router.get("/assigned-tasks", taskAssignmentController.getAssignedTasks);
 router.put("/update-status/:task", authMiddleware.authenticateToken, authorizeRoles(2), taskAssignmentController.updateTaskStatus);

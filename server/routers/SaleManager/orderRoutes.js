@@ -1,18 +1,46 @@
 const express = require("express");
 const router = express.Router();
 const orderController = require("../../controller/SaleManager/orderController");
-const authMiddleware = require("../../middleware/auth");
-const { authorizeRoles } = require("../../middleware/auth");
+const {authenticateToken, authorizeRoles } = require("../../middleware/auth");
 
-// Lấy tất cả đơn hàng
-router.get("/orders", authMiddleware.authenticateToken, authorizeRoles(2), orderController.getAllOrders);
+// Middleware xác thực cho Sale Manager
+const saleManagerAuth = [authenticateToken, authorizeRoles(2)]; 
+// Lấy tất cả đơn hàng với pagination và filter
+router.get("/", saleManagerAuth, orderController.getAllOrders);
+
 // Lấy chi tiết đơn hàng
-router.get("/orders/:id", authMiddleware.authenticateToken, authorizeRoles(2), orderController.getOrderById);
+router.get("/:id", saleManagerAuth, orderController.getOrderById);
+
 // Cập nhật trạng thái đơn hàng
-router.put("/orders/:id/status", authMiddleware.authenticateToken, authorizeRoles(2), orderController.updateOrderStatus);
-// Gán đơn hàng cho nhân viên (tạm thời để trống hàm xử lý)
-router.put("/orders/:id/assign", authMiddleware.authenticateToken, authorizeRoles(2), (req, res) => { res.status(501).json({ message: "Chức năng chưa triển khai" }); });
+router.patch("/:id/status", saleManagerAuth, orderController.updateOrderStatus);
+
 // Xóa đơn hàng
-router.delete("/orders/:id", authMiddleware.authenticateToken, authorizeRoles(2), orderController.deleteOrder);
+router.delete("/:id", saleManagerAuth, orderController.deleteOrder);
+
+// Lấy thống kê đơn hàng
+router.get("/statistics/orders", saleManagerAuth, orderController.getOrderStatistics);
+
+// ==================== ORDER ASSIGNMENT ROUTES ====================
+
+// Gán đơn hàng cho nhân viên
+router.post("/:id/assign", saleManagerAuth, orderController.assignOrder);
+
+// Tạo assignment mới
+router.post("/assignment", saleManagerAuth, orderController.createOrderAssignment);
+
+// Lấy danh sách assignment với filter
+router.get("/assignment/list",  orderController.getOrderAssignments);
+
+// Lấy chi tiết assignment
+router.get("/assignment/:id", orderController.getOrderAssignmentById);
+
+// Cập nhật status assignment
+router.patch("/assignment/:id/status", saleManagerAuth, orderController.updateOrderAssignmentStatus);
+
+// Xóa assignment
+router.delete("/assignment/:id", saleManagerAuth, orderController.deleteOrderAssignment);
+
+// Lấy assignment theo sale staff
+router.get("/assignment/staff/:staffId", orderController.getAssignmentsByStaff);
 
 module.exports = router; 
