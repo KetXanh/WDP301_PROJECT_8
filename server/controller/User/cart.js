@@ -16,7 +16,7 @@ module.exports.getCart = async (req, res) => {
             });
         }
 
-        const cart = await Carts.findOne({ userId });
+        const cart = await Carts.findOne({ user: userId });
         if (!cart) {
             return res.status(404).json({
                 code: 404,
