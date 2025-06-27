@@ -70,7 +70,7 @@ const Header = () => {
                 const res = await getAllItemCart();
                 if (res.data && res.data.code === 200) {
                     dispatch(setCartFromServer({
-                        items: res.data.cart.items ?? [],
+                        items: res.data.data.items ?? [],
                         userId: username
                     }));
                 } else {

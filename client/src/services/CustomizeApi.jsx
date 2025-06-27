@@ -68,9 +68,9 @@ instance.interceptors.response.use(
                     refreshToken: refreshToken,
                 });
 
-                const { accessToken, refreshToken: newRefreshToken } = res.data;
+                const { accessToken } = res.data;
 
-                store.dispatch(login({ accessToken, refreshToken: newRefreshToken }));
+                store.dispatch(login({ accessToken, refreshToken }));
 
                 processQueue(null, accessToken);
 
