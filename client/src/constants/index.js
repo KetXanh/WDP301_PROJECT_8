@@ -26,6 +26,7 @@ import user02 from "../assets/user02.png";
 import user03 from "../assets/user03.png";
 
 export const links = [
+
   {
     href: "/admin",
     icon: FaChartBar,
@@ -163,3 +164,6 @@ export const events = [
   },
 ];
 
+export const ROLE = [1, 2, 3, 4]
+
+export const MAX_PRICE = 1000000

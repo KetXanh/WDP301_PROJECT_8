@@ -17,6 +17,8 @@ import logo from '../../assets/NutiGo.png';
 import { jwtDecode } from 'jwt-decode';
 import { GUEST_ID } from '../../store/customer/constans';
 import { useTranslation } from "react-i18next";
+import { getAllItemCart } from '../../services/Customer/ApiProduct';
+import { clearCart, setCartFromServer } from '../../store/customer/cartSlice';
 
 const Header = () => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -64,12 +66,29 @@ const Header = () => {
     };
 
     useEffect(() => {
+        const fetchCart = async () => {
+            try {
+                const res = await getAllItemCart();
+                if (res.data && res.data.code === 200) {
+                    dispatch(setCartFromServer({
+                        items: res.data.cart.items ?? [],
+                        userId: username
+                    }));
+                } else {
+                    dispatch(clearCart({ userId: username }));
+                }
+            } catch (error) {
+                console.error("Lỗi khi lấy giỏ hàng:", error);
+                dispatch(clearCart({ userId: username }));
+            }
+        };
         if (accessToken) {
             try {
                 const decoded = jwtDecode(accessToken);
                 if (decoded.role === 0) {
                     profile();
                     setIsLoggedIn(true);
+                    fetchCart();
                 }
             } catch (error) {
                 console.error('Invalid token:', error);

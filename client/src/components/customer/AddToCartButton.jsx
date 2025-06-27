@@ -6,14 +6,19 @@ import { ShoppingCart } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { GUEST_ID } from '../../store/customer/constans';
 import { jwtDecode } from 'jwt-decode';
+import { ROLE } from '../../constants';
+import { addItemToCart } from '../../services/Customer/ApiProduct';
 
 const AddToCartButton = ({ product, quantity }) => {
     const dispatch = useDispatch();
     const accessToken = useSelector((state) => state.customer.accessToken);
+    let decoded;
+    if (accessToken) {
+        decoded = jwtDecode(accessToken);
+    }
     const username = React.useMemo(() => {
         if (typeof accessToken === 'string' && accessToken.trim()) {
             try {
-                const decoded = jwtDecode(accessToken);
                 return decoded.username || GUEST_ID;
             } catch {
                 return GUEST_ID;
@@ -21,9 +26,12 @@ const AddToCartButton = ({ product, quantity }) => {
         }
         return GUEST_ID;
     }, [accessToken]);
-    const handleAddToCart = () => {
+    const handleAddToCart = async () => {
         if (!product.stock || product.stock < 1) {
             return toast.error("Sản phẩm đã hết hàng");
+        }
+        if (decoded && ROLE.includes(decoded.role)) {
+            return toast.error("Bạn Không có quyền mua hàng");
         }
 
         const itemPayload = {
@@ -35,9 +43,19 @@ const AddToCartButton = ({ product, quantity }) => {
             quantity: quantity,
             stock: product.stock,
         };
+        try {
+            const response = await addItemToCart(itemPayload.productId, itemPayload.quantity, itemPayload.price);
+            if (response.data && response.data.code === 200) {
+                toast.success("Đã thêm vào giỏ");
+                dispatch(addToCart({ item: itemPayload, userId: username }));
+            } else {
+                toast.error("Không thể thêm vào giỏ hàng");
+            }
 
-        dispatch(addToCart({ item: itemPayload, userId: username }));
-        toast.success("Đã thêm vào giỏ");
+        } catch (error) {
+            toast.error("Lỗi khi thêm vào giỏ hàng");
+            console.error(error);
+        }
     };
 
     return (

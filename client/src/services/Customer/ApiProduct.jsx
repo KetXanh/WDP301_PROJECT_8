@@ -15,3 +15,36 @@ export const address = () => {
 export const userOrder = (items, shippingAddress) => {
     return instance.post('/user/orders', { items, shippingAddress })
 }
+
+export const getCategories = () => {
+    return instance.get(`/user/products/categories`)
+}
+
+export const sortProduct = (sort) => {
+    return instance.get(`/user/products/sort/${sort}`)
+}
+
+export const searchProduct = (search) => {
+    return instance.get(`/user/products/search/${search}`)
+}
+
+export const addItemToCart = (productId, quantity, price) => {
+    return instance.post(`/user/carts`, { productId, quantity, price })
+}
+
+export const increItemToCart = (productId) => {
+    return instance.put(`/user/carts/incre-item/${productId}`)
+}
+
+export const decreItemToCart = (productId) => {
+    return instance.put(`/user/carts/decre-item/${productId}`)
+}
+
+export const removeItemToCart = (productId) => {
+    return instance.delete(`/user/carts/remove-item/${productId}`)
+}
+
+export const getAllItemCart = () => {
+    return instance.get(`/user/carts/user-cart`)
+}
+

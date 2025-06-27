@@ -20,6 +20,7 @@ import { useEffect } from 'react';
 import { userOrder } from '../../services/Customer/ApiProduct';
 import { useSelector } from 'react-redux';
 import { jwtDecode } from 'jwt-decode';
+import { ROLE } from '../../constants';
 
 
 const CheckoutDemo = () => {
@@ -48,7 +49,9 @@ const CheckoutDemo = () => {
     const handlePlaceOrder = async () => {
         try {
             const decoded = jwtDecode(accessToken);
-
+            if (decoded && ROLE.includes(decoded.role)) {
+                return toast.error("Bạn Không có quyền đặt hàng")
+            }
             if (!accessToken) {
                 toast.error("Vui lòng đăng nhập để thực hiện đặt hàng")
                 navigate('/login')

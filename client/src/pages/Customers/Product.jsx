@@ -13,14 +13,13 @@ import ProductCard from "../../components/customer/ProductCard";
 import ProductFilters from "../../components/customer/ProductFilters";
 import { useNavigate } from "react-router-dom";
 import { allProducts } from "../../services/Customer/ApiProduct";
-import { useTranslation } from "react-i18next";
+import { MAX_PRICE } from "../../constants";
 
 const Product = () => {
-  const { t } = useTranslation("user");
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("name");
   const [selectedCategory, setSelectedCategory] = useState("all");
-  const [priceRange, setPriceRange] = useState([0, 500000]);
+  const [priceRange, setPriceRange] = useState([0, MAX_PRICE]);
   const [allProduct, setAllProducts] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const productsPerPage = 9;
@@ -46,9 +45,10 @@ const Product = () => {
       .toLowerCase()
       .includes(searchTerm.toLowerCase());
     const matchesCategory =
-      selectedCategory === "all" || product.category === selectedCategory;
+      selectedCategory === "all" || product.category?.name === selectedCategory;
     const matchesPrice =
       product.price >= priceRange[0] && product.price <= priceRange[1];
+
     return matchesSearch && matchesCategory && matchesPrice;
   });
 
@@ -96,10 +96,10 @@ const Product = () => {
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-amber-50">
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-800 mb-4">
-            {t("product.title")}
-          </h1>
-          <p className="text-gray-600">{t("product.description")}</p>
+          <h1 className="text-4xl font-bold text-gray-800 mb-4">Sản Phẩm</h1>
+          <p className="text-gray-600">
+            Khám phá bộ sưu tập hạt dinh dưỡng cao cấp của chúng tôi
+          </p>
         </div>
 
         {/* Search and Sort */}
@@ -107,7 +107,7 @@ const Product = () => {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
             <Input
-              placeholder={t("product.searchPlaceholder")}
+              placeholder="Tìm kiếm sản phẩm..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -115,22 +115,19 @@ const Product = () => {
           </div>
           <Select value={sortBy} onValueChange={setSortBy}>
             <SelectTrigger className="w-full md:w-48">
-              <SelectValue placeholder={t("product.sortPlaceholder")} />
+              <SelectValue placeholder="Sắp xếp theo" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="name">{t("product.sortName")}</SelectItem>
-              <SelectItem value="price-low">
-                {t("product.sortPriceLow")}
-              </SelectItem>
-              <SelectItem value="price-high">
-                {t("product.sortPriceHigh")}
-              </SelectItem>
-              <SelectItem value="rating">{t("product.sortRating")}</SelectItem>
+              <SelectItem value="name">Tên A-Z</SelectItem>
+              <SelectItem value="price-low">Giá thấp đến cao</SelectItem>
+              <SelectItem value="price-high">Giá cao đến thấp</SelectItem>
+              {/* <SelectItem value="rating">Đánh giá cao nhất</SelectItem> */}
             </SelectContent>
           </Select>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          {/* Filters Sidebar */}
           <div className="lg:col-span-1">
             <ProductFilters
               selectedCategory={selectedCategory}
@@ -140,13 +137,11 @@ const Product = () => {
             />
           </div>
 
+          {/* Products Grid */}
           <div className="lg:col-span-3">
             <div className="mb-4 flex justify-between items-center">
               <p className="text-gray-600">
-                {t("product.showing", {
-                  count: currentProducts.length,
-                  total: allProduct.length,
-                })}
+                Hiển thị {currentProducts.length} / {allProduct.length} sản phẩm
               </p>
             </div>
 
@@ -163,7 +158,7 @@ const Product = () => {
             {currentProducts.length === 0 && (
               <div className="text-center py-12">
                 <p className="text-gray-500 text-lg">
-                  {t("product.noResults")}
+                  Không tìm thấy sản phẩm nào phù hợp
                 </p>
                 <Button
                   variant="outline"
@@ -175,11 +170,12 @@ const Product = () => {
                   }}
                   className="mt-4"
                 >
-                  {t("product.clearFilters")}
+                  Xóa bộ lọc
                 </Button>
               </div>
             )}
 
+            {/* Pagination */}
             {totalPages > 1 && (
               <div className="mt-8 flex justify-center items-center gap-2">
                 <Button

@@ -19,7 +19,8 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { clearCart, decreaseQuantity, increaseQuantity, removeFromCart } from '../../store/customer/cartSlice';
 import { GUEST_ID } from '../../store/customer/constans';
-import { address } from '../../services/Customer/ApiProduct';
+import { address, decreItemToCart, increItemToCart, removeItemToCart } from '../../services/Customer/ApiProduct';
+import { toast } from 'react-toastify';
 const EMPTY_ARRAY = [];
 const Cart = () => {
     const navigate = useNavigate();
@@ -101,18 +102,52 @@ const Cart = () => {
     };
 
     // Handle quantity increase
-    const increaseQuantities = (id) => {
-        dispatch(increaseQuantity({ userId: username, productId: id }));
+    const increaseQuantities = async (id) => {
+        try {
+            const res = await increItemToCart(id);
+
+            if (res.data.code === 200) {
+                dispatch(increaseQuantity({ userId: username, productId: id }));
+            } else if (res.data.code === 404) {
+                dispatch(clearCart({ userId: username }));
+                toast.error("Giỏ hàng đã bị xoá, vui lòng tải lại");
+            }
+        } catch (error) {
+
+            console.error("Increase failed:", error);
+        }
     };
 
     // Handle quantity decrease
-    const decreaseQuantities = (id) => {
-        dispatch(decreaseQuantity({ userId: username, productId: id }));
+    const decreaseQuantities = async (id) => {
+        try {
+            const res = await decreItemToCart(id);
+            if (res.data.code === 200) {
+                dispatch(decreaseQuantity({ userId: username, productId: id }));
+            } else if (res.data.code === 404) {
+                dispatch(clearCart({ userId: username }));
+                toast.error("Giỏ hàng đã bị xoá, vui lòng tải lại");
+            }
+        } catch (error) {
+
+            console.error("Decrease failed:", error);
+        }
     };
 
     // Handle item removal
-    const removeItem = (id) => {
-        dispatch(removeFromCart({ userId: username, productId: id }))
+    const removeItem = async (id) => {
+        try {
+            const res = await removeItemToCart(id);
+            if (res.data.code === 200) {
+                dispatch(removeFromCart({ userId: username, productId: id }));
+            } else if (res.data.code === 404) {
+                dispatch(clearCart({ userId: username }));
+                toast.error("Giỏ hàng đã bị xoá, vui lòng tải lại");
+            }
+        } catch (error) {
+
+            console.error("Remove failed:", error);
+        }
     };
 
     // Handle address selection

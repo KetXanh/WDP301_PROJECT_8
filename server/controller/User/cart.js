@@ -1,5 +1,4 @@
 
-const e = require("express");
 const { Carts } = require("../../models/product/cart");
 const Users = require("../../models/user");
 
@@ -41,83 +40,131 @@ module.exports.getCart = async (req, res) => {
 
 module.exports.addItemToCart = async (req, res) => {
     try {
-        const { userId } = req.params;
+        const email = req.user.email;
         const { productId, quantity, price } = req.body;
 
-        // Kiểm tra userId
-        if (!userId) {
-            return res.status(400).json({
-                code: 400,
-                message: "User ID is required"
-            });
-        }
-
-        // Kiểm tra người dùng tồn tại
-        const user = await Users.findById(userId);
+        const user = await Users.findOne({ email }).select("_id");
         if (!user) {
-            return res.status(404).json({
-                code: 404,
-                message: "User not found"
-            });
+            return res.status(404).json({ code: 404, message: "User not found" });
         }
 
-        // Kiểm tra giỏ hàng tồn tại
-        let cart = await Carts.findOne({ userId });
+
+        let cart = await Carts.findOne({ user: user._id });
         if (!cart) {
             cart = new Carts({
-                userId,
+                user: user._id,
                 items: [],
                 totalQuantity: 0,
                 totalPrice: 0
             });
         }
 
-        // Kiểm tra đầu vào sản phẩm
         if (!productId || !quantity || !price) {
-            return res.status(400).json({
-                code: 400,
-                message: "Product ID, quantity, and price are required"
-            });
+            return res.status(400).json({ code: 400, message: "Product ID, quantity, and price are required" });
         }
 
-        // Kiểm tra số lượng hợp lệ
         const qty = Number(quantity);
         if (isNaN(qty) || qty < 1) {
-            return res.status(400).json({
-                code: 400,
-                message: "Invalid quantity"
-            });
+            return res.status(400).json({ code: 400, message: "Invalid quantity" });
         }
 
-        // Tìm sản phẩm trong giỏ hàng
-        const existingItem = cart.items.find(item => item.productId === productId);
+        const existingItem = cart.items.find(item => item.product === productId);
         if (existingItem) {
-            existingItem.quantity += qty; // Bỏ kiểm tra stock
+            existingItem.quantity += qty;
         } else {
             cart.items.push({
-                productId,
+                product: productId,
                 quantity: qty,
                 price: Number(price)
             });
         }
 
-        // Tính lại tổng
         cart.totalQuantity = cart.items.reduce((sum, item) => sum + item.quantity, 0);
         cart.totalPrice = cart.items.reduce((sum, item) => sum + item.quantity * item.price, 0);
 
-        // Lưu giỏ hàng
         await cart.save();
 
-        return res.status(200).json({
-            code: 200,
-            message: "Item added to cart successfully",
-            data: cart
-        });
+        res.status(200).json({ code: 200, message: "Item added to cart successfully", data: cart });
     } catch (error) {
-        return res.status(500).json({
-            code: 500,
-            message: "Server Error",
-            error: error.message
-        });
+        res.status(500).json({ code: 500, message: "Server Error", error: error.message });
+    }
+};
+
+module.exports.increaseItemQuantity = async (req, res) => {
+    try {
+        const email = req.user.email;
+        const { productId } = req.params;
+
+        const user = await Users.findOne({ email }).select("_id");
+        const cart = await Carts.findOne({ user: user._id });
+        if (!cart) return res.status(404).json({ code: 404, message: "Cart not found" });
+
+        const item = cart.items.find(i => i.product.equals(productId));
+        if (!item) return res.status(404).json({ code: 404, message: "Item not found in cart" });
+
+        item.quantity += 1;
+
+        cart.totalQuantity = cart.items.reduce((sum, item) => sum + item.quantity, 0);
+        cart.totalPrice = cart.items.reduce((sum, item) => sum + item.quantity * item.price, 0);
+
+        await cart.save();
+
+        res.status(200).json({ code: 200, message: "Quantity increased", data: cart });
+    } catch (error) {
+        res.status(500).json({ code: 500, message: "Server Error", error: error.message });
+    }
+};
+
+module.exports.decreaseItemQuantity = async (req, res) => {
+    try {
+        const email = req.user.email;
+        const { productId } = req.params;
+
+        const user = await Users.findOne({ email }).select("_id");
+        const cart = await Carts.findOne({ user: user._id });
+        if (!cart) return res.status(404).json({ code: 404, message: "Cart not found" });
+
+        const item = cart.items.find(i => i.product.equals(productId));
+        if (!item) return res.status(404).json({ code: 404, message: "Item not found in cart" });
+
+        item.quantity -= 1;
+
+        if (item.quantity <= 0) {
+            cart.items = cart.items.filter(i => !i.product.equals(productId));
+        }
+
+        cart.totalQuantity = cart.items.reduce((sum, item) => sum + item.quantity, 0);
+        cart.totalPrice = cart.items.reduce((sum, item) => sum + item.quantity * item.price, 0);
+
+        await cart.save();
+
+        res.status(200).json({ code: 200, message: "Quantity decreased", data: cart });
+    } catch (error) {
+        res.status(500).json({ code: 500, message: "Server Error", error: error.message });
+    }
+};
+
+module.exports.removeItemFromCart = async (req, res) => {
+    try {
+        const email = req.user.email;
+        const { productId } = req.params;
+
+        const user = await Users.findOne({ email }).select("_id");
+        const cart = await Carts.findOne({ user: user._id });
+        if (!cart) return res.status(404).json({ code: 404, message: "Cart not found" });
+
+        const itemExists = cart.items.find(i => i.product.equals(productId));
+        if (!itemExists) return res.status(404).json({ code: 404, message: "Item not found in cart" });
+
+        cart.items = cart.items.filter(i => !i.product.equals(productId));
+
+        cart.totalQuantity = cart.items.reduce((sum, item) => sum + item.quantity, 0);
+        cart.totalPrice = cart.items.reduce((sum, item) => sum + item.quantity * item.price, 0);
+
+        await cart.save();
+
+        res.status(200).json({ code: 200, message: "Item removed", data: cart });
+    } catch (error) {
+        res.status(500).json({ code: 500, message: "Server Error", error: error.message });
     }
 };
