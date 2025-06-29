@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, Star, ShoppingCart, Heart, Share2, Minus, Plus } from 'lucide-react';
 import AddToCartButton from '../../components/customer/AddToCartButton';
 import { detailProduct } from '../../services/Customer/ApiProduct';
+import { useTranslation } from 'react-i18next';
 const ProductDetail = () => {
     const { slug } = useParams();
     const navigate = useNavigate();
@@ -16,7 +17,8 @@ const ProductDetail = () => {
     const [loading, setLoading] = useState(true);
     const [quantity, setQuantity] = useState(1);
     const [isWishlisted, setIsWishlisted] = useState(false);
-
+    const { t } = useTranslation(["message", "user"]);
+    const instructions = t("user:product_detail.instructions", { returnObjects: true });
     useEffect(() => {
         const fetchProduct = async () => {
             try {
@@ -25,12 +27,12 @@ const ProductDetail = () => {
                 if (response.data && response.data.code === 200) {
                     setProduct(response.data.data);
                 } else {
-                    toast.error("Không tìm thấy sản phẩm");
+                    toast.error(t("user:product_detail.notFound"));
                     navigate('/products');
                 }
             } catch (error) {
                 console.error('Error fetching product:', error);
-                toast.error("Không thể tải thông tin sản phẩm");
+                toast.error(t("user:product_detail.fetchError"));
                 navigate('/products');
             } finally {
                 setLoading(false);
@@ -107,7 +109,7 @@ const ProductDetail = () => {
             <div className="min-h-screen bg-gradient-to-br from-green-50 to-amber-50 flex items-center justify-center">
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-green-600 mx-auto"></div>
-                    <p className="mt-4 text-gray-600">Đang tải...</p>
+                    <p className="mt-4 text-gray-600">{t("user:product_detail.loading")}</p>
                 </div>
             </div>
         );
@@ -130,11 +132,11 @@ const ProductDetail = () => {
                         className="flex items-center gap-2"
                     >
                         <ArrowLeft className="h-4 w-4" />
-                        Quay lại
+                        {t("user:product_detail.back")}
                     </Button>
                     <span className="text-gray-400">/</span>
                     <Link to="/products" className="text-gray-600 hover:text-green-600">
-                        Sản phẩm
+                        {t("user:product_detail.product")}
                     </Link>
                     <span className="text-gray-400">/</span>
                     <span className="text-gray-800 font-medium">{product.name}</span>
@@ -187,7 +189,7 @@ const ProductDetail = () => {
                                 <Star className="h-5 w-5 text-yellow-400 fill-current" />
                                 <span className="ml-1 font-medium">{product.rating || 0}</span>
                             </div>
-                            <span className="text-gray-500">({product.reviews || 0} đánh giá)</span>
+                            <span className="text-gray-500">({product.reviews || 0} {t("user:product_detail.rating")})</span>
                         </div>
 
                         {/* Price */}
@@ -210,26 +212,26 @@ const ProductDetail = () => {
                         {/* Product Details */}
                         <div className="grid grid-cols-2 gap-4 text-sm">
                             <div>
-                                <span className="text-gray-600">Trọng lượng:</span>
+                                <span className="text-gray-600">{t("user:product_detail.weight")}</span>
                                 <span className="ml-2 font-medium">{product.weight}</span>
                             </div>
                             <div>
-                                <span className="text-gray-600">Xuất xứ:</span>
+                                <span className="text-gray-600">{t("user:product_detail.origin")}</span>
                                 <span className="ml-2 font-medium">{product.origin}</span>
                             </div>
                             <div>
-                                <span className="text-gray-600">Hạn sử dụng:</span>
+                                <span className="text-gray-600">{t("user:product_detail.expiry")}</span>
                                 <span className="ml-2 font-medium">{product.expiry}</span>
                             </div>
                             <div>
-                                <span className="text-gray-600">Còn lại:</span>
-                                <span className="ml-2 font-medium">{product.stock} sản phẩm</span>
+                                <span className="text-gray-600">{t("user:product_detail.stock")}</span>
+                                <span className="ml-2 font-medium">{t("user:product_detail.inStock", { count: product.stock })}</span>
                             </div>
                         </div>
 
                         {/* Quantity Selector */}
                         <div className="flex items-center gap-4">
-                            <span className="text-gray-700 font-medium">Số lượng:</span>
+                            <span className="text-gray-700 font-medium">{t("user:product_detail.quantity")}</span>
                             <div className="flex items-center border rounded-lg">
                                 <Button
                                     variant="ghost"
@@ -273,7 +275,7 @@ const ProductDetail = () => {
                     {/* Benefits */}
                     <Card>
                         <CardHeader>
-                            <CardTitle>Lợi ích sức khỏe</CardTitle>
+                            <CardTitle>{t("user:product_detail.healthBenefits")}</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <ul className="space-y-2">
@@ -290,14 +292,13 @@ const ProductDetail = () => {
                     {/* Usage Instructions */}
                     <Card>
                         <CardHeader>
-                            <CardTitle>Hướng dẫn sử dụng</CardTitle>
+                            <CardTitle>{t("user:product_detail.usageInstructions")}</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <div className="space-y-4 text-gray-700">
-                                <p>• Có thể ăn trực tiếp hoặc kết hợp với các món ăn khác</p>
-                                <p>• Nên bảo quản nơi khô ráo, thoáng mát</p>
-                                <p>• Tránh ánh nắng trực tiếp và độ ẩm cao</p>
-                                <p>• Đóng kín sau khi sử dụng để giữ độ tươi ngon</p>
+                                {instructions.map((line, idx) => (
+                                    <p key={idx}>{line}</p>
+                                ))}
                             </div>
                         </CardContent>
                     </Card>
@@ -307,7 +308,7 @@ const ProductDetail = () => {
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                             <Star className="h-5 w-5 text-yellow-400 fill-current" />
-                            Đánh giá khách hàng
+                            {t("user:product_detail.customerReviews")}
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -381,7 +382,7 @@ const ProductDetail = () => {
                         {/* View All Reviews Button */}
                         <div className="text-center mt-6">
                             <Button variant="outline" className="border-green-600 text-green-600 hover:bg-green-50">
-                                Xem tất cả đánh giá
+                                {t("user:product_detail.seeAllReviews")}
                             </Button>
                         </div>
                     </CardContent>

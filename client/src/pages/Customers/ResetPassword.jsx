@@ -7,6 +7,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Lock, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { resetPass } from '../../services/Customer/ApiAuth';
+import { useTranslation } from 'react-i18next';
 
 const ResetPassword = () => {
     const [passwords, setPasswords] = useState({
@@ -19,7 +20,7 @@ const ResetPassword = () => {
     const location = useLocation();
     const email = location.state?.email;
     const navigate = useNavigate();
-
+    const { t } = useTranslation(["message", "user"]);
     const handleInputChange = (e) => {
         setPasswords({
             ...passwords,
@@ -31,17 +32,17 @@ const ResetPassword = () => {
         e.preventDefault();
 
         if (!passwords.newPassword || !passwords.confirmPassword) {
-            toast.error("Vui lòng nhập đầy đủ thông tin");
+            toast.error(t("toast.emptyFields"));
             return;
         }
 
         if (passwords.newPassword !== passwords.confirmPassword) {
-            toast.error("Mật khẩu xác nhận không khớp");
+            toast.error(t("toast.passwordMismatch"));
             return;
         }
 
         if (passwords.newPassword.length < 6) {
-            toast.error("Mật khẩu phải có ít nhất 6 ký tự");
+            toast.error(t("toast.passwordTooShort_reset_password"));
             return;
         }
 
@@ -50,11 +51,11 @@ const ResetPassword = () => {
         try {
             const res = await resetPass(email, passwords.newPassword);
             if (res.data && res.data.code === 200) {
-                toast.success("Cập Nhật Mật khẩu Thành Công");
+                toast.success(t("toast.updateSuccess"));
                 setIsLoading(false)
                 navigate('/login')
             } else {
-                toast.error("Cập Nhật Mật Khẩu Thất Bại")
+                toast.error(t("toast.updateFail"))
             }
         } catch (error) {
             console.log(error);
@@ -69,7 +70,7 @@ const ResetPassword = () => {
                         className="inline-flex items-center text-gray-600 hover:text-gray-800 transition-colors"
                     >
                         <ArrowLeft className="h-4 w-4 mr-2" />
-                        Quay lại
+                        {t("user:reset_password.back")}
                     </Link>
                 </div>
 
@@ -79,23 +80,23 @@ const ResetPassword = () => {
                             <Lock className="h-8 w-8 text-white" />
                         </div>
                         <CardTitle className="text-2xl font-bold text-gray-800">
-                            Đặt Lại Mật Khẩu
+                            {t("user:reset_password.title")}
                         </CardTitle>
                         <CardDescription className="text-gray-600">
-                            Nhập mật khẩu mới để hoàn tất quá trình đặt lại mật khẩu
+                            {t("user:reset_password.subtitle")}
                         </CardDescription>
                     </CardHeader>
 
                     <CardContent>
                         <form onSubmit={handleSubmit} className="space-y-6">
                             <div className="space-y-2">
-                                <Label htmlFor="newPassword">Mật khẩu mới</Label>
+                                <Label htmlFor="newPassword">{t("user:reset_password.newPassword")}</Label>
                                 <div className="relative">
                                     <Input
                                         id="newPassword"
                                         name="newPassword"
                                         type={showNewPassword ? 'text' : 'password'}
-                                        placeholder="Nhập mật khẩu mới"
+                                        placeholder={t("user:reset_password.newPasswordPlaceholder")}
                                         value={passwords.newPassword}
                                         onChange={handleInputChange}
                                         className="pr-10"
@@ -112,13 +113,13 @@ const ResetPassword = () => {
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="confirmPassword">Xác nhận mật khẩu mới</Label>
+                                <Label htmlFor="confirmPassword">{t("user:reset_password.confirmPassword")}</Label>
                                 <div className="relative">
                                     <Input
                                         id="confirmPassword"
                                         name="confirmPassword"
                                         type={showConfirmPassword ? 'text' : 'password'}
-                                        placeholder="Nhập lại mật khẩu mới"
+                                        placeholder={t("user:reset_password.confirmPasswordPlaceholder")}
                                         value={passwords.confirmPassword}
                                         onChange={handleInputChange}
                                         className="pr-10"
@@ -135,11 +136,11 @@ const ResetPassword = () => {
                             </div>
 
                             <div className="bg-blue-50 p-4 rounded-lg">
-                                <h4 className="text-sm font-medium text-blue-800 mb-2">Yêu cầu mật khẩu:</h4>
+                                <h4 className="text-sm font-medium text-blue-800 mb-2">{t("user:reset_password.passwordRequirementTitle")}</h4>
                                 <ul className="text-xs text-blue-700 space-y-1">
-                                    <li>• Ít nhất 6 ký tự</li>
-                                    <li>• Nên bao gồm chữ hoa, chữ thường và số</li>
-                                    <li>• Không sử dụng thông tin cá nhân</li>
+                                    <li>{t("user:reset_password.passwordRequirement1")}</li>
+                                    <li>{t("user:reset_password.passwordRequirement2")}</li>
+                                    <li>{t("user:reset_password.passwordRequirement3")}</li>
                                 </ul>
                             </div>
 
@@ -148,18 +149,18 @@ const ResetPassword = () => {
                                 disabled={isLoading}
                                 className="w-full bg-gradient-to-r from-green-600 to-amber-600 hover:from-green-700 hover:to-amber-700"
                             >
-                                {isLoading ? "Đang cập nhật..." : "Cập Nhật Mật Khẩu"}
+                                {isLoading ? t("user:reset_password.updating") : t("user:reset_password.updateButton")}
                             </Button>
                         </form>
 
                         <div className="mt-6 text-center">
                             <p className="text-sm text-gray-600">
-                                Nhớ mật khẩu?{' '}
+                                {t("user:reset_password.rememberPassword")}{' '}
                                 <Link
                                     to="/login"
                                     className="text-green-600 hover:text-green-700 font-medium underline"
                                 >
-                                    Đăng nhập ngay
+                                    {t("user:reset_password.loginNow")}
                                 </Link>
                             </p>
                         </div>

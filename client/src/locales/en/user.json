@@ -1,5 +1,5 @@
 {
-  "home":{
+  "home": {
     "home": "Home",
     "products": "Products",
     "aboutUs": "About Us",
@@ -43,7 +43,6 @@
     "allCategories": "All Categories",
     "priceRange": "Price Range"
   },
-
   "footer": {
     "description": "Premium nutritious nut store, bringing health and happiness to every family.",
     "products": {
@@ -67,7 +66,141 @@
       "address": "Hoa Lac, Hanoi City"
     },
     "rights": "All rights reserved."
+  },
+  "login": {
+    "title": "Login",
+    "subtitle": "Welcome back to the nut store",
+    "emailLabel": "Email",
+    "emailPlaceholder": "Enter your email address",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "Enter your password",
+    "forgotPassword": "Forgot password?",
+    "loginButton": "Login",
+    "divider": "Or",
+    "googleButton": "Sign in with Google",
+    "noAccount": "Don't have an account?",
+    "registerNow": "Sign up now",
+    "termsPrefix": "By logging in, you agree to the",
+    "termsOfUse": "Terms of use",
+    "and": "and",
+    "privacyPolicy": "Privacy policy"
+  },
+  "register": {
+    "title": "Create Account",
+    "subtitle": "Create a new account to explore amazing nut products",
+    "usernameLabel": "Username",
+    "usernamePlaceholder": "Enter your username",
+    "emailLabel": "Email",
+    "emailPlaceholder": "Enter your email address",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "Enter your password",
+    "confirmPasswordLabel": "Confirm Password",
+    "confirmPasswordPlaceholder": "Re-enter your password",
+    "registerButton": "Sign Up",
+    "divider": "Or",
+    "googleButton": "Sign up with Google",
+    "alreadyHaveAccount": "Already have an account?",
+    "loginNow": "Login now",
+    "termsPrefix": "By signing up, you agree to the",
+    "termsOfUse": "Terms of Use",
+    "and": "and",
+    "privacyPolicy": "Privacy Policy"
+  },
+  "forgot-password": {
+    "backToLogin": "Back to login",
+    "title": "Forgot Password",
+    "subtitle": "Enter your email and we’ll send you a reset link",
+    "emailLabel": "Email",
+    "emailPlaceholder": "example@email.com",
+    "sendLink": "Send Reset Link",
+    "sending": "Sending...",
+    "remember": "Remember your password?",
+    "loginNow": "Log in now"
+  },
+  "otp": {
+    "back": "Go back",
+    "title": "OTP Verification",
+    "subtitle": "We've sent a 6-digit OTP code to your email. Please enter it to continue resetting your password.",
+    "label": "Enter OTP Code",
+    "verifying": "Verifying...",
+    "verifyBtn": "Verify OTP"
+  },
+  "verify": {
+    "back": "Go back",
+    "title": "Email Verification",
+    "subtitle": "We have sent a 6-digit verification code to your email. Please enter it to complete your registration.",
+    "label": "Enter verification code",
+    "verifying": "Verifying...",
+    "verify": "Verify",
+    "notReceived": "Didn't receive the code?",
+    "resend": "Resend verification code"
+  },
+  "reset_password": {
+    "back": "Go back",
+    "title": "Reset Password",
+    "subtitle": "Enter a new password to complete the reset process",
+    "newPassword": "New Password",
+    "confirmPassword": "Confirm New Password",
+    "newPasswordPlaceholder": "Enter new password",
+    "confirmPasswordPlaceholder": "Re-enter new password",
+    "passwordRequirementTitle": "Password requirements:",
+    "passwordRequirement1": "• At least 6 characters",
+    "passwordRequirement2": "• Should include uppercase, lowercase, and numbers",
+    "passwordRequirement3": "• Avoid personal information",
+    "updating": "Updating...",
+    "updateButton": "Update Password",
+    "rememberPassword": "Remember your password?",
+    "loginNow": "Login now"
+  },
+  "profile": {
+    "backHome": "Back to Home",
+    "title": "Profile",
+    "editHint": "Edit your information",
+    "viewHint": "View and manage your personal info",
+    "changePhoto": "Change photo",
+    "usernameLabel": "Username",
+    "usernamePlaceholder": "Enter username",
+    "fullNameLabel": "Full name",
+    "emailLabel": "Email",
+    "phoneLabel": "Phone number",
+    "addressLabel": "Address",
+    "streetPlaceholder": "Street, house number",
+    "wardPlaceholder": "Ward/Commune",
+    "districtPlaceholder": "District",
+    "provincePlaceholder": "Province/City",
+    "updatePrompt": "Please update your profile",
+    "saving": "Saving...",
+    "save": "Save changes",
+    "cancel": "Cancel"
+  },
+  "product_deltail": {
+    "back": "Back",
+    "product": "Product",
+    "notFound": "Product not found",
+    "fetchError": "Unable to load product information",
+    "loading": "Loading...",
+    "inStock": "{{count}} items left",
+    "origin": "Origin",
+    "weight": "Weight",
+    "expiry": "Expiry",
+    "quantity": "Quantity",
+    "stock": "Stock",
+    "outOfStock": "Out of stock",
+    "addToCart": "Add to cart",
+    "wishlistAdd": "Added to wishlist",
+    "wishlistRemove": "Removed from wishlist",
+    "copied": "Copied",
+    "copiedDescription": "Product link copied to clipboard",
+    "healthBenefits": "Health Benefits",
+    "usageInstructions": "Usage Instructions",
+    "instructions": [
+      "• Can be eaten directly or combined with other dishes",
+      "• Store in a cool, dry place",
+      "• Avoid direct sunlight and high humidity",
+      "• Seal tightly after use to maintain freshness"
+    ],
+    "customerReviews": "Customer Reviews",
+    "seeAllReviews": "See all reviews",
+    "rating": "{{rating}} reviews"
   }
-
-
 }

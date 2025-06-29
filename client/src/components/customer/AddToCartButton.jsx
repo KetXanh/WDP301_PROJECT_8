@@ -8,6 +8,7 @@ import { GUEST_ID } from '../../store/customer/constans';
 import { jwtDecode } from 'jwt-decode';
 import { ROLE } from '../../constants';
 import { addItemToCart } from '../../services/Customer/ApiProduct';
+import { useTranslation } from 'react-i18next';
 
 const AddToCartButton = ({ product, quantity }) => {
     const dispatch = useDispatch();
@@ -16,6 +17,7 @@ const AddToCartButton = ({ product, quantity }) => {
     if (accessToken) {
         decoded = jwtDecode(accessToken);
     }
+    const { t } = useTranslation(["message", "user"]);
     const username = React.useMemo(() => {
         if (typeof accessToken === 'string' && accessToken.trim()) {
             try {
@@ -65,7 +67,7 @@ const AddToCartButton = ({ product, quantity }) => {
             disabled={!product.stock}
         >
             <ShoppingCart className="h-4 w-4 mr-2" />
-            {product.stock ? 'Thêm Vào Giỏ' : 'Hết Hàng'}
+            {product.stock ? t("user:product_detail.addToCart") : t("user:product_detail.outOfStock")}
         </Button>
     );
 };

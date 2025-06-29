@@ -15,9 +15,12 @@ import admin_en from "../locales/en/admin.json";
 import sale_vi from "../locales/vn/sale.json";
 import sale_en from "../locales/en/sale.json";
 
+import message_vi from '../locales/vn/message.json'
+import message_en from '../locales/en/message.json'
+
 i18n
-  .use(LanguageDetector) 
-  .use(initReactI18next) 
+  .use(LanguageDetector)
+  .use(initReactI18next)
   .init({
     resources: {
       vi: {
@@ -25,22 +28,24 @@ i18n
         user: user_vi,
         admin: admin_vi,
         sale: sale_vi,
+        message: message_vi,
       },
       en: {
         common: common_en,
         user: user_en,
         admin: admin_en,
         sale: sale_en,
+        message: message_en,
       },
     },
-    fallbackLng: "vi", 
+    fallbackLng: "vi",
     debug: false,
 
-    ns: ["common", "user", "admin", "sale"], 
-    defaultNS: "common", 
+    ns: ["common", "user", "admin", "sale", 'message'],
+    defaultNS: "common",
 
     interpolation: {
-      escapeValue: false, 
+      escapeValue: false,
     },
 
     detection: {
