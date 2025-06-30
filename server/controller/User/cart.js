@@ -16,18 +16,35 @@ module.exports.getCart = async (req, res) => {
             });
         }
 
-        const cart = await Carts.findOne({ user: userId });
+        const cart = await Carts.findOne({ user: userId }).populate({
+            path: 'items.product',
+            select: 'price stock baseProduct',
+            populate: {
+                path: 'baseProduct',
+                select: 'name image slug',
+            },
+        })
+            .lean();
         if (!cart) {
             return res.status(404).json({
                 code: 404,
                 message: "Cart not found for this user"
             });
         }
+        const enriched = cart.items.map(it => ({
+            productId: it.product._id,
+            slug: it.product.baseProduct.slug,
+            name: it.product.baseProduct.name,
+            imageUrl: it.product.baseProduct.image.url,
+            price: it.price,
+            quantity: it.quantity,
+            stock: it.product.stock,
+        }));
 
         return res.status(200).json({
             code: 200,
             message: "Cart retrieved successfully",
-            data: cart
+            data: enriched
         });
     } catch (error) {
         return res.status(500).json({
@@ -166,5 +183,51 @@ module.exports.removeItemFromCart = async (req, res) => {
         res.status(200).json({ code: 200, message: "Item removed", data: cart });
     } catch (error) {
         res.status(500).json({ code: 500, message: "Server Error", error: error.message });
+    }
+};
+
+module.exports.removeMultipleItemsFromCart = async (req, res) => {
+    try {
+        const email = req.user.email;
+        const { productIds } = req.body;
+
+        if (!Array.isArray(productIds) || productIds.length === 0) {
+            return res.status(400).json({
+                code: 400,
+                message: "Danh sách sản phẩm không hợp lệ"
+            });
+        }
+
+        const user = await Users.findOne({ email }).select("_id");
+        if (!user) {
+            return res.status(404).json({ code: 404, message: "User not found" });
+        }
+
+        const cart = await Carts.findOne({ user: user._id });
+        if (!cart) {
+            return res.status(404).json({ code: 404, message: "Cart not found" });
+        }
+
+        // Lọc bỏ những item không nằm trong danh sách cần xóa
+        cart.items = cart.items.filter(
+            (item) => !productIds.includes(item.product.toString())
+        );
+
+        cart.totalQuantity = cart.items.reduce((sum, item) => sum + item.quantity, 0);
+        cart.totalPrice = cart.items.reduce((sum, item) => sum + item.quantity * item.price, 0);
+
+        await cart.save();
+
+        return res.status(200).json({
+            code: 200,
+            message: "Đã xoá các sản phẩm đã chọn",
+            data: cart
+        });
+    } catch (error) {
+        return res.status(500).json({
+            code: 500,
+            message: "Lỗi máy chủ",
+            error: error.message
+        });
     }
 };
