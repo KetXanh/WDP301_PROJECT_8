@@ -48,3 +48,9 @@ export const getAllItemCart = () => {
     return instance.get(`/user/carts/user-cart`)
 }
 
+export const removeMultiItemToCart = (productIds) => {
+    return instance.delete(`/user/carts/items`, {
+        data: { productIds }
+    })
+}
+

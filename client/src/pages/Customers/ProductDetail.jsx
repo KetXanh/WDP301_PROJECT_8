@@ -212,19 +212,19 @@ const ProductDetail = () => {
                         {/* Product Details */}
                         <div className="grid grid-cols-2 gap-4 text-sm">
                             <div>
-                                <span className="text-gray-600">{t("user:product_detail.weight")}</span>
+                                <span className="text-gray-600">{t("user:product_detail.weight")}:</span>
                                 <span className="ml-2 font-medium">{product.weight}</span>
                             </div>
                             <div>
-                                <span className="text-gray-600">{t("user:product_detail.origin")}</span>
+                                <span className="text-gray-600">{t("user:product_detail.origin")}:</span>
                                 <span className="ml-2 font-medium">{product.origin}</span>
                             </div>
                             <div>
-                                <span className="text-gray-600">{t("user:product_detail.expiry")}</span>
+                                <span className="text-gray-600">{t("user:product_detail.expiry")}:</span>
                                 <span className="ml-2 font-medium">{product.expiry}</span>
                             </div>
                             <div>
-                                <span className="text-gray-600">{t("user:product_detail.stock")}</span>
+                                <span className="text-gray-600">{t("user:product_detail.stock")}:</span>
                                 <span className="ml-2 font-medium">{t("user:product_detail.inStock", { count: product.stock })}</span>
                             </div>
                         </div>

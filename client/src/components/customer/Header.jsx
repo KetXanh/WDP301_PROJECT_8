@@ -73,10 +73,7 @@ const Header = () => {
       try {
         const res = await getAllItemCart();
         if (res.data && res.data.code === 200) {
-          dispatch(setCartFromServer({
-            items: res.data.data.items ?? [],
-            userId: username
-          }));
+          dispatch(setCartFromServer({ userId: username, items: res.data.data ?? [] }));
         } else {
           dispatch(clearCart({ userId: username }));
         }
@@ -85,6 +82,7 @@ const Header = () => {
         dispatch(clearCart({ userId: username }));
       }
     };
+
     if (accessToken) {
       try {
         const decoded = jwtDecode(accessToken);
@@ -198,7 +196,7 @@ const Header = () => {
                   <DropdownMenuItem className="cursor-pointer">
                     <User className="mr-2 h-4 w-4" />
                     <span onClick={() => navigate("/profile")}>
-                      {t("viewProfile")}
+                      {t("home.viewProfile")}
                     </span>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
@@ -207,7 +205,7 @@ const Header = () => {
                     onClick={handleLogout}
                   >
                     <LogOut className="mr-2 h-4 w-4" />
-                    <span>{t("logout")}</span>
+                    <span>{t("home.logout")}</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

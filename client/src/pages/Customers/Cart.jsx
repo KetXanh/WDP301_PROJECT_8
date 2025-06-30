@@ -19,7 +19,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { clearCart, decreaseQuantity, increaseQuantity, removeFromCart } from '../../store/customer/cartSlice';
 import { GUEST_ID } from '../../store/customer/constans';
-import { address, decreItemToCart, increItemToCart, removeItemToCart } from '../../services/Customer/ApiProduct';
+import { address, decreItemToCart, increItemToCart, removeItemToCart, removeMultiItemToCart } from '../../services/Customer/ApiProduct';
 import { toast } from 'react-toastify';
 const EMPTY_ARRAY = [];
 const Cart = () => {
@@ -90,8 +90,23 @@ const Cart = () => {
     };
 
     // Handle delete all selected items
-    const handleDeleteAll = () => {
-        dispatch(clearCart({ userId: username }))
+    const handleDeleteAll = async () => {
+        const selectedProductIds = cartItems.filter(item => item.selected).map(item => item.productId);
+
+        try {
+            const res = await removeMultiItemToCart(selectedProductIds);
+            if (res.data.code === 200) {
+                selectedProductIds.forEach(id => {
+                    dispatch(removeFromCart({ userId: username, productId: id }));
+                });
+                toast.success("Xóa thành công các sản phẩm đã chọn");
+            } else {
+                toast.error("Xóa thất bại");
+            }
+        } catch (error) {
+            console.log(error);
+            toast.error("Lỗi kết nối đến server");
+        }
     };
 
     // Handle individual checkbox change
@@ -215,6 +230,9 @@ const Cart = () => {
             </div>
         );
     }
+
+    console.log(cartItems);
+
 
 
     return (
