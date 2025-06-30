@@ -37,8 +37,10 @@ export default function ManagerDiscount() {
   const fetchDiscounts = async () => {
     try {
       const res = await getAllDiscounts()
-      setDiscounts(res.data.discounts || [])
-    } catch (error) {
+      // Handle different possible response structures
+      const discountsData = res.data?.discounts || res.data || []
+      setDiscounts(discountsData)
+    } catch {
       toast.error("Không thể tải danh sách giảm giá")
     }
   }
@@ -63,7 +65,7 @@ export default function ManagerDiscount() {
       await deleteDiscount(discountToDelete._id)
       toast.success("Xóa chương trình giảm giá thành công")
       fetchDiscounts()
-    } catch (error) {
+    } catch {
       toast.error("Không thể xóa chương trình giảm giá")
     }
     setShowDeleteDialog(false)
@@ -80,7 +82,7 @@ export default function ManagerDiscount() {
         toast.success("Thêm chương trình giảm giá thành công")
       }
       fetchDiscounts()
-    } catch (error) {
+    } catch {
       toast.error("Không thể lưu chương trình giảm giá")
     }
     setShowForm(false)

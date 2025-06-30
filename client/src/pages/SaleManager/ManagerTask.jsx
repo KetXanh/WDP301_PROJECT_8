@@ -42,8 +42,10 @@ export default function ManagerTask() {
   const fetchTasks = async () => {
     try {
       const res = await getAllTasks()
-      setTasks(res.data.tasks || [])
-    } catch (error) {
+      // Sử dụng cấu trúc API response thực tế
+      const tasksData = res.data.tasks || []
+      setTasks(tasksData)
+    } catch {
       toast.error("Không thể tải danh sách task")
     }
   }
@@ -51,22 +53,11 @@ export default function ManagerTask() {
   const fetchSaleStaff = async () => {
     try {
       const res = await getAllSaleStaff()
-      setSaleStaff(res.data.users || [])
-    } catch (error) {
+      // Handle different possible response structures
+      const staffData = res.data?.users || res.data || []
+      setSaleStaff(staffData)
+    } catch {
       toast.error("Không thể tải danh sách nhân viên")
-    }
-  }
-
-  const getPriorityColor = (priority) => {
-    switch (priority) {
-      case 'high':
-        return 'bg-red-100 text-red-800'
-      case 'medium':
-        return 'bg-yellow-100 text-yellow-800'
-      case 'low':
-        return 'bg-green-100 text-green-800'
-      default:
-        return 'bg-gray-100 text-gray-800'
     }
   }
 
@@ -100,6 +91,12 @@ export default function ManagerTask() {
     }
   }
 
+  const getProgressColor = (progress) => {
+    if (progress >= 80) return 'bg-green-500'
+    if (progress >= 50) return 'bg-yellow-500'
+    return 'bg-red-500'
+  }
+
   const handleCreateTask = () => {
     setSelectedTask(null)
     setIsFormOpen(true)
@@ -129,7 +126,7 @@ export default function ManagerTask() {
       await deleteTask(taskToDelete._id)
       toast.success("Xóa công việc thành công")
       fetchTasks()
-    } catch (error) {
+    } catch {
       toast.error("Không thể xóa công việc")
     }
     setIsDeleteDialogOpen(false)
@@ -145,7 +142,7 @@ export default function ManagerTask() {
         toast.success("Thêm công việc mới thành công")
       }
       fetchTasks()
-    } catch (error) {
+    } catch {
       toast.error("Không thể lưu công việc")
     }
     setIsFormOpen(false)
@@ -156,7 +153,7 @@ export default function ManagerTask() {
       await createTaskAssignment({ taskId: selectedTask._id, assignedTo: data.selectedStaff, notes: data.notes })
       toast.success("Đã gán công việc cho nhân viên được chọn")
       fetchTasks()
-    } catch (error) {
+    } catch {
       toast.error("Không thể gán công việc")
     }
     setIsAssignmentFormOpen(false)
@@ -190,23 +187,38 @@ export default function ManagerTask() {
               <TableHead>Tiêu đề</TableHead>
               <TableHead>Mô tả</TableHead>
               <TableHead>Hạn chót</TableHead>
-              <TableHead>Độ ưu tiên</TableHead>
+              <TableHead>Tiến độ</TableHead>
               <TableHead>Trạng thái</TableHead>
               <TableHead>Đã giao cho</TableHead>
-              <TableHead>Ghi chú</TableHead>
+              <TableHead>Người tạo</TableHead>
+              <TableHead>Ngày tạo</TableHead>
               <TableHead className="text-right">Thao tác</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {tasks.map((task) => (
-              <TableRow key={task.id}>
+              <TableRow key={task._id}>
                 <TableCell className="font-medium">{task.title}</TableCell>
-                <TableCell>{task.description}</TableCell>
-                <TableCell>{new Date(task.deadline).toLocaleDateString('vi-VN')}</TableCell>
+                <TableCell className="max-w-xs truncate">{task.description}</TableCell>
                 <TableCell>
-                  <span className={`px-2 py-1 rounded-full text-xs ${getPriorityColor(task.priority)}`}>
-                    {task.priority === 'high' ? 'Cao' : task.priority === 'medium' ? 'Trung bình' : 'Thấp'}
-                  </span>
+                  {task.deadline ? (
+                    new Date(task.deadline).toLocaleDateString('vi-VN')
+                  ) : task.dueDate ? (
+                    new Date(task.dueDate).toLocaleDateString('vi-VN')
+                  ) : (
+                    <span className="text-gray-400">Chưa có</span>
+                  )}
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    <div className="w-16 bg-gray-200 rounded-full h-2">
+                      <div 
+                        className={`h-2 rounded-full ${getProgressColor(task.progress)}`}
+                        style={{ width: `${task.progress || 0}%` }}
+                      ></div>
+                    </div>
+                    <span className="text-xs text-gray-600">{task.progress || 0}%</span>
+                  </div>
                 </TableCell>
                 <TableCell>
                   <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(task.status)}`}>
@@ -214,19 +226,27 @@ export default function ManagerTask() {
                   </span>
                 </TableCell>
                 <TableCell>
-                  {task.assignedTo.length > 0 ? (
-                    <div className="flex flex-wrap gap-1">
-                      {task.assignedTo.map((staff, index) => (
-                        <span key={index} className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
-                          {staff}
-                        </span>
-                      ))}
-                    </div>
+                  {task.assignedTo ? (
+                    <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
+                      {task.assignedTo}
+                    </span>
                   ) : (
                     <span className="text-muted-foreground text-sm">Chưa giao</span>
                   )}
                 </TableCell>
-                <TableCell className="max-w-xs truncate">{task.notes}</TableCell>
+                <TableCell>
+                  {task.createdBy ? (
+                    <div className="text-sm">
+                      <div className="font-medium">{task.createdBy.username}</div>
+                      <div className="text-gray-500 text-xs">{task.createdBy.email}</div>
+                    </div>
+                  ) : (
+                    <span className="text-gray-400 text-sm">-</span>
+                  )}
+                </TableCell>
+                <TableCell className="text-xs text-gray-500">
+                  {new Date(task.createdAt).toLocaleDateString('vi-VN')}
+                </TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-1">
                     <Button
@@ -309,3 +329,4 @@ export default function ManagerTask() {
     </div>
   )
 }
+

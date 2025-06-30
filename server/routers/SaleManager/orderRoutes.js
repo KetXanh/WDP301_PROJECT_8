@@ -1,12 +1,12 @@
 const express = require("express");
 const router = express.Router();
 const orderController = require("../../controller/SaleManager/orderController");
-const {authenticateToken, authorizeRoles } = require("../../middleware/auth");
+const { authenticateToken, authorizeRoles } = require("../../middleware/auth");
 
 // Middleware xác thực cho Sale Manager
-const saleManagerAuth = [authenticateToken, authorizeRoles(2)]; 
+const saleManagerAuth = [authenticateToken, authorizeRoles(2)];
 // Lấy tất cả đơn hàng với pagination và filter
-router.get("/", saleManagerAuth, orderController.getAllOrders);
+router.get("/", orderController.getAllOrders);
 
 // Lấy chi tiết đơn hàng
 router.get("/:id", saleManagerAuth, orderController.getOrderById);
@@ -29,7 +29,7 @@ router.post("/:id/assign", saleManagerAuth, orderController.assignOrder);
 router.post("/assignment", saleManagerAuth, orderController.createOrderAssignment);
 
 // Lấy danh sách assignment với filter
-router.get("/assignment/list",  orderController.getOrderAssignments);
+router.get("/assignment/list", orderController.getOrderAssignments);
 
 // Lấy chi tiết assignment
 router.get("/assignment/:id", orderController.getOrderAssignmentById);

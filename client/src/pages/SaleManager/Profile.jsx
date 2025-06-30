@@ -19,8 +19,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { getProfile, updateProfile, changeSaleManagerPassword } from "@/services/SaleManager/ApiSaleManager";
+import { getProfile, changeSaleManagerPassword } from "@/services/SaleManager/ApiSaleManager";
 import { toast } from "sonner";
+import { useDispatch } from "react-redux";
+import { logout } from '../../store/customer/authSlice';
 
 const Profile = () => {
   const [profile, setProfile] = useState(null);
@@ -30,24 +32,42 @@ const Profile = () => {
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [passwordForm, setPasswordForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
 
+  const dispatch = useDispatch();
+
   useEffect(() => {
     fetchProfile();
   }, []);
 
   const fetchProfile = async () => {
-    setLoading(true);
     try {
+      setLoading(true);
       const res = await getProfile();
-      setProfile(res.data.profile || {});
+      console.log("Profile response:", res);
+      
+      if (res.data && res.data.success) {
+        setProfile(res.data.data || res.data.user);
+        setEditForm(res.data.data || res.data.user);
+      } else if (res.data && res.data.code === 401) {
+        dispatch(logout());
+        toast.error("Phiên đăng nhập đã hết hạn");
+      }
     } catch (error) {
-      toast.error("Không thể tải thông tin cá nhân");
+      console.log('Lỗi gọi profile:', error.response?.status);
+      if (error.response?.status === 403 || error.response?.status === 401) {
+        dispatch(logout());
+        toast.error("Phiên đăng nhập đã hết hạn");
+      } else {
+        toast.error("Không thể tải thông tin profile");
+      }
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleSave = () => {
     setProfile(editForm);
     setIsEditing(false);
+    toast.success("Cập nhật thông tin thành công");
   };
 
   const handleCancel = () => {
@@ -73,13 +93,32 @@ const Profile = () => {
       toast.success("Đổi mật khẩu thành công");
       setShowChangePassword(false);
       setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
-    } catch (error) {
+    } catch {
       toast.error("Không thể đổi mật khẩu");
     }
   };
 
-  if (loading || !profile) {
-    return <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>;
+  const handleLogout = () => {
+    dispatch(logout());
+    toast.success("Đăng xuất thành công");
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <p className="text-gray-500">Không thể tải thông tin profile</p>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -98,8 +137,10 @@ const Profile = () => {
           <div className="flex items-center space-x-6">
             <div className="relative">
               <Avatar className="w-24 h-24">
-                <AvatarImage src={profile.avatar} alt={profile.fullName} />
-                <AvatarFallback className="text-2xl">{profile.fullName.charAt(0)}</AvatarFallback>
+                <AvatarImage src={profile.avatar} alt={profile.fullName || profile.username} />
+                <AvatarFallback className="text-2xl">
+                  {(profile.fullName || profile.username || 'U').charAt(0).toUpperCase()}
+                </AvatarFallback>
               </Avatar>
               <Button
                 variant="outline"
@@ -111,21 +152,21 @@ const Profile = () => {
             </div>
             <div className="flex-1">
               <div className="flex items-center space-x-3 mb-2">
-                <h2 className="text-2xl font-bold text-gray-900">{profile.fullName}</h2>
-                <Badge className={profile.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
-                  {profile.status === 'active' ? 'Hoạt động' : 'Không hoạt động'}
+                <h2 className="text-2xl font-bold text-gray-900">{profile.fullName || profile.username}</h2>
+                <Badge className="bg-green-100 text-green-800">
+                  Hoạt động
                 </Badge>
               </div>
-              <p className="text-lg text-gray-600 mb-1">{profile.position}</p>
-              <p className="text-sm text-gray-500">{profile.department} • {profile.team}</p>
+              <p className="text-lg text-gray-600 mb-1">{profile.position || 'Sale Manager'}</p>
+              <p className="text-sm text-gray-500">{profile.department || 'Sales'} • {profile.team || 'Management'}</p>
               <div className="flex items-center space-x-4 mt-3">
                 <div className="flex items-center space-x-1 text-sm text-gray-500">
                   <Calendar className="h-4 w-4" />
-                  <span>Tham gia: {new Date(profile.joinDate).toLocaleDateString('vi-VN')}</span>
+                  <span>Tham gia: {new Date(profile.createdAt || Date.now()).toLocaleDateString('vi-VN')}</span>
                 </div>
                 <div className="flex items-center space-x-1 text-sm text-gray-500">
                   <User className="h-4 w-4" />
-                  <span>Quản lý bởi: {profile.manager}</span>
+                  <span>Email: {profile.email}</span>
                 </div>
               </div>
             </div>
@@ -228,7 +269,7 @@ const Profile = () => {
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-500">Doanh thu</p>
                 <p className="text-2xl font-semibold text-gray-900">
-                  {profile.stats?.totalRevenue?.toLocaleString('vi-VN') || '0'}đ
+                  {(profile.stats?.totalRevenue || 0).toLocaleString('vi-VN')}đ
                 </p>
                 <p className="text-sm text-green-600">+12% tháng này</p>
               </div>
@@ -244,7 +285,7 @@ const Profile = () => {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-500">Đánh giá</p>
-                <p className="text-2xl font-semibold text-gray-900">{profile.stats?.averageRating?.toFixed(1) || '0.0'}/5</p>
+                <p className="text-2xl font-semibold text-gray-900">{(profile.stats?.averageRating || 0).toFixed(1)}/5</p>
                 <p className="text-sm text-green-600">+0.2 tháng này</p>
               </div>
             </div>
@@ -265,11 +306,11 @@ const Profile = () => {
               </label>
               {isEditing ? (
                 <Input
-                  value={editForm.fullName}
+                  value={editForm.fullName || ''}
                   onChange={(e) => handleInputChange('fullName', e.target.value)}
                 />
               ) : (
-                <p className="text-gray-900">{profile.fullName}</p>
+                <p className="text-gray-900">{profile.fullName || profile.username}</p>
               )}
             </div>
 
@@ -280,7 +321,7 @@ const Profile = () => {
               {isEditing ? (
                 <Input
                   type="email"
-                  value={editForm.email}
+                  value={editForm.email || ''}
                   onChange={(e) => handleInputChange('email', e.target.value)}
                 />
               ) : (
@@ -294,11 +335,11 @@ const Profile = () => {
               </label>
               {isEditing ? (
                 <Input
-                  value={editForm.phone}
+                  value={editForm.phone || ''}
                   onChange={(e) => handleInputChange('phone', e.target.value)}
                 />
               ) : (
-                <p className="text-gray-900">{profile.phone}</p>
+                <p className="text-gray-900">{profile.phone || 'Chưa cập nhật'}</p>
               )}
             </div>
 
@@ -308,12 +349,12 @@ const Profile = () => {
               </label>
               {isEditing ? (
                 <Textarea
-                  value={editForm.address}
+                  value={editForm.address || ''}
                   onChange={(e) => handleInputChange('address', e.target.value)}
                   rows={2}
                 />
               ) : (
-                <p className="text-gray-900">{profile.address}</p>
+                <p className="text-gray-900">{profile.address || 'Chưa cập nhật'}</p>
               )}
             </div>
 
@@ -323,12 +364,12 @@ const Profile = () => {
               </label>
               {isEditing ? (
                 <Textarea
-                  value={editForm.bio}
+                  value={editForm.bio || ''}
                   onChange={(e) => handleInputChange('bio', e.target.value)}
                   rows={3}
                 />
               ) : (
-                <p className="text-gray-900">{profile.bio}</p>
+                <p className="text-gray-900">{profile.bio || 'Chưa cập nhật'}</p>
               )}
             </div>
 
@@ -355,28 +396,28 @@ const Profile = () => {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Vị trí
               </label>
-              <p className="text-gray-900">{profile.position}</p>
+              <p className="text-gray-900">{profile.position || 'Sale Manager'}</p>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Phòng ban
               </label>
-              <p className="text-gray-900">{profile.department}</p>
+              <p className="text-gray-900">{profile.department || 'Sales'}</p>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Team
               </label>
-              <p className="text-gray-900">{profile.team}</p>
+              <p className="text-gray-900">{profile.team || 'Management'}</p>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Quản lý bởi
               </label>
-              <p className="text-gray-900">{profile.manager}</p>
+              <p className="text-gray-900">{profile.manager || 'Admin'}</p>
             </div>
 
             <div>
@@ -384,7 +425,7 @@ const Profile = () => {
                 Ngày tham gia
               </label>
               <p className="text-gray-900">
-                {new Date(profile.joinDate).toLocaleDateString('vi-VN')}
+                {new Date(profile.createdAt || Date.now()).toLocaleDateString('vi-VN')}
               </p>
             </div>
 
@@ -392,8 +433,8 @@ const Profile = () => {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Trạng thái
               </label>
-              <Badge className={profile.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
-                {profile.status === 'active' ? 'Hoạt động' : 'Không hoạt động'}
+              <Badge className="bg-green-100 text-green-800">
+                Hoạt động
               </Badge>
             </div>
           </CardContent>
@@ -403,7 +444,11 @@ const Profile = () => {
       {/* Logout */}
       <Card>
         <CardContent className="p-6">
-          <Button variant="outline" className="w-full text-red-600 border-red-200 hover:bg-red-50">
+          <Button 
+            variant="outline" 
+            className="w-full text-red-600 border-red-200 hover:bg-red-50"
+            onClick={handleLogout}
+          >
             <LogOut className="h-4 w-4 mr-2" />
             Đăng xuất
           </Button>

@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card"
 import { DollarSign, ShoppingCart, Users, Package, ClipboardList } from "lucide-react"
-import { getDashboardStats } from "@/services/SaleManager/ApiSaleManager";
+import { overview } from "@/services/SaleManager/ApiSaleManager";
 import { toast } from "sonner";
 
 export default function Dashboard() {
   const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchStats();
@@ -13,14 +14,31 @@ export default function Dashboard() {
 
   const fetchStats = async () => {
     try {
-      const res = await getDashboardStats();
-      setStats(res.data.stats || {});
+      setLoading(true);
+      const res = await overview();
+      console.log(res);
+      // Handle different possible response structures
+      const statsData = res.data?.stats || res.data || {};
+      setStats(statsData);
     } catch (error) {
+      console.error("Dashboard fetch error:", error);
       toast.error("Không thể tải dữ liệu dashboard");
+      // Set default stats to prevent UI errors
+      setStats({
+        todayRevenue: 0,
+        todayRevenueChange: 0,
+        newOrders: 0,
+        newOrdersChange: 0,
+        pendingTasks: 0,
+        urgentTasks: 0,
+        lowStockProducts: 0
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
-  if (!stats) {
+  if (loading) {
     return <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>;
   }
 
@@ -42,8 +60,8 @@ export default function Dashboard() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{(stats.todayRevenue || 0).toLocaleString('vi-VN')}₫</div>
-            <p className="text-xs text-muted-foreground">+{stats.todayRevenueChange || 0}% so với hôm qua</p>
+            <div className="text-2xl font-bold">{(stats?.todayRevenue || 0).toLocaleString('vi-VN')}₫</div>
+            <p className="text-xs text-muted-foreground">+{stats?.todayRevenueChange || 0}% so với hôm qua</p>
           </CardContent>
         </Card>
 
@@ -53,8 +71,8 @@ export default function Dashboard() {
             <ShoppingCart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.newOrders || 0}</div>
-            <p className="text-xs text-muted-foreground">+{stats.newOrdersChange || 0} đơn so với hôm qua</p>
+            <div className="text-2xl font-bold">{stats?.newOrders || 0}</div>
+            <p className="text-xs text-muted-foreground">+{stats?.newOrdersChange || 0} đơn so với hôm qua</p>
           </CardContent>
         </Card>
 
@@ -64,8 +82,8 @@ export default function Dashboard() {
             <ClipboardList className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.pendingTasks || 0}</div>
-            <p className="text-xs text-muted-foreground">{stats.urgentTasks || 0} task khẩn cấp</p>
+            <div className="text-2xl font-bold">{stats?.pendingTasks || 0}</div>
+            <p className="text-xs text-muted-foreground">{stats?.urgentTasks || 0} task khẩn cấp</p>
           </CardContent>
         </Card>
 
@@ -75,7 +93,7 @@ export default function Dashboard() {
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.lowStockProducts || 0}</div>
+            <div className="text-2xl font-bold">{stats?.lowStockProducts || 0}</div>
             <p className="text-xs text-muted-foreground">Cần nhập hàng gấp</p>
           </CardContent>
         </Card>

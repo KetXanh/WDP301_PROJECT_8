@@ -1,15 +1,48 @@
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { FileSpreadsheet, DollarSign, ShoppingCart, Users, Package } from "lucide-react"
-import { NavigationItem } from "./NavigationItem"
-import { SidebarHeader } from "./components/SidebarHeader"
-import { SidebarFooterContent } from "./components/SidebarFooter"
-
+import { FileSpreadsheet, DollarSign, ShoppingCart, Users, ClipboardList, UserCheck, TrendingUp } from "lucide-react"
+import { overview , productStatistics } from "@/services/SaleManager/ApiSaleManager"
+import { toast } from "sonner"
+import OrderStatistics from "./components/OrderForm"
+import ProductStatistics from "./components/ProductForm"
 export default function Statistics() {
+  const [stats, setStats] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetchStatistics()
+  }, [])
+
+  const fetchStatistics = async () => {
+    try {
+      setLoading(true)
+      const overviewRes = await overview()
+      const productRes = await productStatistics()
+      console.log("productRes: " + productRes.data.data)
+      setStats(overviewRes.data.data || {})
+    } catch {
+      toast.error("Không thể tải dữ liệu thống kê")
+      setStats({})
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const handleExportExcel = () => {
     console.log("Xuất báo cáo Excel")
     // Logic xuất Excel sẽ được implement sau
   }
+
+  if (loading) {
+    return <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>
+  }
+
+  // Lấy dữ liệu từ API response
+  const orders = stats?.orders || {}
+  const users = stats?.users || {}
+  const tasks = stats?.tasks || {}
+  const assignments = stats?.assignments || {}
 
   return (
     <div className="space-y-6">
@@ -34,75 +67,203 @@ export default function Statistics() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">2,350,000₫</div>
-            <p className="text-xs text-muted-foreground">+20.1% so với tháng trước</p>
+            <div className="text-2xl font-bold">
+              {orders.totalRevenue?.toLocaleString('vi-VN') || '0'}₫
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Tổng doanh thu từ tất cả đơn hàng
+            </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Đơn hàng</CardTitle>
+            <CardTitle className="text-sm font-medium">Tổng đơn hàng</CardTitle>
             <ShoppingCart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">145</div>
-            <p className="text-xs text-muted-foreground">+15% so với tháng trước</p>
+            <div className="text-2xl font-bold">{orders.totalOrders || 0}</div>
+            <p className="text-xs text-muted-foreground">
+              Tổng số đơn hàng trong hệ thống
+            </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Khách hàng</CardTitle>
+            <CardTitle className="text-sm font-medium">Tổng người dùng</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">892</div>
-            <p className="text-xs text-muted-foreground">+12% so với tháng trước</p>
+            <div className="text-2xl font-bold">{users.totalUsers || 0}</div>
+            <p className="text-xs text-muted-foreground">
+              Tổng số người dùng đã đăng ký
+            </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Sản phẩm</CardTitle>
-            <Package className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Tổng công việc</CardTitle>
+            <ClipboardList className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">234</div>
-            <p className="text-xs text-muted-foreground">Hiện có trong kho</p>
+            <div className="text-2xl font-bold">{tasks.totalTasks || 0}</div>
+            <p className="text-xs text-muted-foreground">
+              Tổng số công việc hiện tại
+            </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Biểu đồ và thống kê chi tiết */}
+      {/* Thống kê chi tiết */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
         <Card className="col-span-4">
           <CardHeader>
-            <CardTitle>Doanh thu theo ngày</CardTitle>
+            <CardTitle>Thống kê đơn hàng theo trạng thái</CardTitle>
             <CardDescription>
-              Biểu đồ doanh thu 30 ngày gần nhất
+              Phân bố đơn hàng theo trạng thái hiện tại
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="h-96 flex items-center justify-center bg-muted rounded-lg">
-              <p className="text-muted-foreground">Biểu đồ doanh thu sẽ được hiển thị ở đây</p>
+            <div className="space-y-4">
+              {orders.statusStats?.map((status, index) => (
+                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-4 h-4 rounded-full ${status._id === 'delivered' ? 'bg-green-500' : status._id === 'pending' ? 'bg-yellow-500' : status._id === 'processing' ? 'bg-blue-500' : status._id === 'cancelled' ? 'bg-red-500' : status._id === 'shipped' ? 'bg-purple-500' : 'bg-gray-500'}`} />
+                    <span className="text-sm font-medium capitalize">
+                      {status._id === 'delivered' ? 'Đã giao' : status._id === 'pending' ? 'Chờ xử lý' : status._id === 'processing' ? 'Đang xử lý' : status._id === 'cancelled' ? 'Đã hủy' : status._id === 'shipped' ? 'Đang giao' : status._id}
+                    </span>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-lg font-bold">{status.count}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {status.revenue?.toLocaleString('vi-VN') || '0'}₫
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>
 
         <Card className="col-span-3">
           <CardHeader>
-            <CardTitle>Sản phẩm bán chạy</CardTitle>
+            <CardTitle>Phân bố người dùng theo vai trò</CardTitle>
             <CardDescription>
-              Top sản phẩm bán nhiều nhất
+              Số lượng người dùng theo từng vai trò
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="h-96 flex items-center justify-center bg-muted rounded-lg">
-              <p className="text-muted-foreground">Danh sách sản phẩm bán chạy sẽ được hiển thị ở đây</p>
+            <div className="space-y-4">
+              {users.roleStats?.map((role, index) => (
+                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <UserCheck className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-medium">
+                      {role._id === 0 ? 'Khách hàng' : role._id === 1 ? 'Admin' : role._id === 2 ? 'Sale Manager' : role._id === 3 ? 'Product Manager' : role._id === 4 ? 'Sale Staff' : `Role ${role._id}`}
+                    </span>
+                  </div>
+                  <div className="text-lg font-bold">{role.count}</div>
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>
       </div>
+
+      {/* Thống kê công việc và phân công */}
+      <div className="grid gap-4 md:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Thống kê công việc</CardTitle>
+            <CardDescription>
+              Trạng thái các công việc hiện tại
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {tasks.statusStats?.map((status, index) => (
+                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-4 h-4 rounded-full ${status._id === 'pending' ? 'bg-yellow-500' : status._id === 'in-progress' ? 'bg-blue-500' : status._id === 'completed' ? 'bg-green-500' : 'bg-gray-500'}`} />
+                    <span className="text-sm font-medium capitalize">
+                      {status._id === 'pending' ? 'Chờ thực hiện' : status._id === 'in-progress' ? 'Đang thực hiện' : status._id === 'completed' ? 'Hoàn thành' : status._id}
+                    </span>
+                  </div>
+                  <div className="text-lg font-bold">{status.count}</div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Thống kê phân công</CardTitle>
+            <CardDescription>
+              Trạng thái các phân công hiện tại
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {assignments.statusStats?.map((status, index) => (
+                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-4 h-4 rounded-full ${status._id === 'pending' ? 'bg-yellow-500' : status._id === 'in-progress' ? 'bg-blue-500' : status._id === 'completed' ? 'bg-green-500' : 'bg-gray-500'}`} />
+                    <span className="text-sm font-medium capitalize">
+                      {status._id === 'pending' ? 'Chờ thực hiện' : status._id === 'in-progress' ? 'Đang thực hiện' : status._id === 'completed' ? 'Hoàn thành' : status._id}
+                    </span>
+                  </div>
+                  <div className="text-lg font-bold">{status.count}</div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Thống kê doanh thu theo tháng */}
+      {orders.revenueByMonth && orders.revenueByMonth.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Doanh thu theo tháng</CardTitle>
+            <CardDescription>
+              Thống kê doanh thu và số lượng đơn hàng theo tháng
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {orders.revenueByMonth.map((month, index) => (
+                <div key={index} className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <TrendingUp className="h-5 w-5 text-blue-600" />
+                    <div>
+                      <div className="font-medium">
+                        Tháng {month._id.month}/{month._id.year}
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        {month.orderCount} đơn hàng
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-lg font-bold text-green-600">
+                      {month.totalRevenue?.toLocaleString('vi-VN') || '0'}₫
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Danh sách đơn hàng có filter theo status */}
+      <OrderStatistics />
+
+      {/* Danh sách sản phẩm có filter theo status */}
+      <ProductStatistics />
     </div>
   )
 }

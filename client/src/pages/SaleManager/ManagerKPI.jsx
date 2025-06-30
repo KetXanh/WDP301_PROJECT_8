@@ -37,8 +37,10 @@ export default function ManagerKPI() {
   const fetchKPIs = async () => {
     try {
       const res = await getAllKPIs()
-      setKpis(res.data.kpis || [])
-    } catch (error) {
+      // Handle different possible response structures
+      const kpisData = res.data?.kpis || res.data || []
+      setKpis(kpisData)
+    } catch {
       toast.error("Không thể tải danh sách KPI")
     }
   }
