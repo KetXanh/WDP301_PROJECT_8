@@ -231,3 +231,134 @@ module.exports.removeMultipleItemsFromCart = async (req, res) => {
         });
     }
 };
+
+module.exports.addAddress = async (req, res) => {
+    try {
+        const userId = req.user?.username;
+
+        if (!userId) {
+            return res.status(401).json({
+                code: 401,
+                message: "Không tìm thấy người dùng. Vui lòng đăng nhập.",
+            });
+        }
+
+        const {
+            fullName,
+            phone,
+            street,
+            ward,
+            district,
+            province,
+            label,
+            isDefault = false
+        } = req.body;
+
+        if (!fullName || !phone || !street || !ward || !district || !province) {
+            return res.status(400).json({
+                code: 400,
+                message: "Vui lòng cung cấp đầy đủ thông tin: fullName, phone, street, ward, district, province"
+            });
+        }
+
+        const user = await Users.findOne({ username: userId });
+        if (!user) {
+            return res.status(404).json({
+                code: 404,
+                message: "Không tìm thấy người dùng"
+            });
+        }
+
+        const newAddress = {
+            fullName,
+            phone,
+            street,
+            ward,
+            district,
+            province,
+            label,
+            isDefault
+        };
+
+        if (isDefault) {
+            user.address = user.address.map(addr => ({
+                ...addr._doc,
+                isDefault: false
+            }));
+        }
+
+        user.address.push(newAddress);
+
+        await user.save();
+
+        return res.status(200).json({
+            code: 200,
+            message: "Thêm địa chỉ thành công",
+            address: newAddress
+        });
+    } catch (error) {
+        return res.status(500).json({
+            code: 500,
+            message: "Lỗi máy chủ",
+            error: error.message
+        });
+    }
+}
+
+module.exports.deleteAddress = async (req, res) => {
+    try {
+        const userId = req.user?.username;
+        const { addressId } = req.params;
+
+        if (!userId) {
+            return res.status(401).json({
+                code: 401,
+                message: "Không tìm thấy người dùng. Vui lòng đăng nhập.",
+            });
+        }
+
+        if (!addressId) {
+            return res.status(400).json({
+                code: 400,
+                message: "Vui lòng cung cấp addressId",
+            });
+        }
+
+        const user = await Users.findOne({ username: userId });
+        if (!user) {
+            return res.status(404).json({
+                code: 404,
+                message: "Không tìm thấy người dùng",
+            });
+        }
+
+        const addressIndex = user.address.findIndex(addr => addr._id.toString() === addressId);
+        if (addressIndex === -1) {
+            return res.status(404).json({
+                code: 404,
+                message: "Không tìm thấy địa chỉ",
+            });
+        }
+
+        const isDefaultAddress = user.address[addressIndex].isDefault;
+
+        user.address.splice(addressIndex, 1);
+
+        if (isDefaultAddress && user.address.length > 0) {
+            user.address[0].isDefault = true;
+        }
+
+        await user.save();
+
+        return res.status(200).json({
+            code: 200,
+            message: "Xóa địa chỉ thành công",
+        });
+    } catch (error) {
+        return res.status(500).json({
+            code: 500,
+            message: "Lỗi máy chủ",
+            error: error.message,
+        });
+    }
+};

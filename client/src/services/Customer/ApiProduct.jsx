@@ -54,3 +54,11 @@ export const removeMultiItemToCart = (productIds) => {
     })
 }
 
+export const addNewAddress = (addressData) => {
+    return instance.post(`/user/carts/new-address`, addressData)
+}
+
+export const deleteAddress = (addressId) => {
+    return instance.delete(`/user/carts/delete-address/${addressId}`)
+}
+
