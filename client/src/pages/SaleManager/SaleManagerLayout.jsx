@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Outlet, NavLink } from "react-router-dom";
+import { Outlet, NavLink, useNavigate } from "react-router-dom";
 import { 
   Sidebar, 
   SidebarContent, 
@@ -13,7 +13,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useDispatch, useSelector } from "react-redux";
 import { jwtDecode } from 'jwt-decode';
 import { logout } from '../../store/customer/authSlice';
-import { customerProfile } from '../../services/Customer/ApiAuth';
 import { toast } from "sonner";
 import {
   BarChart3,
@@ -60,6 +59,7 @@ export default function SaleManagerLayout() {
   const [user, setUser] = useState(null);
   const dispatch = useDispatch();
   const { open } = useSidebar();
+  const navigate = useNavigate();
 
   const accessToken = useSelector((state) => state.customer.accessToken);
 
@@ -78,11 +78,6 @@ export default function SaleManagerLayout() {
       title: "Quản lý task",
       url: "/sale-manager/task",
       icon: ClipboardList
-    },
-    {
-      title: "KPI nhân viên",
-      url: "/sale-manager/kpi",
-      icon: Users
     },
     {
       title: "Khuyến mãi",
@@ -106,32 +101,17 @@ export default function SaleManagerLayout() {
     }
   ];
 
-  const fetchProfile = async () => {
-    try {
-      const res = await customerProfile();
-      if (res.data && res.data.code === 200) {
-        setUser(res.data.user);
-      } else if (res.data && res.data.code === 401) {
-        dispatch(logout());
-        setIsLoggedIn(false);
-        setUser(null);
-      }
-    } catch (error) {
-      console.log('Lỗi gọi profile:', error.response?.status);
-      if (error.response?.status === 403 || error.response?.status === 401) {
-        dispatch(logout());
-        setIsLoggedIn(false);
-        setUser(null);
-      }
-    }
-  };
-
   useEffect(() => {
     if (accessToken) {
       try {
         const decoded = jwtDecode(accessToken);
         if (decoded.role === 2) { // Sale Manager role
-          fetchProfile();
+          setUser({
+            username: decoded.username,
+            email: decoded.email,
+            role: decoded.role,
+            avatar: decoded.avatar ? { url: decoded.avatar } : undefined
+          });
           setIsLoggedIn(true);
         }
       } catch (error) {
@@ -151,6 +131,7 @@ export default function SaleManagerLayout() {
     setUser(null);
     dispatch(logout());
     toast.success("Đăng xuất thành công");
+    navigate('/login');
     console.log('Đăng xuất thành công');
   };
 
@@ -226,18 +207,12 @@ export default function SaleManagerLayout() {
             {isLoggedIn && user ? (
               <>
                 <SidebarMenuItem>
-                  <SidebarMenuButton className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 text-white hover:from-emerald-600 hover:to-teal-700 transition-all duration-200 rounded-xl px-4 py-3 shadow-md hover:shadow-lg">
-                    <User className="h-5 w-5" />
-                    {open && <span className="text-sm font-semibold">Profile</span>}
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
                   <SidebarMenuButton 
                     onClick={handleLogout} 
                     className="w-full bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600 transition-all duration-200 rounded-xl px-4 py-3 shadow-md hover:shadow-lg"
                   >
                     <LogOut className="h-5 w-5" />
-                    {open && <span className="text-sm font-semibold">Đăng xuất</span>}
+                    <span className="text-sm font-semibold ml-2">Đăng xuất</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               </>

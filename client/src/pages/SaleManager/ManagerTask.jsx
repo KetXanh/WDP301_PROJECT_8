@@ -117,9 +117,29 @@ export default function ManagerTask() {
     setIsAssignmentFormOpen(true)
   }
 
-  const handleAssignToAll = () => {
-    toast.info("Chức năng này chưa được hỗ trợ trên API")
-  }
+  const handleAssignToAll = async () => {
+    // Lấy danh sách task chưa giao
+    const unassignedTasks = tasks.filter(task => !task.assignedTo || (Array.isArray(task.assignedTo) && task.assignedTo.length === 0));
+    if (unassignedTasks.length === 0 || saleStaff.length === 0) {
+      toast.error("Không có công việc hoặc nhân viên để giao việc");
+      return;
+    }
+    let successCount = 0;
+    let failCount = 0;
+    for (let task of unassignedTasks) {
+      for (let staff of saleStaff) {
+        try {
+          await createTaskAssignment({ taskId: task._id, assignedTo: [staff._id] });
+          successCount++;
+        } catch {
+          failCount++;
+        }
+      }
+    }
+    fetchTasks();
+    if (successCount > 0) toast.success(`Đã giao thành công ${successCount} công việc!`);
+    if (failCount > 0) toast.error(`${failCount} công việc không thể giao!`);
+  };
 
   const confirmDelete = async () => {
     try {

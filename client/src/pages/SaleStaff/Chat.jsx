@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { getChatUsers, getChatHistory, sendMessage } from '@/services/Chatbot/ApiChatbox';
 
 const Chat = () => {
   const [contacts, setContacts] = useState([]);
@@ -25,109 +26,44 @@ const Chat = () => {
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
-    // TODO: Fetch contacts and messages from API
-    // fetchContacts();
-    // fetchMessages();
-    
-    // Mock data
-    setContacts([
-      {
-        id: 1,
-        name: 'Manager A',
-        avatar: 'https://via.placeholder.com/40',
-        lastMessage: 'Báo cáo tháng này thế nào?',
-        timestamp: '10:30',
-        unread: 2,
-        online: true
-      },
-      {
-        id: 2,
-        name: 'Khách hàng ABC',
-        avatar: 'https://via.placeholder.com/40',
-        lastMessage: 'Cảm ơn bạn đã tư vấn',
-        timestamp: '09:15',
-        unread: 0,
-        online: false
-      },
-      {
-        id: 3,
-        name: 'Khách hàng XYZ',
-        avatar: 'https://via.placeholder.com/40',
-        lastMessage: 'Khi nào có thể giao hàng?',
-        timestamp: '08:45',
-        unread: 1,
-        online: true
-      },
-      {
-        id: 4,
-        name: 'Manager B',
-        avatar: 'https://via.placeholder.com/40',
-        lastMessage: 'Task mới đã được giao',
-        timestamp: 'Hôm qua',
-        unread: 0,
-        online: false
-      }
-    ]);
-
-    // Mock messages for first contact
-    setMessages([
-      {
-        id: 1,
-        sender: 'Manager A',
-        content: 'Chào bạn, báo cáo tháng này thế nào?',
-        timestamp: '10:30',
-        isOwn: false
-      },
-      {
-        id: 2,
-        sender: 'You',
-        content: 'Dạ chào manager, em đang chuẩn bị báo cáo',
-        timestamp: '10:32',
-        isOwn: true
-      },
-      {
-        id: 3,
-        sender: 'Manager A',
-        content: 'Tốt, gửi cho tôi trước 5h chiều nhé',
-        timestamp: '10:33',
-        isOwn: false
-      },
-      {
-        id: 4,
-        sender: 'You',
-        content: 'Vâng, em sẽ hoàn thành sớm',
-        timestamp: '10:35',
-        isOwn: true
-      }
-    ]);
-
-    if (contacts.length > 0) {
-      setSelectedContact(contacts[0]);
-    }
+    // Lấy danh sách user từ API
+    getChatUsers()
+      .then(users => {
+        setContacts(users || []);
+        if (users && users.length > 0) setSelectedContact(users[0]);
+      })
+      .catch(() => {
+        setContacts([]);
+      });
   }, []);
+
+  useEffect(() => {
+    if (selectedContact) {
+      getChatHistory(selectedContact._id)
+        .then(res => {
+          setMessages(res.messages || []);
+        })
+        .catch(() => setMessages([]));
+    }
+  }, [selectedContact]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
   const filteredContacts = contacts.filter(contact =>
-    contact.name.toLowerCase().includes(searchTerm.toLowerCase())
+    (contact.username?.toLowerCase() || contact.name?.toLowerCase() || '').includes(searchTerm.toLowerCase())
   );
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (newMessage.trim() && selectedContact) {
-      const message = {
-        id: Date.now(),
-        sender: 'You',
-        content: newMessage,
-        timestamp: new Date().toLocaleTimeString('vi-VN', { 
-          hour: '2-digit', 
-          minute: '2-digit' 
-        }),
-        isOwn: true
-      };
-      setMessages([...messages, message]);
-      setNewMessage('');
+      try {
+        const res = await sendMessage(selectedContact._id, newMessage);
+        setMessages([...messages, res.message]);
+        setNewMessage('');
+      } catch {
+        // handle error
+      }
     }
   };
 
@@ -183,8 +119,8 @@ const Chat = () => {
               <div className="flex items-center space-x-3">
                 <div className="relative">
                   <Avatar>
-                    <AvatarImage src={contact.avatar} alt={contact.name} />
-                    <AvatarFallback>{contact.name.charAt(0)}</AvatarFallback>
+                    <AvatarImage src={contact.avatar} alt={contact.username || contact.name} />
+                    <AvatarFallback>{(contact.username || contact.name || '').charAt(0)}</AvatarFallback>
                   </Avatar>
                   {contact.online && (
                     <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
@@ -193,7 +129,7 @@ const Chat = () => {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
                     <h4 className="text-sm font-medium text-gray-900 truncate">
-                      {contact.name}
+                      {contact.username || contact.name}
                     </h4>
                     <span className="text-xs text-gray-500">{contact.timestamp}</span>
                   </div>

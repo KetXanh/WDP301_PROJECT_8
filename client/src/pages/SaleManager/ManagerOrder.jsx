@@ -91,8 +91,34 @@ export default function ManagerOrder() {
   };
 
   const handleAssignToAll = async () => {
-    // TODO: Gọi API giao tất cả order cho nhân viên (nếu có)
-    toast.info("Chức năng này chưa được hỗ trợ trên API");
+    // Lấy danh sách order đang chờ xử lý
+    const pendingOrders = orders.filter(order => order.status === "pending");
+    if (pendingOrders.length === 0 || saleStaff.length === 0) {
+      toast.error("Không có order hoặc nhân viên để giao việc");
+      return;
+    }
+    // Shuffle order ngẫu nhiên
+    const shuffledOrders = [...pendingOrders].sort(() => Math.random() - 0.5);
+    // Chia đều order cho staff
+    const assignments = Array(saleStaff.length).fill().map(() => []);
+    shuffledOrders.forEach((order, idx) => {
+      assignments[idx % saleStaff.length].push(order);
+    });
+    let successCount = 0;
+    let failCount = 0;
+    for (let i = 0; i < saleStaff.length; i++) {
+      for (let order of assignments[i]) {
+        try {
+          await assignOrder(order._id, saleStaff[i]._id);
+          successCount++;
+        } catch {
+          failCount++;
+        }
+      }
+    }
+    fetchOrders();
+    if (successCount > 0) toast.success(`Đã giao thành công ${successCount} order!`);
+    if (failCount > 0) toast.error(`${failCount} order không thể giao!`);
   };
 
   const handleAssignmentComplete = async (staffId) => {

@@ -91,30 +91,33 @@ export function TaskAssignmentForm({ open, onOpenChange, onSubmit, task, saleSta
                     </FormControl>
                     <SelectContent>
                       {saleStaff.map((staff) => (
-                        <SelectItem key={staff.id} value={staff.name}>
-                          {staff.name}
+                        <SelectItem key={staff._id} value={staff._id}>
+                          {staff.username}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                   <div className="flex flex-wrap gap-2 mt-2">
-                    {field.value?.map((staff) => (
-                      <span
-                        key={staff}
-                        className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs flex items-center gap-1"
-                      >
-                        {staff}
-                        <button
-                          type="button"
-                          onClick={() => {
-                            field.onChange(field.value.filter((s) => s !== staff))
-                          }}
-                          className="hover:text-blue-600"
+                    {(Array.isArray(field.value) ? field.value : []).map((staffId) => {
+                      const staff = saleStaff.find(s => s._id === staffId);
+                      return (
+                        <span
+                          key={staffId}
+                          className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs flex items-center gap-1"
                         >
-                          ×
-                        </button>
-                      </span>
-                    ))}
+                          {staff ? staff.username : staffId}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              field.onChange(field.value.filter((s) => s !== staffId))
+                            }}
+                            className="hover:text-blue-600"
+                          >
+                            ×
+                          </button>
+                        </span>
+                      );
+                    })}
                   </div>
                   <FormMessage />
                 </FormItem>

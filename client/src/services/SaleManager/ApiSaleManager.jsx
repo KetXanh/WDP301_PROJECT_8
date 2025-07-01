@@ -53,23 +53,6 @@ export const getTaskAssignmentById = (assignmentId) => {
     return instance.get(`/saleManager/taskAssignment/assigned-tasks/${assignmentId}`)
 }
 
-// KPI Management APIs
-export const getAllKPIs = () => {
-    return instance.get('/saleManager/kpis')
-}
-
-export const createKPI = (kpiData) => {
-    return instance.post('/saleManager/kpis', kpiData)
-}
-
-export const updateKPI = (kpiId, kpiData) => {
-    return instance.put(`/saleManager/kpis/${kpiId}`, kpiData)
-}
-
-export const deleteKPI = (kpiId) => {
-    return instance.delete(`/saleManager/kpis/${kpiId}`)
-}
-
 // Discount Management APIs
 export const getAllDiscounts = () => {
     return instance.get('/saleManager/discounts')
@@ -133,11 +116,6 @@ export const orderStatistics = () => {
 export const customersStatistics = () => {
     return instance.get('/saleManager/statistics/customers')
 }
-
-export const kpiStatistics = () => {
-    return instance.get('/saleManager/statistics/kpi')
-}
-
 
 // Chat APIs
 export const getChatMessages = (receiverId) => {

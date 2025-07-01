@@ -25,14 +25,21 @@ module.exports.getStatistics = async (req, res) => {
         const totalOrders = await Orders.countDocuments(query);
         const revenueResult = await Orders.aggregate([
             { $match: query },
-            { $group: { _id: null, totalRevenue: { $sum: "$totalPrice" } } }
+            { $group: { _id: null, totalRevenue: { $sum: "$totalAmount" } } }
         ]);
         const totalRevenue = revenueResult[0]?.totalRevenue || 0;
+
+        // Tổng doanh thu chỉ tính các order đã giao thành công
+        const revenueByOrderResult = await Orders.aggregate([
+            { $match: { ...query, status: { $in: ["delivered", "completed"] } } },
+            { $group: { _id: null, totalRevenueByOrder: { $sum: "$totalAmount" } } }
+        ]);
+        const totalRevenueByOrder = revenueByOrderResult[0]?.totalRevenueByOrder || 0;
 
         // Thống kê theo trạng thái đơn hàng
         const orderStatusStats = await Orders.aggregate([
             { $match: query },
-            { $group: { _id: "$status", count: { $sum: 1 }, revenue: { $sum: "$totalPrice" } } }
+            { $group: { _id: "$status", count: { $sum: 1 }, revenue: { $sum: "$totalAmount" } } }
         ]);
 
         // Thống kê người dùng
@@ -50,7 +57,7 @@ module.exports.getStatistics = async (req, res) => {
                         year: { $year: "$createdAt" }, 
                         month: { $month: "$createdAt" } 
                     }, 
-                    totalRevenue: { $sum: "$totalPrice" },
+                    totalRevenue: { $sum: "$totalAmount" },
                     orderCount: { $sum: 1 }
                 } 
             },
@@ -63,7 +70,7 @@ module.exports.getStatistics = async (req, res) => {
             { 
                 $group: { 
                     _id: { year: { $year: "$createdAt" } }, 
-                    totalRevenue: { $sum: "$totalPrice" },
+                    totalRevenue: { $sum: "$totalAmount" },
                     orderCount: { $sum: 1 }
                 } 
             },
@@ -89,6 +96,7 @@ module.exports.getStatistics = async (req, res) => {
                 orders: {
                     totalOrders,
                     totalRevenue,
+                    totalRevenueByOrder,
                     statusStats: orderStatusStats,
                     revenueByMonth,
                     revenueByYear
@@ -287,7 +295,7 @@ module.exports.getOrderStatistics = async (req, res) => {
                         month: { $month: "$createdAt" } 
                     }, 
                     totalOrders: { $sum: 1 },
-                    totalRevenue: { $sum: "$totalPrice" }
+                    totalRevenue: { $sum: "$totalAmount" }
                 } 
             },
             { $sort: { "_id.year": 1, "_id.month": 1 } }
@@ -300,7 +308,7 @@ module.exports.getOrderStatistics = async (req, res) => {
                 $group: { 
                     _id: { year: { $year: "$createdAt" } }, 
                     totalOrders: { $sum: 1 },
-                    totalRevenue: { $sum: "$totalPrice" }
+                    totalRevenue: { $sum: "$totalAmount" }
                 } 
             },
             { $sort: { "_id.year": 1 } }
@@ -313,7 +321,7 @@ module.exports.getOrderStatistics = async (req, res) => {
                 $group: { 
                     _id: "$status", 
                     count: { $sum: 1 },
-                    revenue: { $sum: "$totalPrice" }
+                    revenue: { $sum: "$totalAmount" }
                 } 
             }
         ]);
@@ -325,7 +333,7 @@ module.exports.getOrderStatistics = async (req, res) => {
                 $group: { 
                     _id: { $dayOfWeek: "$createdAt" }, 
                     count: { $sum: 1 },
-                    revenue: { $sum: "$totalPrice" }
+                    revenue: { $sum: "$totalAmount" }
                 } 
             },
             { $sort: { "_id": 1 } }
@@ -338,7 +346,7 @@ module.exports.getOrderStatistics = async (req, res) => {
                 $group: {
                     _id: "$user",
                     totalOrders: { $sum: 1 },
-                    totalSpent: { $sum: "$totalPrice" }
+                    totalSpent: { $sum: "$totalAmount" }
                 }
             },
             { $sort: { totalSpent: -1 } },
@@ -357,7 +365,7 @@ module.exports.getOrderStatistics = async (req, res) => {
         const totalOrders = await Orders.countDocuments(query);
         const totalRevenue = await Orders.aggregate([
             { $match: query },
-            { $group: { _id: null, total: { $sum: "$totalPrice" } } }
+            { $group: { _id: null, total: { $sum: "$totalAmount" } } }
         ]);
 
         res.status(200).json({
@@ -486,8 +494,8 @@ module.exports.getLoyalCustomer = async (req, res) => {
                 $group: {
                     _id: "$user",
                     totalOrders: { $sum: 1 },
-                    totalSpent: { $sum: "$totalPrice" },
-                    averageOrderValue: { $avg: "$totalPrice" },
+                    totalSpent: { $sum: "$totalAmount" },
+                    averageOrderValue: { $avg: "$totalAmount" },
                     lastOrderDate: { $max: "$createdAt" },
                     firstOrderDate: { $min: "$createdAt" }
                 }
@@ -569,7 +577,7 @@ module.exports.getKPIStatistics = async (req, res) => {
         // Tổng doanh thu
         const revenueResult = await Orders.aggregate([
             { $match: query },
-            { $group: { _id: null, totalRevenue: { $sum: "$totalPrice" } } }
+            { $group: { _id: null, totalRevenue: { $sum: "$totalAmount" } } }
         ]);
         const totalRevenue = revenueResult[0]?.totalRevenue || 0;
 

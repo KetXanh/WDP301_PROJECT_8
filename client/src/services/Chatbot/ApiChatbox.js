@@ -22,7 +22,7 @@ export const updateMessage = async (messageId, content) => {
 
 export const getChatUsers = async () => {
     const response = await api.get('/chat/users');
-    return response.data;
+    return response.data.users ? response.data.users : response.data;
 }
 
 export const getReceiverUser = async (receiverId) => {

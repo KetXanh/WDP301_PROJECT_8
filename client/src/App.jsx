@@ -34,7 +34,6 @@ import SaleManagerLayout from "./pages/SaleManager/SaleManagerLayout";
 import Dashboard from "./pages/SaleManager/Dashboard";
 import Statistics from "./pages/SaleManager/Statistics";
 import ManagerTask from "./pages/SaleManager/ManagerTask";
-import ManagerKPI from "./pages/SaleManager/ManagerKPI";
 import ManagerDiscount from "./pages/SaleManager/ManagerDiscount";
 import Chat from "./pages/SaleManager/components/Chat";
 import ManagerOrder from "./pages/SaleManager/ManagerOrder";
@@ -156,7 +155,6 @@ function App() {
           <Route index element={<Dashboard />} />
           <Route path="statistics" element={<Statistics />} />
           <Route path="task" element={<ManagerTask />} />
-          <Route path="kpi" element={<ManagerKPI />} />
           <Route path="discount" element={<ManagerDiscount />} />
           <Route path="chat" element={<Chat />} />
           <Route path="order" element={<ManagerOrder />} />
