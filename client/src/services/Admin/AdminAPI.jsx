@@ -125,3 +125,5 @@ export const getOrderDetailByID = (orderId) => {
 export const getTotalOrders = async () => {
     return instance.get("productmanager/product/orders/total"); 
 };
+
+

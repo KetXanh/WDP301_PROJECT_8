@@ -26,7 +26,6 @@ import user02 from "../assets/user02.png";
 import user03 from "../assets/user03.png";
 
 export const links = [
-
   {
     href: "/admin",
     icon: FaChartBar,
