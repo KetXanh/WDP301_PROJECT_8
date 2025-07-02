@@ -58,6 +58,27 @@
         "usernameExists_profile": "Username already exists",
         "profileUpdateFail": "Update failed.",
         "profileUpdateError": "An error occurred while updating.",
-        "profileFetchError": "Failed to retrieve profile information"
+        "profileFetchError": "Failed to retrieve profile information",
+        "Cart": "",
+        "add_address_success": "Address added successfully",
+        "add_address_fail": "Failed to add address",
+        "missing_address_fields": "Please fill out all address information",
+        "delete_address_success": "Address deleted successfully",
+        "delete_address_fail": "Failed to delete address",
+        "delete_product_success": "Product removed successfully",
+        "delete_product_fail": "Failed to remove product",
+        "remove_selected_success": "Selected products removed successfully",
+        "remove_selected_fail": "Failed to remove selected products",
+        "increase_quantity_fail": "Failed to increase quantity",
+        "decrease_quantity_fail": "Failed to decrease quantity",
+        "cart_deleted": "Cart has been cleared. Please reload.",
+        "select_items_and_address": "Please select products and a shipping address",
+        "api_error": "Connection error to server",
+        "CheckOut": "",
+        "no_permission": "You don't have permission to place an order",
+        "please_login": "Please log in to place an order",
+        "order_success": "Order placed successfully",
+        "invalid_address": "Invalid shipping address",
+        "error_occurred": "An error occurred while placing the order"
     }
 }

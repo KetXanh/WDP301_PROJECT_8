@@ -58,6 +58,27 @@
         "usernameExists_profile": "Tên Tài Khoản Đã Tồn Tại",
         "profileUpdateFail": "Cập nhật thất bại.",
         "profileUpdateError": "Có lỗi xảy ra khi cập nhật.",
-        "profileFetchError": "Lỗi Lấy Thông Tin Cá Nhân"
+        "profileFetchError": "Lỗi Lấy Thông Tin Cá Nhân",
+        "Cart": "",
+        "add_address_success": "Thêm địa chỉ thành công",
+        "add_address_fail": "Thêm địa chỉ thất bại",
+        "missing_address_fields": "Vui lòng điền đầy đủ thông tin địa chỉ",
+        "delete_address_success": "Xóa địa chỉ thành công",
+        "delete_address_fail": "Xóa địa chỉ thất bại",
+        "delete_product_success": "Xóa sản phẩm thành công",
+        "delete_product_fail": "Lỗi khi xóa sản phẩm",
+        "remove_selected_success": "Xóa thành công các sản phẩm đã chọn",
+        "remove_selected_fail": "Xóa thất bại",
+        "increase_quantity_fail": "Lỗi khi tăng số lượng",
+        "decrease_quantity_fail": "Lỗi khi giảm số lượng",
+        "cart_deleted": "Giỏ hàng đã bị xoá, vui lòng tải lại",
+        "select_items_and_address": "Vui lòng chọn sản phẩm và địa chỉ giao hàng",
+        "api_error": "Lỗi kết nối đến máy chủ",
+        "Checkout": "",
+        "no_permission": "Bạn Không có quyền đặt hàng",
+        "please_login": "Vui lòng đăng nhập để thực hiện đặt hàng",
+        "order_success": "Đặt hàng thành công",
+        "invalid_address": "Địa chỉ giao hàng không hợp lệ",
+        "error_occurred": "Đã xảy ra lỗi khi đặt hàng"
     }
 }

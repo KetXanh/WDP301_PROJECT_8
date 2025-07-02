@@ -13,14 +13,14 @@ import { Eye, EyeOff, User, Lock } from "lucide-react";
 import logo from "../../assets/NutiGo.png";
 import { customerLogin } from "../../services/Customer/ApiAuth";
 import { toast } from "react-toastify";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import { login } from "../../store/customer/authSlice";
 import LoginGoogle from "../../components/customer/LoginGoogle";
 import { jwtDecode } from "jwt-decode";
 import { useTranslation } from "react-i18next";
 import { GUEST_ID } from "../../store/customer/constans";
-import { addToCart, clearCart } from "../../store/customer/cartSlice";
+import { clearCart } from "../../store/customer/cartSlice";
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -30,7 +30,6 @@ const Login = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { t } = useTranslation(["message", "user"]);
-  const cartItems = useSelector((state) => state.cart.items);
   const handleInputChange = (e) => {
     setFormData({
       ...formData,
@@ -51,7 +50,6 @@ const Login = () => {
       if (!isValidEmail(formData.email)) {
         return toast.error(t('toast.invalidEmailFormat'));
       }
-      const guestCart = cartItems[GUEST_ID] ?? [];
       const res = await customerLogin(formData);
       if (res.data && res.data.code === 200) {
         const dataToken = {
@@ -59,18 +57,7 @@ const Login = () => {
           refreshToken: res.data?.refreshToken,
         };
         const decoded = jwtDecode(dataToken.accessToken);
-        const username = decoded?.username;
-        if (guestCart.length > 0 && username) {
-          guestCart.forEach(item => {
-            if (item && item.productId && item.quantity) {
-              dispatch(addToCart({
-                userId: username,
-                productId: item.productId.toString(), // ép về string
-                quantity: item.quantity
-              }));
-            }
-          });
-        }
+
         dispatch(login(dataToken));
         toast.success(t('toast.loginSuccess'));
 

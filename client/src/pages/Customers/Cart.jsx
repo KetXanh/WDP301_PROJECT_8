@@ -22,6 +22,7 @@ import { clearCart, decreaseQuantity, increaseQuantity, removeFromCart } from '.
 import { GUEST_ID } from '../../store/customer/constans';
 import { addNewAddress, address, decreItemToCart, increItemToCart, removeItemToCart, removeMultiItemToCart, deleteAddress } from '../../services/Customer/ApiProduct';
 import { toast } from 'react-toastify';
+import { useTranslation } from 'react-i18next';
 
 const EMPTY_ARRAY = [];
 
@@ -56,6 +57,8 @@ const Cart = () => {
         phone: '',
         isDefault: false
     });
+    const { t } = useTranslation(["message", "user"]);
+
     const dispatch = useDispatch();
 
     const getAddress = async () => {
@@ -66,7 +69,6 @@ const Cart = () => {
             }
         } catch (error) {
             console.log(error);
-            toast.error("Lỗi khi lấy danh sách địa chỉ");
         }
     };
 
@@ -95,13 +97,12 @@ const Cart = () => {
                     setSelectedAddress(newDefault ? newDefault.id : null);
                 }
                 await getAddress();
-                toast.success("Xóa địa chỉ thành công");
+                toast.success(t('toast.delete_address_success'));
             } else {
-                toast.error(res.data.message || "Xóa địa chỉ thất bại");
+                toast.error(t('toast.delete_address_fail'));
             }
         } catch (error) {
             console.error("Delete address failed:", error);
-            toast.error("Lỗi khi xóa địa chỉ");
         }
     };
 
@@ -126,13 +127,12 @@ const Cart = () => {
                 selectedProductIds.forEach(id => {
                     dispatch(removeFromCart({ userId: username, productId: id }));
                 });
-                toast.success("Xóa thành công các sản phẩm đã chọn");
+                toast.success(t('toast.remove_selected_success'));
             } else {
-                toast.error("Xóa thất bại");
+                toast.error(t('toast.remove_selected_fail'));
             }
         } catch (error) {
             console.log(error);
-            toast.error("Lỗi kết nối đến server");
         }
     };
 
@@ -151,11 +151,10 @@ const Cart = () => {
                 dispatch(increaseQuantity({ userId: username, productId: id }));
             } else if (res.data.code === 404) {
                 dispatch(clearCart({ userId: username }));
-                toast.error("Giỏ hàng đã bị xoá, vui lòng tải lại");
+                toast.error(t('toast.cart_deleted'));
             }
         } catch (error) {
             console.error("Increase failed:", error);
-            toast.error("Lỗi khi tăng số lượng");
         }
     };
 
@@ -167,11 +166,10 @@ const Cart = () => {
                 dispatch(decreaseQuantity({ userId: username, productId: id }));
             } else if (res.data.code === 404) {
                 dispatch(clearCart({ userId: username }));
-                toast.error("Giỏ hàng đã bị xoá, vui lòng tải lại");
+                toast.error(t('toast.cart_deleted'));
             }
         } catch (error) {
             console.error("Decrease failed:", error);
-            toast.error("Lỗi khi giảm số lượng");
         }
     };
 
@@ -181,14 +179,13 @@ const Cart = () => {
             const res = await removeItemToCart(id);
             if (res.data.code === 200) {
                 dispatch(removeFromCart({ userId: username, productId: id }));
-                toast.success("Xóa sản phẩm thành công");
+                toast.success(t('toast.delete_product_success'));
             } else if (res.data.code === 404) {
                 dispatch(clearCart({ userId: username }));
-                toast.error("Giỏ hàng đã bị xoá, vui lòng tải lại");
+                toast.error(t('toast.cart_deleted'));
             }
         } catch (error) {
             console.error("Remove failed:", error);
-            toast.error("Lỗi khi xóa sản phẩm");
         }
     };
 
@@ -203,7 +200,7 @@ const Cart = () => {
         if (selectedItems.length > 0 && selectedAddress !== null) {
             navigate('/checkout', { state: { selectedItems, selectedAddress: addresses.find(addr => addr.id === selectedAddress) } });
         } else {
-            toast.error("Vui lòng chọn sản phẩm và địa chỉ giao hàng");
+            toast.error(t('toast.select_items_and_address'));
         }
     };
 
@@ -254,16 +251,15 @@ const Cart = () => {
                     setIsAddressDialogOpen(false);
                     setSelectedAddress(res.data.address._id);
                     await getAddress();
-                    toast.success("Thêm địa chỉ thành công");
+                    toast.success(t('toast.add_address_success'));
                 } else {
-                    toast.error(res.data.message || "Thêm địa chỉ thất bại");
+                    toast.error(t('toast.add_address_fail'));
                 }
             } catch (error) {
                 console.error("Add address failed:", error);
-                toast.error("Lỗi khi thêm địa chỉ");
             }
         } else {
-            toast.error("Vui lòng điền đầy đủ thông tin địa chỉ");
+            toast.error(t('toast.missing_address_fields'));
         }
     };
 
@@ -274,14 +270,14 @@ const Cart = () => {
                     <div className="w-32 h-32 mx-auto bg-gradient-to-br from-emerald-100 to-teal-100 rounded-full flex items-center justify-center">
                         <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-full opacity-20"></div>
                     </div>
-                    <h1 className="text-3xl font-bold text-gray-800">Giỏ hàng trống</h1>
-                    <p className="text-gray-600 text-lg">Hãy thêm một số sản phẩm tuyệt vời vào giỏ hàng của bạn!</p>
+                    <h1 className="text-3xl font-bold text-gray-800">{t('user:cart.empty_title')}</h1>
+                    <p className="text-gray-600 text-lg">{t('user:cart.empty_message')}</p>
                     <Button
                         onClick={() => navigate('/products')}
                         size="lg"
                         className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 px-8 py-3 text-lg font-semibold"
                     >
-                        Khám Phá Sản Phẩm
+                        {t('user:cart.explore_products')}
                     </Button>
                 </div>
             </div>
@@ -295,15 +291,15 @@ const Cart = () => {
                 <div className="container mx-auto px-4 py-6">
                     <div className="flex items-center justify-between">
                         <div>
-                            <h1 className="text-3xl font-bold text-gray-800">Giỏ Hàng</h1>
-                            <p className="text-gray-600 mt-1">{cartItems.length} sản phẩm</p>
+                            <h1 className="text-3xl font-bold text-gray-800">{t('user:cart.title')}</h1>
+                            <p className="text-gray-600 mt-1">{cartItems.length} {t('user:cart.items_count')}</p>
                         </div>
                         <Button
                             variant="outline"
                             onClick={() => navigate('/products')}
                             className="hidden md:flex"
                         >
-                            Tiếp tục mua sắm
+                            {t('user:cart.continue_shopping')}
                         </Button>
                     </div>
                 </div>
@@ -324,7 +320,7 @@ const Cart = () => {
                                             onChange={handleSelectAll}
                                             className="h-5 w-5 text-emerald-600 rounded border-gray-300 focus:ring-emerald-500"
                                         />
-                                        <span className="text-gray-800 font-medium">Chọn tất cả ({cartItems.length})</span>
+                                        <span className="text-gray-800 font-medium">{t('user:cart.select_all')} ({cartItems.length})</span>
                                     </label>
                                     <Button
                                         variant="ghost"
@@ -333,7 +329,7 @@ const Cart = () => {
                                         className="text-red-600 hover:text-red-700 hover:bg-red-50"
                                     >
                                         <Trash2 className="h-4 w-4 mr-2" />
-                                        Xóa đã chọn
+                                        {t('user:cart.delete_selected')}
                                     </Button>
                                 </div>
                             </CardContent>
@@ -351,19 +347,21 @@ const Cart = () => {
                                                 onChange={() => toggleItemSelection(item.productId)}
                                                 className="h-5 w-5 text-emerald-600 rounded border-gray-300 focus:ring-emerald-500 mt-1"
                                             />
-                                            <div className="w-24 h-24 bg-gray-50 rounded-lg flex-shrink-0 overflow-hidden">
+                                            <Link to={`/products/${item.slug}`} className="w-24 h-24 bg-gray-50 rounded-lg flex-shrink-0 overflow-hidden">
                                                 <img
                                                     src={item.imageUrl}
                                                     alt={item.name}
                                                     className="w-full h-full object-cover"
                                                 />
-                                            </div>
+                                            </Link>
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex justify-between items-start">
                                                     <div className="flex-1">
-                                                        <h3 className="text-lg font-semibold text-gray-800 mb-1 line-clamp-2">
-                                                            {item.name}
-                                                        </h3>
+                                                        <Link to={`/products/${item.slug}`}>
+                                                            <h3 className="text-lg font-semibold text-gray-800 mb-1 line-clamp-2 hover:text-emerald-600">
+                                                                {item.name}
+                                                            </h3>
+                                                        </Link>
                                                         <p className="text-emerald-600 font-medium mb-3">
                                                             {item.price.toLocaleString('vi-VN')}đ
                                                         </p>
@@ -420,7 +418,7 @@ const Cart = () => {
                         <Card className="shadow-sm">
                             <CardHeader className="pb-2">
                                 <CardTitle className="text-xl font-bold text-gray-800 flex items-center">
-                                    Địa Chỉ Giao Hàng
+                                    {t('user:cart.shipping_address')}
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
@@ -437,7 +435,7 @@ const Cart = () => {
                                             <div>
                                                 <p className="text-lg font-semibold text-gray-800">{address.label}</p>
                                                 <p className="text-gray-600">{address.fullName} - {address.details}</p>
-                                                <p className="text-gray-600">Số điện thoại: {address.phone}</p>
+                                                <p className="text-gray-600">{t('user:cart.phone')}: {address.phone}</p>
                                             </div>
                                         </div>
                                         <Button
@@ -456,89 +454,89 @@ const Cart = () => {
                                             variant="outline"
                                             className="w-full text-emerald-600 border-emerald-600 hover:bg-emerald-50"
                                         >
-                                            + Thêm Địa Chỉ Mới
+                                            + {t('user:cart.add_new_address')}
                                         </Button>
                                     </DialogTrigger>
                                     <DialogContent className="sm:max-w-[425px]">
                                         <DialogHeader>
-                                            <DialogTitle>Thêm Địa Chỉ Mới</DialogTitle>
+                                            <DialogTitle>{t('user:cart.add_new_address')}</DialogTitle>
                                             <DialogDescription>
-                                                Nhập thông tin địa chỉ giao hàng mới của bạn.
+                                                {t('user:cart.add_address_description')}
                                             </DialogDescription>
                                         </DialogHeader>
                                         <div className="grid gap-4 py-4">
                                             <div className="grid gap-2">
-                                                <Label htmlFor="fullname">Tên người nhận</Label>
+                                                <Label htmlFor="fullname">{t('user:cart.receiver_name')}</Label>
                                                 <Input
                                                     id="fullname"
                                                     name="fullname"
-                                                    placeholder="Nhập tên người nhận"
+                                                    placeholder={t('user:cart.receiver_name')}
                                                     value={newAddress.fullname}
                                                     onChange={handleInputChange}
                                                 />
                                             </div>
                                             <div className="grid gap-2">
-                                                <Label htmlFor="label">Loại địa chỉ</Label>
+                                                <Label htmlFor="label">{t('user:cart.address_label')}</Label>
                                                 <Input
                                                     id="label"
                                                     name="label"
-                                                    placeholder="Nhà riêng, công ty, v.v..."
+                                                    placeholder={t('user:cart.label')}
                                                     value={newAddress.label}
                                                     onChange={handleInputChange}
                                                 />
                                             </div>
                                             <div className="grid gap-2">
-                                                <Label htmlFor="street">Số nhà, tên đường</Label>
+                                                <Label htmlFor="street">{t('user:cart.street')}</Label>
                                                 <Input
                                                     id="street"
                                                     name="street"
-                                                    placeholder="Số nhà, tên đường"
+                                                    placeholder={t('user:cart.street')}
                                                     value={newAddress.street}
                                                     onChange={handleInputChange}
                                                 />
                                             </div>
                                             <div className="grid gap-2">
-                                                <Label htmlFor="ward">Phường/Xã</Label>
+                                                <Label htmlFor="ward">{t('user:cart.ward')}</Label>
                                                 <Input
                                                     id="ward"
                                                     name="ward"
-                                                    placeholder="Phường/Xã"
+                                                    placeholder={t('user:cart.ward')}
                                                     value={newAddress.ward}
                                                     onChange={handleInputChange}
                                                 />
                                             </div>
                                             <div className="grid gap-2">
-                                                <Label htmlFor="district">Quận/Huyện</Label>
+                                                <Label htmlFor="district">{t('user:cart.district')}</Label>
                                                 <Input
                                                     id="district"
                                                     name="district"
-                                                    placeholder="Quận/Huyện"
+                                                    placeholder={t('user:cart.district')}
                                                     value={newAddress.district}
                                                     onChange={handleInputChange}
                                                 />
                                             </div>
                                             <div className="grid gap-2">
-                                                <Label htmlFor="province">Tỉnh/Thành phố</Label>
+                                                <Label htmlFor="province">{t('user:cart.province')}</Label>
                                                 <Input
                                                     id="province"
                                                     name="province"
-                                                    placeholder="Tỉnh/Thành phố"
+                                                    placeholder={t('user:cart.province')}
                                                     value={newAddress.province}
                                                     onChange={handleInputChange}
                                                 />
                                             </div>
                                             <div className="grid gap-2">
-                                                <Label htmlFor="phone">Số điện thoại</Label>
+                                                <Label htmlFor="phone">{t('user:cart.phone')}</Label>
                                                 <Input
                                                     id="phone"
                                                     name="phone"
-                                                    placeholder="Nhập số điện thoại"
+                                                    placeholder={t('user:cart.phone')}
                                                     value={newAddress.phone}
                                                     onChange={handleInputChange}
                                                 />
                                             </div>
                                             <div className="grid gap-2">
-                                                <Label>Đặt làm địa chỉ mặc định</Label>
+                                                <Label>{t('user:cart.set_default')}</Label>
                                                 <RadioGroup
                                                     value={newAddress.isDefault.toString()}
                                                     onValueChange={handleIsDefaultChange}
@@ -546,21 +544,21 @@ const Cart = () => {
                                                 >
                                                     <div className="flex items-center space-x-2">
                                                         <RadioGroupItem value="true" id="isDefaultTrue" />
-                                                        <Label htmlFor="isDefaultTrue">Có</Label>
+                                                        <Label htmlFor="isDefaultTrue">{t('user:cart.yes')}</Label>
                                                     </div>
                                                     <div className="flex items-center space-x-2">
                                                         <RadioGroupItem value="false" id="isDefaultFalse" />
-                                                        <Label htmlFor="isDefaultFalse">Không</Label>
+                                                        <Label htmlFor="isDefaultFalse">{t('user:cart.no')}</Label>
                                                     </div>
                                                 </RadioGroup>
                                             </div>
                                         </div>
                                         <DialogFooter>
                                             <Button variant="outline" onClick={() => setIsAddressDialogOpen(false)}>
-                                                Hủy
+                                                {t('user:cart.cancel')}
                                             </Button>
                                             <Button onClick={handleAddAddress}>
-                                                Thêm Địa Chỉ
+                                                {t('user:cart.add_new_address')}
                                             </Button>
                                         </DialogFooter>
                                     </DialogContent>
@@ -572,22 +570,22 @@ const Cart = () => {
                         <Card className="shadow-sm sticky top-4">
                             <CardHeader className="pb-4">
                                 <CardTitle className="text-xl font-bold text-gray-800">
-                                    Tóm Tắt Đơn Hàng
+                                    {t('user:cart.order_summary')}
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <div className="space-y-3">
                                     <div className="flex justify-between text-gray-600">
-                                        <span>Sản phẩm đã chọn:</span>
+                                        <span>{t('user:cart.items_selected')}</span>
                                         <span>{cartItems.filter(item => item.selected).length}</span>
                                     </div>
                                     <div className="flex justify-between text-gray-600">
-                                        <span>Tạm tính:</span>
+                                        <span>{t('user:cart.subtotal')}</span>
                                         <span>{totalPrice.toLocaleString('vi-VN')}đ</span>
                                     </div>
                                     <Separator />
                                     <div className="flex justify-between items-center">
-                                        <span className="text-lg font-semibold text-gray-800">Tổng cộng:</span>
+                                        <span className="text-lg font-semibold text-gray-800">{t('user:cart.total')}</span>
                                         <span className="text-2xl font-bold text-emerald-600">
                                             {totalPrice.toLocaleString('vi-VN')}đ
                                         </span>
@@ -599,10 +597,10 @@ const Cart = () => {
                                     onClick={handleCheckout}
                                     disabled={cartItems.filter(item => item.selected).length === 0 || selectedAddress === null}
                                 >
-                                    Thanh Toán
+                                    {t('user:cart.checkout')}
                                 </Button>
                                 <p className="text-xs text-gray-500 text-center">
-                                    Bằng cách thanh toán, bạn đồng ý với điều khoản sử dụng
+                                    {t('user:cart.agree_terms')}
                                 </p>
                             </CardContent>
                         </Card>
@@ -614,10 +612,10 @@ const Cart = () => {
             <section className="bg-gradient-to-r from-emerald-600 to-teal-600 py-16 mt-16">
                 <div className="container mx-auto px-4 text-center">
                     <h2 className="text-3xl font-bold text-white mb-4">
-                        Khám Phá Thêm Sản Phẩm
+                        {t('user:cart.discover_more')}
                     </h2>
                     <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
-                        Những sản phẩm hạt dinh dưỡng chất lượng cao đang chờ bạn
+                        {t('user:cart.discover_message')}
                     </p>
                     <Link to="/products">
                         <Button
@@ -625,7 +623,7 @@ const Cart = () => {
                             variant="secondary"
                             className="text-lg px-8 py-3 bg-white text-emerald-600 hover:bg-gray-50 shadow-lg hover:shadow-xl transition-all duration-300"
                         >
-                            Xem Tất Cả Sản Phẩm
+                            {t('user:cart.view_all_products')}
                         </Button>
                     </Link>
                 </div>
