@@ -17,6 +17,7 @@ import ForgotPassword from "./pages/Customers/ForgotPassword";
 import ForgotOtp from "./pages/Customers/ForgotOtp";
 import ResetPassword from "./pages/Customers/ResetPassword";
 import Profile from "./pages/Customers/Profile";
+import { useSelector } from "react-redux";
 
 // Admin Pages
 import Sidebar from "./components/admin/Sidebar";
@@ -33,11 +34,25 @@ import SaleManagerLayout from "./pages/SaleManager/SaleManagerLayout";
 import Dashboard from "./pages/SaleManager/Dashboard";
 import Statistics from "./pages/SaleManager/Statistics";
 import ManagerTask from "./pages/SaleManager/ManagerTask";
-import ManagerKPI from "./pages/SaleManager/ManagerKPI";
 import ManagerDiscount from "./pages/SaleManager/ManagerDiscount";
 import Chat from "./pages/SaleManager/components/Chat";
 import ManagerOrder from "./pages/SaleManager/ManagerOrder";
+import SaleManagerProfile from "./pages/SaleManager/Profile";
 
+//Sale Staff Pages
+import SaleStaffLayout from "./pages/SaleStaff/SaleStaffLayout";
+import SaleStaffDashboard from "./pages/SaleStaff/Dashboard";
+import SaleStaffStatistics from "./pages/SaleStaff/Statistics";
+import SaleStaffKPI from "./pages/SaleStaff/KPI";
+import SaleStaffOrders from "./pages/SaleStaff/Orders";
+import SaleStaffTasks from "./pages/SaleStaff/Tasks";
+import SaleStaffChat from "./pages/SaleStaff/Chat";
+import SaleStaffProfile from "./pages/SaleStaff/Profile";
+
+import ProductDetail from "./pages/Customers/ProductDetail";
+import ProtectedRoute from "./components/protectedRouter/ProtectedRoute";
+import { Car } from "lucide-react";
+import Cart from "./pages/Customers/Cart";
 //Sale Manager Pages
 import AdminDevLayout from "./pages/AdminDev/AdminDevLayout";
 import DashboardAdminDev from "./pages/AdminDev/Dashboard";
@@ -45,6 +60,7 @@ import StatisticsAdminDev from "./pages/AdminDev/Statistics";
 import AccountManagement from "./pages/AdminDev/AccountManagement";
 import ProductManagement from "./pages/AdminDev/ProductManagement";
 
+import Checkout from "./pages/Customers/Checkout";
 
 // Customer Layout
 const CustomerLayout = () => (
@@ -54,7 +70,7 @@ const CustomerLayout = () => (
       <Outlet />
     </main>
     <Footer />
-    <ToastContainer position="top-right" autoClose={5000} theme="light" />
+
   </div>
 );
 
@@ -74,9 +90,8 @@ const AdminLayout = ({
     <div className="flex">
       <Sidebar isSidebarOpen={isSidebarOpen} />
       <main
-        className={`flex-1 p-4 pt-20 transition-all duration-300 ${
-          isSidebarOpen ? "md:ml-40" : "md:ml-0"
-        }`}
+        className={`flex-1 p-4 pt-20 transition-all duration-300 ${isSidebarOpen ? "md:ml-40" : "md:ml-0"
+          }`}
       >
         <Outlet />
       </main>
@@ -85,11 +100,13 @@ const AdminLayout = ({
 );
 
 function App() {
+  const accessToken = useSelector((state) => state.customer.accessToken);
   const [darkMode, setDarkMode] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const toggleDarkMode = () => setDarkMode(!darkMode);
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
+
 
   return (
     <div className={darkMode ? "dark" : ""}>
@@ -101,10 +118,19 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/verify/:email" element={<Verify />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/product" element={<Products />} />
           <Route path="/otp" element={<ForgotOtp />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/products" element={<Products />} />
+          <Route path="/products/:slug" element={<ProductDetail />} />
+          <Route path="/cart" element={<Cart />} />
+          {accessToken &&
+            <>
+              <Route path="/profile" element={<ProtectedRoute element={<Profile />} />} />
+              <Route path="/checkout" element={<Checkout />} />
+            </>
+          }
+
         </Route>
 
         {/* Admin Routes */}
@@ -132,10 +158,21 @@ function App() {
           <Route index element={<Dashboard />} />
           <Route path="statistics" element={<Statistics />} />
           <Route path="task" element={<ManagerTask />} />
-          <Route path="kpi" element={<ManagerKPI />} />
           <Route path="discount" element={<ManagerDiscount />} />
           <Route path="chat" element={<Chat />} />
           <Route path="order" element={<ManagerOrder />} />
+          <Route path="profile" element={<SaleManagerProfile />} />
+        </Route>
+
+        {/* Sale Staff Routes */}
+        <Route path="/sale-staff" element={<SaleStaffLayout />}>
+          <Route index element={<SaleStaffDashboard />} />
+          <Route path="statistics" element={<SaleStaffStatistics />} />
+          <Route path="kpi" element={<SaleStaffKPI />} />
+          <Route path="orders" element={<SaleStaffOrders />} />
+          <Route path="tasks" element={<SaleStaffTasks />} />
+          <Route path="chat" element={<SaleStaffChat />} />
+          <Route path="profile" element={<SaleStaffProfile />} />
         </Route>
 
           {/* Admin Dev Routes */}
@@ -148,6 +185,7 @@ function App() {
         {/* Not Found */}
         <Route path="*" element={<NotFound />} />
       </Routes>
+      <ToastContainer position="top-right" autoClose={5000} theme="light" />
     </div>
   );
 }

@@ -13,59 +13,90 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useDispatch, useSelector } from 'react-redux';
 import { customerProfile } from '../../services/Customer/ApiAuth';
 import { logout } from '../../store/customer/authSlice';
-import logo from '../../assets/NutiGo.png'
+import logo from '../../assets/NutiGo.png';
+import { jwtDecode } from 'jwt-decode';
+import { GUEST_ID } from '../../store/customer/constans';
+
 const Header = () => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
+
     const [user, setUser] = useState(null);
     const navigate = useNavigate();
+    const dispatch = useDispatch();
 
     const accessToken = useSelector((state) => state.customer.accessToken);
-    const dispatch = useDispatch();
+    const username = React.useMemo(() => {
+        if (typeof accessToken === 'string' && accessToken.trim()) {
+            try {
+                const decoded = jwtDecode(accessToken);
+                return decoded.username || GUEST_ID;
+            } catch {
+                return GUEST_ID;
+            }
+        }
+        return GUEST_ID;
+    }, [accessToken]);
+    const cartItems = useSelector(
+        state => state.cart.items[username] ?? []
+    );
+
+    const badgeCount = cartItems.length === 0 ? 0 : cartItems.length;
 
     const profile = async () => {
         try {
-
             const res = await customerProfile();
             if (res.data && res.data.code === 200) {
-                setUser(res.data.user)
+                setUser(res.data.user);
             } else if (res.data && res.data.code === 401) {
                 dispatch(logout());
+                setIsLoggedIn(false);
+                setUser(null);
             }
         } catch (error) {
-            console.log("Lỗi gọi profile:", error.response?.status); // thêm dòng này
+            console.log('Lỗi gọi profile:', error.response?.status);
             if (error.response?.status === 403 || error.response?.status === 401) {
                 dispatch(logout());
+                setIsLoggedIn(false);
+                setUser(null);
             }
         }
-    }
+    };
 
     useEffect(() => {
         if (accessToken) {
-            profile();
-            setIsLoggedIn(true)
+            try {
+                const decoded = jwtDecode(accessToken);
+                if (decoded.role === 0) {
+                    profile();
+                    setIsLoggedIn(true);
+                }
+            } catch (error) {
+                console.error('Invalid token:', error);
+                dispatch(logout());
+                setIsLoggedIn(false);
+                setUser(null);
+            }
         } else {
-            setIsLoggedIn(false)
+            setIsLoggedIn(false);
+            setUser(null);
         }
-    }, [accessToken]);
+    }, [accessToken, dispatch]);
 
     const handleLogout = () => {
         setIsLoggedIn(false);
-        // Add logout logic here (clear tokens, redirect, etc.)
-        console.log('Đăng xuất thành công');
+        setUser(null);
         dispatch(logout());
+        navigate('/');
+        console.log('Đăng xuất thành công');
     };
-
-
-
-
 
     return (
         <header className="bg-white/95 backdrop-blur-sm shadow-sm sticky top-0 z-50">
-            <div className="container mx-auto px-4 py-4 ">
+            <div className="container mx-auto px-4 py-4">
                 <div className="flex items-center justify-between">
                     <Link to="/" className="flex items-center space-x-2">
                         <div className="w-10 h-10 rounded-full flex items-center justify-center">
-                            <img className='' src={logo} />
+                            <img className="" src={logo} alt="NutiGo Logo" />
                         </div>
                         <span className="text-2xl font-bold text-gray-800">NutiGo</span>
                     </Link>
@@ -78,8 +109,13 @@ const Header = () => {
                     </nav>
 
                     <div className="flex items-center space-x-4">
-                        <Button variant="ghost" size="icon">
+                        <Button onClick={() => navigate('/cart')} variant="ghost" size="icon" className="relative">
                             <ShoppingCart className="h-5 w-5" />
+                            {badgeCount > 0 && (
+                                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] leading-none rounded-full px-1.5 h-4 min-w-4 flex items-center justify-center">
+                                    {badgeCount}
+                                </span>
+                            )}
                         </Button>
 
                         {isLoggedIn ? (
@@ -97,9 +133,7 @@ const Header = () => {
                                 <DropdownMenuContent className="w-56" align="end" forceMount>
                                     <div className="flex flex-col space-y-1 p-2">
                                         <p className="text-sm font-medium leading-none">{user?.username}</p>
-                                        <p className="text-xs leading-none text-muted-foreground">
-                                            {user?.email}
-                                        </p>
+                                        <p className="text-xs leading-none text-muted-foreground">{user?.email}</p>
                                     </div>
                                     <DropdownMenuSeparator />
                                     <DropdownMenuItem className="cursor-pointer">
@@ -119,16 +153,13 @@ const Header = () => {
                         ) : (
                             <>
                                 <Link to="/login">
-                                    <Button variant="outline">
-                                        Đăng Nhập
-                                    </Button>
+                                    <Button variant="outline">Đăng Nhập</Button>
                                 </Link>
                                 <Link to="/register">
                                     <Button className="bg-gradient-to-r from-green-600 to-amber-600 hover:from-green-700 hover:to-amber-700">
                                         Đăng Ký
                                     </Button>
                                 </Link>
-
                             </>
                         )}
                     </div>

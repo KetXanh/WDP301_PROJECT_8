@@ -11,8 +11,8 @@ const baseProductSchema = new mongoose.Schema(
       public_id: String,
     },
     subCategory: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "SubCategories",
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'SubCategories'
     },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,

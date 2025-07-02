@@ -12,29 +12,10 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { toast } from 'sonner';
-// import { getChatUsers, getChatHistory, sendMessage, updateMessage, deleteMessage } from "@/services/Chatbot/ApiChatbox";
-
-// Mock data for UI testing
-const DEMO_USERS = [
-  { _id: 1, name: "Nguyễn Văn A", email: "nguyenvana@example.com", avatar: null, role: "staff", status: "online" },
-  { _id: 2, name: "Trần Thị B", email: "tranthib@example.com", avatar: null, role: "staff", status: "online" },
-  { _id: 3, name: "Lê Văn C", email: "levanc@example.com", avatar: null, role: "staff", status: "offline" },
-  { _id: 4, name: "Khách hàng 1", email: "khachhang1@example.com", avatar: null, role: "user", status: "online" },
-  { _id: 5, name: "Khách hàng 2", email: "khachhang2@example.com", avatar: null, role: "user", status: "offline" },
-];
-
-const DEMO_MESSAGES = {
-  1: [
-    { _id: 1, content: "Chào anh/chị", timestamp: new Date(), isCurrentUser: false },
-    { _id: 2, content: "Chào bạn, tôi có thể giúp gì cho bạn?", timestamp: new Date(), isCurrentUser: true },
-  ],
-  2: [
-    { _id: 1, content: "Báo cáo doanh số tháng này như thế nào?", timestamp: new Date(), isCurrentUser: false },
-  ],
-};
+import { getChatUsers, getChatHistory, sendMessage, updateMessage, deleteMessage } from "@/services/Chatbot/ApiChatbox";
 
 export default function Chat() {
-  const [users, setUsers] = useState(DEMO_USERS);
+  const [users, setUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
@@ -48,12 +29,15 @@ export default function Chat() {
 
   // Fetch users on component mount
   useEffect(() => {
-    // Simulate API call delay
     setLoading(true);
-    setTimeout(() => {
-      setUsers(DEMO_USERS);
-      setLoading(false);
-    }, 1000);
+    getChatUsers()
+      .then(users => {
+        setUsers(users || []);
+      })
+      .catch(() => {
+        toast.error('Không thể tải danh sách người dùng');
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   const scrollToBottom = () => {
@@ -66,28 +50,24 @@ export default function Chat() {
 
   useEffect(() => {
     if (selectedUser) {
-      // Simulate loading chat history
       setLoading(true);
-      setTimeout(() => {
-        setMessages(DEMO_MESSAGES[selectedUser._id] || []);
-        setLoading(false);
-      }, 500);
+      getChatHistory(selectedUser._id)
+        .then(res => {
+          setMessages(res.data.messages || []);
+        })
+        .catch(() => {
+          toast.error('Không thể tải lịch sử chat');
+        })
+        .finally(() => setLoading(false));
     }
   }, [selectedUser]);
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!newMessage.trim() || !selectedUser) return;
-
     try {
-      // Simulate API call
-      const newMsg = {
-        _id: Date.now(),
-        content: newMessage,
-        timestamp: new Date(),
-        isCurrentUser: true,
-      };
-      setMessages([...messages, newMsg]);
+      const res = await sendMessage(selectedUser._id, newMessage);
+      setMessages([...messages, res.data.message]);
       setNewMessage('');
       toast.success('Gửi tin nhắn thành công');
     } catch (error) {
@@ -98,7 +78,7 @@ export default function Chat() {
 
   const handleUpdateMessage = async (messageId, newContent) => {
     try {
-      // Simulate API call
+      await updateMessage(messageId, newContent);
       setMessages(messages.map(msg =>
         msg._id === messageId ? { ...msg, content: newContent, updatedAt: new Date() } : msg
       ));
@@ -113,7 +93,7 @@ export default function Chat() {
 
   const handleDeleteMessage = async (messageId) => {
     try {
-      // Simulate API call
+      await deleteMessage(messageId);
       setMessages(messages.filter(msg => msg._id !== messageId));
       toast.success('Xóa tin nhắn thành công');
       setMessageToDelete(null);
@@ -152,8 +132,8 @@ export default function Chat() {
 
   // Filter users based on search query and role filter
   const filteredUsers = users.filter(user => {
-    const matchesSearch = user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = (user.username?.toLowerCase() || user.name?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
+      (user.email?.toLowerCase() || '').includes(searchQuery.toLowerCase());
     const matchesRole = roleFilter === 'all' || user.role === roleFilter;
     return matchesSearch && matchesRole;
   });
@@ -214,7 +194,7 @@ export default function Chat() {
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium truncate">{user.name}</p>
+                    <p className="font-medium truncate">{user.username || user.name}</p>
                     <p className="text-xs text-muted-foreground truncate">
                       {user.role === "staff" ? "Nhân viên" : "Khách hàng"}
                     </p>
@@ -247,7 +227,7 @@ export default function Chat() {
                 </AvatarFallback>
               </Avatar>
               <div>
-                <h3 className="font-semibold">{selectedUser.name}</h3>
+                <h3 className="font-semibold">{selectedUser.username || selectedUser.name}</h3>
                 <p className="text-sm text-muted-foreground">
                   {selectedUser.role === "staff" ? "Nhân viên" : "Khách hàng"}
                 </p>

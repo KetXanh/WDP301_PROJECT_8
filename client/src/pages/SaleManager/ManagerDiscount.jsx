@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Plus, Pencil, Trash2 } from "lucide-react"
 import {
@@ -20,36 +20,30 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { toast } from "react-toastify"
+import { toast } from "sonner"
+import { getAllDiscounts, createDiscount, updateDiscount, deleteDiscount } from "@/services/SaleManager/ApiSaleManager"
 
 export default function ManagerDiscount() {
+  const [discounts, setDiscounts] = useState([])
   const [showForm, setShowForm] = useState(false)
   const [selectedDiscount, setSelectedDiscount] = useState(null)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [discountToDelete, setDiscountToDelete] = useState(null)
-  // Mock data - sẽ thay thế bằng data thật từ API
-  const [discounts, setDiscounts] = useState([
-    {
-      id: 1,
-      name: "Giảm giá mùa hè",
-      type: "percentage",
-      value: 20,
-      maxDiscount: 100000,
-      startDate: "2024-06-01",
-      endDate: "2024-08-31",
-      status: "active"
-    },
-    {
-      id: 2,
-      name: "Khuyến mãi tháng 5",
-      type: "fixed",
-      value: 50000,
-      maxDiscount: 50000,
-      startDate: "2024-05-01",
-      endDate: "2024-05-31",
-      status: "active"
+
+  useEffect(() => {
+    fetchDiscounts()
+  }, [])
+
+  const fetchDiscounts = async () => {
+    try {
+      const res = await getAllDiscounts()
+      // Handle different possible response structures
+      const discountsData = res.data?.discounts || res.data || []
+      setDiscounts(discountsData)
+    } catch {
+      toast.error("Không thể tải danh sách giảm giá")
     }
-  ])
+  }
 
   const handleAddNew = () => {
     setSelectedDiscount(null)
@@ -66,28 +60,30 @@ export default function ManagerDiscount() {
     setShowDeleteDialog(true)
   }
 
-  const handleDeleteConfirm = () => {
-    setDiscounts(discounts.filter(d => d.id !== discountToDelete.id))
+  const handleDeleteConfirm = async () => {
+    try {
+      await deleteDiscount(discountToDelete._id)
+      toast.success("Xóa chương trình giảm giá thành công")
+      fetchDiscounts()
+    } catch {
+      toast.error("Không thể xóa chương trình giảm giá")
+    }
     setShowDeleteDialog(false)
     setDiscountToDelete(null)
-    toast.success("Xóa chương trình giảm giá thành công")
   }
 
-  const handleFormSubmit = (data) => {
-    if (selectedDiscount) {
-      // Cập nhật
-      setDiscounts(discounts.map(d => 
-        d.id === selectedDiscount.id ? { ...d, ...data } : d
-      ))
-      toast.success("Cập nhật chương trình giảm giá thành công")
-    } else {
-      // Thêm mới
-      const newDiscount = {
-        id: Math.max(...discounts.map(d => d.id)) + 1,
-        ...data
+  const handleFormSubmit = async (data) => {
+    try {
+      if (selectedDiscount) {
+        await updateDiscount(selectedDiscount._id, data)
+        toast.success("Cập nhật chương trình giảm giá thành công")
+      } else {
+        await createDiscount(data)
+        toast.success("Thêm chương trình giảm giá thành công")
       }
-      setDiscounts([...discounts, newDiscount])
-      toast.success("Thêm chương trình giảm giá thành công")
+      fetchDiscounts()
+    } catch {
+      toast.error("Không thể lưu chương trình giảm giá")
     }
     setShowForm(false)
     setSelectedDiscount(null)

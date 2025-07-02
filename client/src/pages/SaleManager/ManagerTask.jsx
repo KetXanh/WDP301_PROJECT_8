@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Plus, Pencil, Trash2, Users, UserPlus } from "lucide-react"
 import {
@@ -21,41 +21,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { toast } from "react-toastify"
-
-// Mock data cho sale staff
-const saleStaff = [
-  { id: 1, name: "Nguyễn Văn A", email: "nguyenvana@example.com" },
-  { id: 2, name: "Trần Thị B", email: "tranthib@example.com" },
-  { id: 3, name: "Lê Văn C", email: "levanc@example.com" },
-]
+import { toast } from "sonner"
+import { getAllTasks, createTask, updateTask, deleteTask, getAllSaleStaff, createTaskAssignment } from "@/services/SaleManager/ApiSaleManager"
 
 export default function ManagerTask() {
-  const [tasks, setTasks] = useState([
-    {
-      id: 1,
-      title: "Tìm kiếm khách hàng tiềm năng",
-      description: "Tìm kiếm và liên hệ với khách hàng tiềm năng trong khu vực",
-      deadline: "2024-05-30",
-      priority: "high",
-      status: "pending",
-      assignedTo: ["Nguyễn Văn A"],
-      assignedBy: "Trần Thị B",
-      notes: "Ưu tiên khách hàng trong khu vực trung tâm"
-    },
-    {
-      id: 2,
-      title: "Báo cáo doanh số tháng 5",
-      description: "Tổng hợp và phân tích doanh số bán hàng tháng 5",
-      deadline: "2024-06-05",
-      priority: "medium",
-      status: "in-progress",
-      assignedTo: ["Lê Văn C"],
-      assignedBy: "Trần Thị B",
-      notes: "Báo cáo chi tiết theo từng sản phẩm"
-    }
-  ])
-
+  const [tasks, setTasks] = useState([])
+  const [saleStaff, setSaleStaff] = useState([])
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [isAssignmentFormOpen, setIsAssignmentFormOpen] = useState(false)
   const [selectedTask, setSelectedTask] = useState(null)
@@ -63,16 +34,30 @@ export default function ManagerTask() {
   const [taskToDelete, setTaskToDelete] = useState(null)
   const [isAssignAllDialogOpen, setIsAssignAllDialogOpen] = useState(false)
 
-  const getPriorityColor = (priority) => {
-    switch (priority) {
-      case 'high':
-        return 'bg-red-100 text-red-800'
-      case 'medium':
-        return 'bg-yellow-100 text-yellow-800'
-      case 'low':
-        return 'bg-green-100 text-green-800'
-      default:
-        return 'bg-gray-100 text-gray-800'
+  useEffect(() => {
+    fetchTasks()
+    fetchSaleStaff()
+  }, [])
+
+  const fetchTasks = async () => {
+    try {
+      const res = await getAllTasks()
+      // Sử dụng cấu trúc API response thực tế
+      const tasksData = res.data.tasks || []
+      setTasks(tasksData)
+    } catch {
+      toast.error("Không thể tải danh sách task")
+    }
+  }
+
+  const fetchSaleStaff = async () => {
+    try {
+      const res = await getAllSaleStaff()
+      // Handle different possible response structures
+      const staffData = res.data?.users || res.data || []
+      setSaleStaff(staffData)
+    } catch {
+      toast.error("Không thể tải danh sách nhân viên")
     }
   }
 
@@ -106,6 +91,12 @@ export default function ManagerTask() {
     }
   }
 
+  const getProgressColor = (progress) => {
+    if (progress >= 80) return 'bg-green-500'
+    if (progress >= 50) return 'bg-yellow-500'
+    return 'bg-red-500'
+  }
+
   const handleCreateTask = () => {
     setSelectedTask(null)
     setIsFormOpen(true)
@@ -126,68 +117,66 @@ export default function ManagerTask() {
     setIsAssignmentFormOpen(true)
   }
 
-  const handleAssignToAll = () => {
-    const pendingTasks = tasks.filter(task => task.status === 'pending')
-    if (pendingTasks.length === 0) {
-      toast.warning("Không có công việc nào đang chờ giao")
-      return
+  const handleAssignToAll = async () => {
+    // Lấy danh sách task chưa giao
+    const unassignedTasks = tasks.filter(task => !task.assignedTo || (Array.isArray(task.assignedTo) && task.assignedTo.length === 0));
+    if (unassignedTasks.length === 0 || saleStaff.length === 0) {
+      toast.error("Không có công việc hoặc nhân viên để giao việc");
+      return;
     }
-    setIsAssignAllDialogOpen(true)
-  }
-
-  const confirmAssignToAll = () => {
-    const updatedTasks = tasks.map(task => {
-      if (task.status === 'pending') {
-        return {
-          ...task,
-          assignedTo: saleStaff.map(staff => staff.name)
+    let successCount = 0;
+    let failCount = 0;
+    for (let task of unassignedTasks) {
+      for (let staff of saleStaff) {
+        try {
+          await createTaskAssignment({ taskId: task._id, assignedTo: [staff._id] });
+          successCount++;
+        } catch {
+          failCount++;
         }
       }
-      return task
-    })
-    setTasks(updatedTasks)
-    toast.success("Đã gán tất cả công việc đang chờ cho nhân viên")
-    setIsAssignAllDialogOpen(false)
+    }
+    fetchTasks();
+    if (successCount > 0) toast.success(`Đã giao thành công ${successCount} công việc!`);
+    if (failCount > 0) toast.error(`${failCount} công việc không thể giao!`);
+  };
+
+  const confirmDelete = async () => {
+    try {
+      await deleteTask(taskToDelete._id)
+      toast.success("Xóa công việc thành công")
+      fetchTasks()
+    } catch {
+      toast.error("Không thể xóa công việc")
+    }
+    setIsDeleteDialogOpen(false)
   }
 
-  const handleSubmit = (data) => {
-    if (selectedTask) {
-      // Update task
-      setTasks(tasks.map(task => 
-        task.id === selectedTask.id ? { ...task, ...data } : task
-      ))
-      toast.success("Cập nhật công việc thành công")
-    } else {
-      // Create new task
-      const newTask = {
-        id: tasks.length + 1,
-        ...data,
-        assignedTo: [],
-        assignedBy: "Trần Thị B" // Mock data - sẽ thay bằng user thật
+  const handleSubmit = async (data) => {
+    try {
+      if (selectedTask) {
+        await updateTask(selectedTask._id, data)
+        toast.success("Cập nhật công việc thành công")
+      } else {
+        await createTask(data)
+        toast.success("Thêm công việc mới thành công")
       }
-      setTasks([...tasks, newTask])
-      toast.success("Thêm công việc mới thành công")
+      fetchTasks()
+    } catch {
+      toast.error("Không thể lưu công việc")
     }
     setIsFormOpen(false)
   }
 
-  const handleAssignmentSubmit = (data) => {
-    const updatedTask = {
-      ...selectedTask,
-      assignedTo: data.selectedStaff,
-      notes: data.notes
+  const handleAssignmentSubmit = async (data) => {
+    try {
+      await createTaskAssignment({ taskId: selectedTask._id, assignedTo: data.selectedStaff, notes: data.notes })
+      toast.success("Đã gán công việc cho nhân viên được chọn")
+      fetchTasks()
+    } catch {
+      toast.error("Không thể gán công việc")
     }
-    setTasks(tasks.map(task => 
-      task.id === selectedTask.id ? updatedTask : task
-    ))
-    toast.success("Đã gán công việc cho nhân viên được chọn")
     setIsAssignmentFormOpen(false)
-  }
-
-  const confirmDelete = () => {
-    setTasks(tasks.filter(task => task.id !== taskToDelete.id))
-    setIsDeleteDialogOpen(false)
-    toast.success("Xóa công việc thành công")
   }
 
   return (
@@ -218,23 +207,38 @@ export default function ManagerTask() {
               <TableHead>Tiêu đề</TableHead>
               <TableHead>Mô tả</TableHead>
               <TableHead>Hạn chót</TableHead>
-              <TableHead>Độ ưu tiên</TableHead>
+              <TableHead>Tiến độ</TableHead>
               <TableHead>Trạng thái</TableHead>
               <TableHead>Đã giao cho</TableHead>
-              <TableHead>Ghi chú</TableHead>
+              <TableHead>Người tạo</TableHead>
+              <TableHead>Ngày tạo</TableHead>
               <TableHead className="text-right">Thao tác</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {tasks.map((task) => (
-              <TableRow key={task.id}>
+              <TableRow key={task._id}>
                 <TableCell className="font-medium">{task.title}</TableCell>
-                <TableCell>{task.description}</TableCell>
-                <TableCell>{new Date(task.deadline).toLocaleDateString('vi-VN')}</TableCell>
+                <TableCell className="max-w-xs truncate">{task.description}</TableCell>
                 <TableCell>
-                  <span className={`px-2 py-1 rounded-full text-xs ${getPriorityColor(task.priority)}`}>
-                    {task.priority === 'high' ? 'Cao' : task.priority === 'medium' ? 'Trung bình' : 'Thấp'}
-                  </span>
+                  {task.deadline ? (
+                    new Date(task.deadline).toLocaleDateString('vi-VN')
+                  ) : task.dueDate ? (
+                    new Date(task.dueDate).toLocaleDateString('vi-VN')
+                  ) : (
+                    <span className="text-gray-400">Chưa có</span>
+                  )}
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    <div className="w-16 bg-gray-200 rounded-full h-2">
+                      <div 
+                        className={`h-2 rounded-full ${getProgressColor(task.progress)}`}
+                        style={{ width: `${task.progress || 0}%` }}
+                      ></div>
+                    </div>
+                    <span className="text-xs text-gray-600">{task.progress || 0}%</span>
+                  </div>
                 </TableCell>
                 <TableCell>
                   <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(task.status)}`}>
@@ -242,19 +246,27 @@ export default function ManagerTask() {
                   </span>
                 </TableCell>
                 <TableCell>
-                  {task.assignedTo.length > 0 ? (
-                    <div className="flex flex-wrap gap-1">
-                      {task.assignedTo.map((staff, index) => (
-                        <span key={index} className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
-                          {staff}
-                        </span>
-                      ))}
-                    </div>
+                  {task.assignedTo ? (
+                    <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
+                      {task.assignedTo}
+                    </span>
                   ) : (
                     <span className="text-muted-foreground text-sm">Chưa giao</span>
                   )}
                 </TableCell>
-                <TableCell className="max-w-xs truncate">{task.notes}</TableCell>
+                <TableCell>
+                  {task.createdBy ? (
+                    <div className="text-sm">
+                      <div className="font-medium">{task.createdBy.username}</div>
+                      <div className="text-gray-500 text-xs">{task.createdBy.email}</div>
+                    </div>
+                  ) : (
+                    <span className="text-gray-400 text-sm">-</span>
+                  )}
+                </TableCell>
+                <TableCell className="text-xs text-gray-500">
+                  {new Date(task.createdAt).toLocaleDateString('vi-VN')}
+                </TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-1">
                     <Button
@@ -330,10 +342,11 @@ export default function ManagerTask() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Hủy</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmAssignToAll}>Xác nhận</AlertDialogAction>
+            <AlertDialogAction onClick={handleAssignToAll}>Xác nhận</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </div>
   )
 }
+

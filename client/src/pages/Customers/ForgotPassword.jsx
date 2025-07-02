@@ -29,11 +29,11 @@ const ForgotPassword = () => {
 
             if (res.data && res.data.code === 200) {
                 navigate(`/otp`, { state: { email } });
-                setIsLoading(false)
             } else if (res.data && res.data.code === 401) {
                 toast.error("Email Không Tồn Tại")
-                setIsLoading(false)
             }
+            setIsLoading(false)
+
         } catch (error) {
             console.log(error);
         }

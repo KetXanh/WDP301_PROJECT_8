@@ -1,111 +1,44 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Filter } from 'lucide-react';
+import { Search, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
 import ProductCard from '../../components/customer/ProductCard';
 import ProductFilters from '../../components/customer/ProductFilters';
+import { useNavigate } from 'react-router-dom';
+import { allProducts } from '../../services/Customer/ApiProduct';
+
 const Product = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [sortBy, setSortBy] = useState('name');
     const [selectedCategory, setSelectedCategory] = useState('all');
     const [priceRange, setPriceRange] = useState([0, 500000]);
+    const [allProduct, setAllProducts] = useState([]);
+    const [currentPage, setCurrentPage] = useState(1);
+    const productsPerPage = 9;
+    const navigate = useNavigate();
 
-    const allProducts = [
-        {
-            id: 1,
-            name: 'Hạt Óc Chó Cao Cấp',
-            price: 299000,
-            originalPrice: 350000,
-            image: '🥜',
-            rating: 4.8,
-            description: 'Hạt óc chó tươi ngon, giàu omega-3',
-            category: 'nuts',
-            inStock: true
-        },
-        {
-            id: 2,
-            name: 'Hạnh Nhân Mỹ',
-            price: 249000,
-            originalPrice: 280000,
-            image: '🌰',
-            rating: 4.9,
-            description: 'Hạnh nhân thơm ngon, bổ dưỡng',
-            category: 'nuts',
-            inStock: true
-        },
-        {
-            id: 3,
-            name: 'Hạt Điều Rang Muối',
-            price: 189000,
-            originalPrice: 220000,
-            image: '🥜',
-            rating: 4.7,
-            description: 'Hạt điều rang vàng giòn tan',
-            category: 'roasted',
-            inStock: true
-        },
-        {
-            id: 4,
-            name: 'Mix Nuts Premium',
-            price: 399000,
-            originalPrice: 450000,
-            image: '🌟',
-            rating: 5.0,
-            description: 'Hỗn hợp các loại hạt cao cấp',
-            category: 'mix',
-            inStock: true
-        },
-        {
-            id: 5,
-            name: 'Hạt Macca Úc',
-            price: 459000,
-            originalPrice: 520000,
-            image: '🌰',
-            rating: 4.9,
-            description: 'Hạt macca cao cấp từ Úc',
-            category: 'nuts',
-            inStock: true
-        },
-        {
-            id: 6,
-            name: 'Hạt Dẻ Cười Iran',
-            price: 329000,
-            originalPrice: 380000,
-            image: '🥜',
-            rating: 4.6,
-            description: 'Hạt dẻ cười thơm ngon từ Iran',
-            category: 'nuts',
-            inStock: false
-        },
-        {
-            id: 7,
-            name: 'Hạt Hạnh Nhân Rang',
-            price: 269000,
-            originalPrice: 300000,
-            image: '🌰',
-            rating: 4.8,
-            description: 'Hạnh nhân rang giòn thơm',
-            category: 'roasted',
-            inStock: true
-        },
-        {
-            id: 8,
-            name: 'Mix Nuts Organic',
-            price: 599000,
-            originalPrice: 680000,
-            image: '🌟',
-            rating: 4.9,
-            description: 'Hỗn hợp hạt hữu cơ cao cấp',
-            category: 'mix',
-            inStock: true
+    const products = async () => {
+        try {
+            const res = await allProducts();
+            if (res.data && res.data.code === 200) {
+                setAllProducts(res.data.data);
+            }
+        } catch (error) {
+            console.log("Lấy danh sách product không thành công", error);
         }
-    ];
+    };
 
-    const filteredProducts = allProducts.filter(product => {
+    useEffect(() => {
+        products();
+    }, []);
+
+
+    const filteredProducts = allProduct.filter(product => {
         const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory;
+        const matchesCategory = selectedCategory === 'all' || product.category?.name === selectedCategory;
         const matchesPrice = product.price >= priceRange[0] && product.price <= priceRange[1];
+
         return matchesSearch && matchesCategory && matchesPrice;
     });
 
@@ -121,6 +54,33 @@ const Product = () => {
                 return a.name.localeCompare(b.name);
         }
     });
+
+    // Pagination logic
+    const totalPages = Math.ceil(sortedProducts.length / productsPerPage);
+    const indexOfLastProduct = currentPage * productsPerPage;
+    const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
+    const currentProducts = sortedProducts.slice(indexOfFirstProduct, indexOfLastProduct);
+
+    const handlePageChange = (pageNumber) => {
+        setCurrentPage(pageNumber);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    const handlePrevPage = () => {
+        if (currentPage > 1) {
+            setCurrentPage(currentPage - 1);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    };
+
+    const handleNextPage = () => {
+        if (currentPage < totalPages) {
+            setCurrentPage(currentPage + 1);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    };
+
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-green-50 to-amber-50">
             <div className="container mx-auto px-4 py-8">
@@ -148,7 +108,7 @@ const Product = () => {
                             <SelectItem value="name">Tên A-Z</SelectItem>
                             <SelectItem value="price-low">Giá thấp đến cao</SelectItem>
                             <SelectItem value="price-high">Giá cao đến thấp</SelectItem>
-                            <SelectItem value="rating">Đánh giá cao nhất</SelectItem>
+                            {/* <SelectItem value="rating">Đánh giá cao nhất</SelectItem> */}
                         </SelectContent>
                     </Select>
                 </div>
@@ -168,17 +128,17 @@ const Product = () => {
                     <div className="lg:col-span-3">
                         <div className="mb-4 flex justify-between items-center">
                             <p className="text-gray-600">
-                                Hiển thị {sortedProducts.length} / {allProducts.length} sản phẩm
+                                Hiển thị {currentProducts.length} / {allProduct.length} sản phẩm
                             </p>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                            {sortedProducts.map((product) => (
-                                <ProductCard key={product.id} product={product} />
+                            {currentProducts.map((product) => (
+                                <ProductCard onClick={() => navigate(`/products/${product.slug}`)} key={product.slug} product={product} />
                             ))}
                         </div>
 
-                        {sortedProducts.length === 0 && (
+                        {currentProducts.length === 0 && (
                             <div className="text-center py-12">
                                 <p className="text-gray-500 text-lg">Không tìm thấy sản phẩm nào phù hợp</p>
                                 <Button
@@ -187,10 +147,48 @@ const Product = () => {
                                         setSearchTerm('');
                                         setSelectedCategory('all');
                                         setPriceRange([0, 500000]);
+                                        setCurrentPage(1);
                                     }}
                                     className="mt-4"
                                 >
                                     Xóa bộ lọc
+                                </Button>
+                            </div>
+                        )}
+
+                        {/* Pagination */}
+                        {totalPages > 1 && (
+                            <div className="mt-8 flex justify-center items-center gap-2">
+                                <Button
+                                    variant="outline"
+                                    size="icon"
+                                    onClick={handlePrevPage}
+                                    disabled={currentPage === 1}
+                                    className="bg-white hover:bg-gray-100"
+                                >
+                                    <ChevronLeft className="h-4 w-4" />
+                                </Button>
+                                {[...Array(totalPages)].map((_, index) => (
+                                    <Button
+                                        key={index + 1}
+                                        variant={currentPage === index + 1 ? "default" : "outline"}
+                                        size="sm"
+                                        onClick={() => handlePageChange(index + 1)}
+                                        className={currentPage === index + 1
+                                            ? "bg-green-600 text-white hover:bg-green-700"
+                                            : "bg-white hover:bg-gray-100"}
+                                    >
+                                        {index + 1}
+                                    </Button>
+                                ))}
+                                <Button
+                                    variant="outline"
+                                    size="icon"
+                                    onClick={handleNextPage}
+                                    disabled={currentPage === totalPages}
+                                    className="bg-white hover:bg-gray-100"
+                                >
+                                    <ChevronRight className="h-4 w-4" />
                                 </Button>
                             </div>
                         )}

@@ -29,7 +29,6 @@ const ForgotOtp = () => {
 
             if (res.data && res.data.code === 200) {
                 navigate('/reset-password', { state: { email } })
-                setIsLoading(false)
             } else if (res.data && res.data.code === 400) {
                 toast.error("Mã OTP Không Đúng")
             } else if (res.data && res.data.code === 401) {
@@ -37,9 +36,11 @@ const ForgotOtp = () => {
             } else {
                 toast.error("Gửi OTP Thất Bại")
             }
+            setIsLoading(false)
+
         } catch (error) {
             console.log(error);
-
+            setIsLoading(false)
         }
     };
 

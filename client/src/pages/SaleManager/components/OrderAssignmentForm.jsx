@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
+import { assignOrder } from "@/services/SaleManager/ApiSaleManager";
 
 const formSchema = z.object({
   selectedStaff: z.string().min(1, "Vui lòng chọn nhân viên"),
@@ -47,21 +48,21 @@ export default function OrderAssignmentForm({ open, onOpenChange, order, staffLi
   const onSubmit = async (data) => {
     try {
       setLoading(true);
-      
       if (!data.selectedStaff) {
         toast.error("Vui lòng chọn nhân viên");
         return;
       }
-
-      // TODO: Replace with actual API call
-      console.log("Assigning order to staff:", data.selectedStaff);
+      // Gọi API gán order
+      await assignOrder(order._id, data.selectedStaff);
       toast.success("Giao order thành công");
-
       onAssign();
       onOpenChange(false);
     } catch (error) {
-      console.error("Error assigning order:", error);
-      toast.error("Không thể giao order");
+      if (error.response && error.response.data && error.response.data.message) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error("Không thể giao order");
+      }
     } finally {
       setLoading(false);
     }
@@ -94,7 +95,7 @@ export default function OrderAssignmentForm({ open, onOpenChange, order, staffLi
                     <SelectContent>
                       {staffList.map((staff) => (
                         <SelectItem key={staff._id} value={staff._id}>
-                          {staff.name} (Số order hiện tại: {staffOrderCounts[staff._id] || 0})
+                          {staff.username} (Số order hiện tại: {staffOrderCounts[staff._id] || 0})
                         </SelectItem>
                       ))}
                     </SelectContent>
