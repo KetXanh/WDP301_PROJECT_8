@@ -35,7 +35,6 @@ module.exports.login = async (req, res) => {
             })
         }
 
-
         const dataToken = {
             username: user.username,
             email: user.email,

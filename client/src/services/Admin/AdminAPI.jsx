@@ -86,3 +86,34 @@ export const updateSubCategory = (id, subCategoryData) => {
 export const deleteSubCategory = (id) => {
   return instance.delete(`/productmanager/category/deleteSubCategory/${id}`);
 };
+
+
+//API cho AdminDev
+//Lấy danh sách tất cả người dùng
+export const getAllUser = () => {
+  return instance.get("/admin/getAllUser");
+};
+
+//Biểu đồ thống kê người dùng
+export const getUserStats = () => {
+  return instance.get("/admin-dev/stats");
+}
+
+// Thay đổi vai trò của người dùng
+export const changeRole = (id, roleData) => {
+  return instance.put(`/admin/changeRole/${id}`, roleData);
+}
+
+// Cấm người dùng
+export const banUser = (id) => {
+  return instance.patch(`/admin/ban/${id}`);
+}   
+// Bỏ cấm người dùng
+export const unbanUser = (id) => {  
+  return instance.patch(`/admin/unban/${id}`);
+}
+
+//Lấy danh sách tất cả sản phẩm 
+export const getAllProduct = () => {
+  return instance.get("/admin/getAllProduct");
+};

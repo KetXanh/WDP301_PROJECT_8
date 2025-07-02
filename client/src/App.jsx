@@ -40,7 +40,10 @@ import ManagerOrder from "./pages/SaleManager/ManagerOrder";
 
 //Sale Manager Pages
 import AdminDevLayout from "./pages/AdminDev/AdminDevLayout";
-
+import DashboardAdminDev from "./pages/AdminDev/Dashboard";
+import StatisticsAdminDev from "./pages/AdminDev/Statistics";
+import AccountManagement from "./pages/AdminDev/AccountManagement";
+import ProductManagement from "./pages/AdminDev/ProductManagement";
 
 
 // Customer Layout
@@ -137,7 +140,10 @@ function App() {
 
           {/* Admin Dev Routes */}
         <Route path="/admin-dev" element={<AdminDevLayout/>}>
-            
+          <Route index element={<DashboardAdminDev/>}/>
+          <Route path="stats" element={<StatisticsAdminDev/>}/>
+          <Route path="accmanage" element={<AccountManagement/>}/>
+          <Route path="productmanagement" element={<ProductManagement/>}/>
         </Route>
         {/* Not Found */}
         <Route path="*" element={<NotFound />} />

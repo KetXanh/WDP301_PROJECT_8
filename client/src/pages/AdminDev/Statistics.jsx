@@ -1,16 +1,49 @@
+import { useEffect, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { FileSpreadsheet, DollarSign, ShoppingCart, Users, Package } from "lucide-react"
-import { NavigationItem } from "./NavigationItem"
-import { SidebarHeader } from "./components/SidebarHeader"
-import { SidebarFooterContent } from "./components/SidebarFooter"
+import { getUserStats } from "../../services/Admin/AdminAPI"
+import { Pie } from "react-chartjs-2"
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js"
+ChartJS.register(ArcElement, Tooltip, Legend)
 
-export default function Statistics() {
+export default function StatisticsAdminDev() {
+  const [stats, setStats] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchUserStats = async () => {
+      try {
+        const response = await getUserStats()
+        setStats(response.data.statistics)
+      } catch (error) {
+        setStats(null)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchUserStats()
+  }, [])
+
   const handleExportExcel = () => {
     console.log("Xuất báo cáo Excel")
-    // Logic xuất Excel sẽ được implement sau
   }
 
+  //Chuẩn bị data cho Pie Chart
+  const pieData = stats ? {
+    labels: stats.userByRole.map(r => r.role),
+    datasets: [
+      {
+        label: "Số lượng người dùng",
+        data: stats.userByRole.map(r => r.count),
+        backgroundColor: [
+              "#6366f1", "#10b981", "#f59e42", "#ef4444", "#a21caf"
+        ],
+        borderWidth: 1,
+      },
+    ],
+  }
+  : null
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -30,78 +63,39 @@ export default function Statistics() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Tổng doanh thu</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">2,350,000₫</div>
-            <p className="text-xs text-muted-foreground">+20.1% so với tháng trước</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Đơn hàng</CardTitle>
-            <ShoppingCart className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">145</div>
-            <p className="text-xs text-muted-foreground">+15% so với tháng trước</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Khách hàng</CardTitle>
+            <CardTitle className="text-sm font-medium">Tổng người dùng</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">892</div>
-            <p className="text-xs text-muted-foreground">+12% so với tháng trước</p>
+            <div className="text-2xl font-bold">{stats ? stats.totalUsers : "..."}</div>
+            <p className="text-xs text-muted-foreground">
+              {stats ? `${stats.activeUsers} active / ${stats.inactiveUsers} inactive` : ""}
+            </p>
           </CardContent>
         </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Sản phẩm</CardTitle>
-            <Package className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">234</div>
-            <p className="text-xs text-muted-foreground">Hiện có trong kho</p>
-          </CardContent>
-        </Card>
+        {/* ...Các Card khác giữ nguyên hoặc thêm tùy ý... */}
       </div>
 
-      {/* Biểu đồ và thống kê chi tiết */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="col-span-4">
+      {/* Biểu đồ users by role */}
+      <div className="grid gap-4 md:grid-cols-2">
+        <Card>
           <CardHeader>
-            <CardTitle>Doanh thu theo ngày</CardTitle>
+            <CardTitle>Phân bố người dùng theo vai trò</CardTitle>
             <CardDescription>
-              Biểu đồ doanh thu 30 ngày gần nhất
+              Thống kê số lượng người dùng theo từng vai trò
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="h-96 flex items-center justify-center bg-muted rounded-lg">
-              <p className="text-muted-foreground">Biểu đồ doanh thu sẽ được hiển thị ở đây</p>
-            </div>
+            {loading ? (
+              <div>Đang tải biểu đồ...</div>
+            ) : stats && pieData ? (
+              <Pie data={pieData} />
+            ) : (
+              <div>Không có dữ liệu</div>
+            )}
           </CardContent>
         </Card>
-
-        <Card className="col-span-3">
-          <CardHeader>
-            <CardTitle>Sản phẩm bán chạy</CardTitle>
-            <CardDescription>
-              Top sản phẩm bán nhiều nhất
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-96 flex items-center justify-center bg-muted rounded-lg">
-              <p className="text-muted-foreground">Danh sách sản phẩm bán chạy sẽ được hiển thị ở đây</p>
-            </div>
-          </CardContent>
-        </Card>
+        {/* ...Bạn có thể thêm các biểu đồ khác ở đây... */}
       </div>
     </div>
   )
