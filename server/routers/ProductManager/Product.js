@@ -5,7 +5,8 @@ const { upload } = require('../../middleware/upload.middleware');
 const { uploadExcel } = require("../../middleware/uploadExcel.middleware");
 const controller = require('../../controller/ProductManager/productController');
 const ordersController = require('../../controller/ProductManager/orderController') ;
-const ratingController = require('../../controller/ProductManager/ratingController')
+const ratingController = require('../../controller/ProductManager/ratingController');
+const discountController = require('../../controller/ProductManager/discountController');
 
 router.get('/getAllProducts', controller.getAllProducts);
 router.get('/getProductById/:id', controller.getProductById);
@@ -27,5 +28,11 @@ router.post("/orders",  Authozation.authenticateToken, Authozation.authorizeRole
 router.put("/order/status/:orderId", Authozation.authenticateToken, Authozation.authorizeRoles(3), ordersController.updateOrderStatus);
 router.get("/ratings/:productId", ratingController.getRatingsByProduct);
 router.post("/ratings", Authozation.authenticateToken, Authozation.authorizeRoles(3), ratingController.createRating);
+
+router.post("/discount",Authozation.authenticateToken, Authozation.authorizeRoles(3), discountController.createDiscount);
+router.get("/discount",Authozation.authenticateToken, Authozation.authorizeRoles(3), discountController.getAllDiscounts);
+router.get("/discount/:id",Authozation.authenticateToken, Authozation.authorizeRoles(3), discountController.getDiscountById);
+router.put("/discount/:id", Authozation.authenticateToken, Authozation.authorizeRoles(3),discountController.updateDiscount);
+router.delete("/discount/:id", Authozation.authenticateToken, Authozation.authorizeRoles(3),discountController.deleteDiscount);
 
 module.exports = router;

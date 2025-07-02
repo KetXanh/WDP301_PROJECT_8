@@ -3,6 +3,7 @@ const router = express.Router();
 const Authozation = require("../../middleware/auth")
 const { upload } = require('../../middleware/upload.middleware');
 const controller = require('../../controller/ProductManager/category.controller');
+const discountController = require("../../controller/ProductManager/discountController");
 
 
 router.get('/getAllCategories', controller.getAllCategories);
@@ -21,5 +22,11 @@ router.post('/createSubCategory', Authozation.authenticateToken, Authozation.aut
 router.put('/updateSubCategory/:id', Authozation.authenticateToken, Authozation.authorizeRoles(3), controller.updateSubCategory);
 router.delete('/deleteSubCategory/:id', Authozation.authenticateToken, Authozation.authorizeRoles(3), controller.deleteSubCategory);
 router.put('/activeSubCategory/:id', Authozation.authenticateToken, Authozation.authorizeRoles(3), controller.activeSubCategory);
+
+router.post("/discount", discountController.createDiscount);
+router.get("/discount", discountController.getAllDiscounts);
+router.get("/discount/:id", discountController.getDiscountById);
+router.put("/discount/:id", discountController.updateDiscount);
+router.delete("/discount/:id", discountController.deleteDiscount);
 
 module.exports = router;
