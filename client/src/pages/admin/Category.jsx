@@ -1,16 +1,18 @@
 import { useEffect, useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu"; 
 import {
   getAllCategories,
   deleteCategory,
 } from "../../services/Admin/AdminAPI";
 import AddCategory from "./Form/AddCategory";
-import UpdateCategory from "./Form/UpdateCategory"; // Tạo mới component này
+import UpdateCategory from "./Form/UpdateCategory";
 import { Trash2, Filter, Plus, Edit, X } from "lucide-react";
 
 export default function Category() {
   const [categories, setCategories] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState(""); 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [openAdd, setOpenAdd] = useState(false);
@@ -51,14 +53,18 @@ export default function Category() {
     }
   };
 
-  // Mở form sửa, truyền category cần sửa
   const handleEditClick = (category) => {
     setEditCategory(category);
     setOpenEdit(true);
   };
 
-  const filteredCategories = categories.filter((category) =>
-    category.name?.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredCategories = categories.filter(
+    (category) =>
+      (category.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        false) &&
+      (statusFilter === ""
+        ? true
+        : category.status === (statusFilter === "true"))
   );
 
   return (
@@ -66,7 +72,6 @@ export default function Category() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Danh mục</h1>
 
-        {/* Form Thêm danh mục */}
         <Dialog.Root open={openAdd} onOpenChange={setOpenAdd}>
           <Dialog.Trigger asChild>
             <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
@@ -108,10 +113,31 @@ export default function Category() {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
-        <button className="flex items-center gap-2 px-4 py-2 border rounded hover:bg-gray-100">
-          <Filter size={18} />
-          Lọc
-        </button>
+        <DropdownMenu.Root>
+          <DropdownMenu.Trigger asChild>
+            <button className="flex items-center gap-2 px-4 py-2 border rounded hover:bg-gray-100">
+              <Filter size={18} />
+              Lọc
+            </button>
+          </DropdownMenu.Trigger>
+          <DropdownMenu.Content className="bg-white p-4 rounded shadow w-64 space-y-4 z-50">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Trạng thái
+              </label>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="w-full px-3 py-2 border rounded"
+              >
+                <option value="">Tất cả</option>
+                <option value="true">Kích hoạt</option>
+                <option value="false">Chưa kích hoạt</option>
+              </select>
+            </div>
+           
+          </DropdownMenu.Content>
+        </DropdownMenu.Root>
       </div>
 
       {isLoading && <div className="text-center py-6">Đang tải...</div>}
@@ -175,7 +201,7 @@ export default function Category() {
               {filteredCategories.length === 0 && (
                 <tr>
                   <td colSpan="6" className="text-center py-6 text-gray-500">
-                    Không có danh mục nào.
+                    Không tìm thấy danh mục nào. 
                   </td>
                 </tr>
               )}
@@ -184,7 +210,6 @@ export default function Category() {
         </div>
       )}
 
-      {/* Dialog sửa danh mục */}
       <Dialog.Root open={openEdit} onOpenChange={setOpenEdit}>
         <Dialog.Portal>
           <Dialog.Overlay className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40" />

@@ -6,8 +6,11 @@ const cartSchema = new mongoose.Schema({
             _id: false,
             product: { type: mongoose.Schema.Types.ObjectId, ref: "Products" },
             quantity: { type: Number, default: 1, min: 1 },
+            price: Number
         }
     ],
+    totalPrice: Number,
+    totalQuantity: Number,
     expiresAt: { type: Date }
 }, { timestamps: true });
 

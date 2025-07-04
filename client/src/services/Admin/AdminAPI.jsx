@@ -86,3 +86,44 @@ export const updateSubCategory = (id, subCategoryData) => {
 export const deleteSubCategory = (id) => {
   return instance.delete(`/productmanager/category/deleteSubCategory/${id}`);
 };
+
+export const importProductFromExcel = async (formData) => {
+  return await instance.post("/productmanager/product/import-excel", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+};
+
+export const exportProductToExcel = async () => {
+  return await instance.get("/productmanager/product/export-excel", {
+    responseType: "blob",
+  });
+};
+export const getCategoryStats = () => {
+  return instance.get("/productmanager/category/category-stats");
+};
+
+export const getProductCountByCategory = () => {
+  return instance.get("/productmanager/category/product-by-category");
+};
+
+export const getAllOrders = () => {
+  return instance.get("productmanager/product/orders");
+};
+
+export const updateOrderSatatus = (orderId, status) => {
+  return instance.put(`productmanager/product/order/status/${orderId}`, {
+    status,
+  });
+};
+
+export const getOrderDetailByID = (orderId) => {
+  return instance.get(`productmanager/product/orders/${orderId}`);
+};
+
+export const getTotalOrders = async () => {
+    return instance.get("productmanager/product/orders/total"); 
+};
+
+

@@ -16,6 +16,7 @@ import {
   FaMoon,
   FaSun,
   FaCartPlus,
+  FaBox,
 } from "react-icons/fa";
 import { HiOutlineMenuAlt2 } from "react-icons/hi";
 import { MdCategory, MdOutlineCategory, MdSpaceDashboard } from "react-icons/md";
@@ -28,42 +29,47 @@ export const links = [
   {
     href: "/admin",
     icon: FaChartBar,
-    text: "Dashboard",
+    text: "menu.dashboard",
   },
   {
     href: "/admin/category",
     icon: MdOutlineCategory,
-    text: "Categories",
+    text: "menu.categories",
+  },
+  {
+    href: "/admin/subcategory",
+    icon: MdOutlineCategory,
+    text: "menu.subcategories",
   },
   {
     href: "/admin/order",
     icon: FaCartPlus,
-    text: "Order",
-  },
-  {
-    href: "/admin/subcategory",
-    icon: MdCategory,
-    text: "SubCategories",
+    text: "menu.order",
   },
   {
     href: "/admin/product",
-    icon: FaListAlt,
-    text: "Products",
+    icon: FaBox,
+    text: "menu.products",
   },
   {
     href: "/admin/task",
+    icon: FaListAlt,
+    text: "menu.task",
+  },
+  {
+    href: "/admin/kpi",
     icon: FaUsersCog,
-    text: "Task",
+    text: "menu.kpi",
   },
   {
     href: "/login",
     icon: IoIosLogIn,
-    text: "Sign In",
+    text: "menu.login",
   },
   {
     href: "/register",
-    icon: IoIosLogOut,
-    text: "Sign Up",
+    icon: IoIosPersonAdd,
+    text: "menu.register",
   },
 ];
 
@@ -157,130 +163,6 @@ export const events = [
   },
 ];
 
-// ------- ==
-// chart data, later we will use this!!!
+export const ROLE = [1, 2, 3, 4]
 
-// const options = {
-//   series: [44, 55, 41],
-//   options: {
-//     chart: {
-//       type: "donut",
-//       height: 350,
-//     },
-//     labels: ["Desktop", "Tablet", "Mobile"],
-//     colors: ["#FF5733", "#33FF57", "#3357FF"],
-//     legend: {
-//       position: "bottom",
-//       labels: {
-//         colors: darkMode ? "#dddddd" : "#000000",
-//       },
-//     },
-//     dataLabels: {
-//       style: {
-//         colors: ["#dddddd"],
-//       },
-//     },
-//     responsive: [
-//       {
-//         breakpoint: 480,
-//         options: {
-//           chart: {
-//             width: 200,
-//           },
-//           legend: {
-//             position: "bottom",
-//           },
-//         },
-//       },
-//     ],
-//   },
-// };
-
-// ..........
-// const chartConfig = {
-//   series: [
-//     {
-//       name: "Sales",
-//       data: [50, 40, 300, 320, 500, 350, 200, 230, 500],
-//     },
-//   ],
-//   options: {
-//     chart: {
-//       type: "bar",
-//       height: 240,
-//       toolbar: {
-//         show: false,
-//       },
-//     },
-//     title: {
-//       show: false,
-//     },
-//     dataLabels: {
-//       enabled: false,
-//     },
-//     colors: ["#020617"],
-//     plotOptions: {
-//       bar: {
-//         columnWidth: "40%",
-//         borderRadius: 2,
-//       },
-//     },
-//     xaxis: {
-//       axisTicks: {
-//         show: false,
-//       },
-//       axisBorder: {
-//         show: false,
-//       },
-//       labels: {
-//         style: {
-//           colors: darkMode ? "#dddddd" : "#616161",
-//           fontSize: "12px",
-//           fontFamily: "inherit",
-//           fontWeight: 400,
-//         },
-//       },
-//       categories: [
-//         "Apr",
-//         "May",
-//         "Jun",
-//         "Jul",
-//         "Aug",
-//         "Sep",
-//         "Oct",
-//         "Nov",
-//         "Dec",
-//       ],
-//     },
-//     yaxis: {
-//       labels: {
-//         style: {
-//           colors: darkMode ? "#dddddd" : "#616161",
-//           fontSize: "12px",
-//           fontFamily: "inherit",
-//           fontWeight: 400,
-//         },
-//       },
-//     },
-//     grid: {
-//       show: true,
-//       borderColor: "#a0a0a0",
-//       strokeDashArray: 5,
-//       xaxis: {
-//         lines: {
-//           show: true,
-//         },
-//       },
-//       padding: {
-//         top: 5,
-//         right: 20,
-//       },
-//     },
-//     fill: {
-//       opacity: 0.8,
-//     },
-//     tooltip: {
-//       theme: "dark",
-//     },
-//   },
-// };
+export const MAX_PRICE = 1000000

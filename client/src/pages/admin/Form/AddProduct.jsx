@@ -6,8 +6,6 @@ import {
 } from "../../../services/Admin/AdminAPI";
 import { toast } from "react-toastify";
 
-
-
 export default function AddProduct({ onSuccess }) {
   const [productData, setProductData] = useState({
     name: "",
@@ -15,6 +13,9 @@ export default function AddProduct({ onSuccess }) {
     price: "",
     stock: "",
     subCategoryId: "",
+    origin: "",
+    weight: "",
+    expiryDate: "",
     image: null,
   });
 
@@ -53,19 +54,28 @@ export default function AddProduct({ onSuccess }) {
     e.preventDefault();
     setLoading(true);
 
+    // Kiểm tra bắt buộc
+    if (!productData.origin || !productData.weight || !productData.expiryDate) {
+      toast.error("Vui lòng nhập đầy đủ Xuất xứ, Trọng lượng và Hạn sử dụng");
+      setLoading(false);
+      return;
+    }
+
     const formDataToSend = new FormData();
     formDataToSend.append("name", productData.name);
     formDataToSend.append("description", productData.description);
     formDataToSend.append("price", productData.price);
     formDataToSend.append("stock", productData.stock);
     formDataToSend.append("subCategoryId", productData.subCategoryId);
+    formDataToSend.append("origin", productData.origin);
+    formDataToSend.append("weight", productData.weight);
+    formDataToSend.append("expiryDate", productData.expiryDate);
     formDataToSend.append("image", productData.image);
-  
 
     try {
-      const res = await createProduct(formDataToSend);
+      await createProduct(formDataToSend);
       toast.success("Tạo sản phẩm thành công!");
-      if (onSuccess) onSuccess(); // gọi callback nếu cần reload
+      if (onSuccess) onSuccess();
     } catch (error) {
       toast.error("Lỗi khi tạo sản phẩm!");
       console.error("Chi tiết lỗi:", error.response || error.message);
@@ -120,6 +130,48 @@ export default function AddProduct({ onSuccess }) {
           type="number"
           name="stock"
           value={productData.stock}
+          onChange={handleChange}
+          required
+          className="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:ring-blue-500 focus:outline-none"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700">
+          Xuất xứ
+        </label>
+        <input
+          type="text"
+          name="origin"
+          value={productData.origin}
+          onChange={handleChange}
+          required
+          className="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:ring-blue-500 focus:outline-none"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700">
+          Trọng lượng (g)
+        </label>
+        <input
+          type="number"
+          name="weight"
+          value={productData.weight}
+          onChange={handleChange}
+          required
+          className="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:ring-blue-500 focus:outline-none"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700">
+          Hạn sử dụng
+        </label>
+        <input
+          type="date"
+          name="expiryDate"
+          value={productData.expiryDate}
           onChange={handleChange}
           required
           className="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:ring-blue-500 focus:outline-none"

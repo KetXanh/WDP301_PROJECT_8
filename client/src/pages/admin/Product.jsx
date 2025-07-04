@@ -1,17 +1,38 @@
-import { Eye, Trash2, Filter, Plus, Edit, X } from "lucide-react";
+import {
+  Eye,
+  Trash2,
+  Filter,
+  Plus,
+  Edit,
+  X,
+  FileSpreadsheet,
+  Download,
+} from "lucide-react";
 import { useEffect, useState } from "react";
-import { getAllProducts, deleteProduct } from "../../services/Admin/AdminAPI";
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
+import {
+  getAllProducts,
+  deleteProduct,
+  importProductFromExcel,
+  exportProductToExcel,
+} from "../../services/Admin/AdminAPI";
 import * as Dialog from "@radix-ui/react-dialog";
 import AddProduct from "./Form/AddProduct";
 import UpdateProduct from "./Form/UpdateProduct";
+import ProductDetail from "./Form/ProductDetail";
 
 export default function Product() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [priceFilter, setPriceFilter] = useState({ min: "", max: "" }); 
+  const [dateFilter, setDateFilter] = useState({ start: "", end: "" }); 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [selectedDetail, setSelectedDetail] = useState(null);
+
 
   const flattenProducts = (products) => {
     const flattened = [];
@@ -74,21 +95,91 @@ export default function Product() {
     setIsEditModalOpen(true);
   };
 
-  const filteredProducts = products.filter((p) =>
-    p.baseProduct.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+
+  const filteredProducts = products.filter((p) => {
+    const matchesName = p.baseProduct.name
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    const matchesPrice =
+      (priceFilter.min === "" ||
+        (p.price !== null && p.price >= Number(priceFilter.min))) &&
+      (priceFilter.max === "" ||
+        (p.price !== null && p.price <= Number(priceFilter.max)));
+    const matchesDate =
+      (dateFilter.start === "" ||
+        new Date(p.baseProduct.createdAt) >= new Date(dateFilter.start)) &&
+      (dateFilter.end === "" ||
+        new Date(p.baseProduct.createdAt) <= new Date(dateFilter.end));
+    return matchesName && matchesPrice && matchesDate;
+  });
+
+  const handleExportExcel = async () => {
+    try {
+      const res = await exportProductToExcel();
+      const url = window.URL.createObjectURL(
+        new Blob([res.data], {
+          type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        })
+      );
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "productsList.xlsx");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err) {
+      console.error("Lỗi export Excel:", err);
+      alert("Không thể export file Excel.");
+    }
+  };
 
   return (
     <div className="p-6 space-y-6 mt-10">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Product</h1>
         <Dialog.Root open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
-          <Dialog.Trigger asChild>
-            <button className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-              <Plus size={18} />
-              Add
+          <div className="flex items-center gap-2">
+            <Dialog.Trigger asChild>
+              <button className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                <Plus size={18} />
+                Add
+              </button>
+            </Dialog.Trigger>
+
+            <label className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 cursor-pointer">
+              <FileSpreadsheet size={18} />
+              Import Excel
+              <input
+                type="file"
+                accept=".xlsx"
+                hidden
+                onChange={async (e) => {
+                  const file = e.target.files[0];
+                  if (!file) return;
+                  const formData = new FormData();
+                  formData.append("file", file);
+                  try {
+                    await importProductFromExcel(formData);
+                    alert("Nhập sản phẩm thành công!");
+                    fetchProducts();
+                  } catch (err) {
+                    alert(
+                      "Lỗi khi nhập sản phẩm: " + err.response?.data?.message ||
+                        err.message
+                    );
+                  }
+                }}
+              />
+            </label>
+            <button
+              className="flex items-center gap-2 bg-violet-600 text-white px-4 py-2 rounded hover:bg-violet-700"
+              onClick={handleExportExcel}
+            >
+              <Download size={18} />
+              Export Excel
             </button>
-          </Dialog.Trigger>
+          </div>
+
           <Dialog.Portal>
             <Dialog.Overlay className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40" />
             <Dialog.Content className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-xl shadow-2xl z-50 w-[90vw] max-w-md min-h-[60vh] max-h-[80vh] overflow-y-auto">
@@ -117,15 +208,93 @@ export default function Product() {
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <input
           type="text"
-          placeholder="🔍 Search products..."
+          placeholder="🔍 Tìm kiếm sản phẩm..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="flex-1 min-w-[200px] px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
-        <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded hover:bg-gray-100">
-          <Filter size={18} />
-          Filter
-        </button>
+        <DropdownMenu.Root>
+          <DropdownMenu.Trigger asChild>
+            <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded hover:bg-gray-100">
+              <Filter size={18} />
+              Lọc
+            </button>
+          </DropdownMenu.Trigger>
+          <DropdownMenu.Content className="bg-white p-4 rounded shadow w-64 space-y-4 z-50">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Giá tối thiểu (VNĐ)
+              </label>
+              <input
+                type="number"
+                value={priceFilter.min}
+                onChange={(e) =>
+                  setPriceFilter({ ...priceFilter, min: e.target.value })
+                }
+                placeholder="Nhập giá tối thiểu"
+                className="w-full px-3 py-2 border rounded"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Giá tối đa (VNĐ)
+              </label>
+              <input
+                type="number"
+                value={priceFilter.max}
+                onChange={(e) =>
+                  setPriceFilter({ ...priceFilter, max: e.target.value })
+                }
+                placeholder="Nhập giá tối đa"
+                className="w-full px-3 py-2 border rounded"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Từ ngày
+              </label>
+              <input
+                type="date"
+                value={dateFilter.start}
+                onChange={(e) =>
+                  setDateFilter({ ...dateFilter, start: e.target.value })
+                }
+                className="w-full px-3 py-2 border rounded"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Đến ngày
+              </label>
+              <input
+                type="date"
+                value={dateFilter.end}
+                onChange={(e) => {
+                  const newEnd = e.target.value;
+                  if (
+                    dateFilter.start &&
+                    new Date(newEnd) < new Date(dateFilter.start)
+                  ) {
+                    alert("Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu!");
+                    return;
+                  }
+                  setDateFilter({ ...dateFilter, end: newEnd });
+                }}
+                className="w-full px-3 py-2 border rounded"
+              />
+            </div>
+            <button
+              onClick={() => {
+                setPriceFilter({ min: "", max: "" });
+                setDateFilter({ start: "", end: "" });
+                setSearchTerm("");
+              }}
+              className="text-sm text-red-600 hover:underline"
+            >
+              Xoá lọc
+            </button>
+          </DropdownMenu.Content>
+        </DropdownMenu.Root>
       </div>
 
       <div className="overflow-x-auto rounded-lg border border-gray-200 shadow">
@@ -180,7 +349,7 @@ export default function Product() {
                     "vi-VN"
                   )}
                 </td>
-                <td className="px-6 py-4 text-center flex justify-center gap-2">
+                <td className="px-6 py-4 text-center flex justify-center gap-2 mt-4">
                   <button
                     className="text-blue-600 hover:text-blue-800"
                     onClick={() => handleEditClick(product)}
@@ -193,13 +362,22 @@ export default function Product() {
                   >
                     <Trash2 size={18} />
                   </button>
+                  <button
+                    className="text-green-600 hover:text-green-800"
+                    onClick={() => {
+                      setSelectedDetail(product);
+                      setIsDetailModalOpen(true);
+                    }}
+                  >
+                    <Eye size={18} />
+                  </button>
                 </td>
               </tr>
             ))}
             {filteredProducts.length === 0 && (
               <tr>
                 <td colSpan="6" className="text-center py-6 text-gray-500">
-                  Không có sản phẩm nào.
+                  Không tìm thấy sản phẩm nào.
                 </td>
               </tr>
             )}
@@ -234,6 +412,11 @@ export default function Product() {
           </Dialog.Content>
         </Dialog.Portal>
       </Dialog.Root>
+      <ProductDetail
+        open={isDetailModalOpen}
+        onOpenChange={setIsDetailModalOpen}
+        product={selectedDetail}
+      />
     </div>
   );
 }

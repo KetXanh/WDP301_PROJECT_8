@@ -3,6 +3,7 @@ import { Routes, Route, Outlet } from "react-router-dom";
 import "./App.css";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { useSelector } from "react-redux";
 
 // Customer Pages
 import Login from "./pages/Customers/Login";
@@ -17,7 +18,9 @@ import ForgotPassword from "./pages/Customers/ForgotPassword";
 import ForgotOtp from "./pages/Customers/ForgotOtp";
 import ResetPassword from "./pages/Customers/ResetPassword";
 import Profile from "./pages/Customers/Profile";
-import { useSelector } from "react-redux";
+import ProductDetail from "./pages/Customers/ProductDetail";
+import Cart from "./pages/Customers/Cart";
+import ProtectedRoute from "./components/protectedRouter/ProtectedRoute";
 
 // Admin Pages
 import Sidebar from "./components/admin/Sidebar";
@@ -28,6 +31,7 @@ import Category from "./pages/admin/Category";
 import DashboardAdmin from "./pages/admin/DashBoard";
 import SubCategory from "./pages/admin/SubCategory";
 import Task from "./pages/admin/Task";
+import Kpi from "./pages/admin/Kpi";
 
 //Sale Manager Pages
 import SaleManagerLayout from "./pages/SaleManager/SaleManagerLayout";
@@ -48,10 +52,8 @@ import SaleStaffTasks from "./pages/SaleStaff/Tasks";
 import SaleStaffChat from "./pages/SaleStaff/Chat";
 import SaleStaffProfile from "./pages/SaleStaff/Profile";
 
-import ProductDetail from "./pages/Customers/ProductDetail";
-import ProtectedRoute from "./components/protectedRouter/ProtectedRoute";
-import { Car } from "lucide-react";
-import Cart from "./pages/Customers/Cart";
+
+
 //Sale Manager Pages
 import AdminDevLayout from "./pages/AdminDev/AdminDevLayout";
 
@@ -66,7 +68,6 @@ const CustomerLayout = () => (
       <Outlet />
     </main>
     <Footer />
-
   </div>
 );
 
@@ -110,6 +111,16 @@ function App() {
         {/* Customer Routes */}
         <Route path="/" element={<CustomerLayout />}>
           <Route index element={<HomePage />} />
+          <Route path="login" element={<Login />} />
+          <Route path="register" element={<Register />} />
+          <Route path="verify/:email" element={<Verify />} />
+          <Route path="forgot-password" element={<ForgotPassword />} />
+          <Route path="otp" element={<ForgotOtp />} />
+          <Route path="reset-password" element={<ResetPassword />} />
+
+          {/* Công khai */}
+          <Route path="products" element={<Products />} />
+
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/verify/:email" element={<Verify />} />
@@ -127,6 +138,12 @@ function App() {
             </>
           }
 
+          {/* Cần đăng nhập */}
+          <Route
+            path="profile"
+            element={<ProtectedRoute element={<Profile />} />}
+          />
+          <Route path="cart" element={<ProtectedRoute element={<Cart />} />} />
         </Route>
 
         {/* Admin Routes */}
@@ -147,6 +164,7 @@ function App() {
           <Route path="subcategory" element={<SubCategory />} />
           <Route path="category" element={<Category />} />
           <Route path="task" element={<Task />} />
+          <Route path="kpi" element={<Kpi />} />
         </Route>
 
         {/* Sale Manager Routes */}
@@ -170,9 +188,9 @@ function App() {
           <Route path="profile" element={<SaleStaffProfile />} />
         </Route>
 
-          {/* Admin Dev Routes */}
-        <Route path="/admin-dev" element={<AdminDevLayout/>}>
-            
+        {/* Admin Dev Routes */}
+        <Route path="/admin-dev" element={<AdminDevLayout />}>
+
         </Route>
         {/* Not Found */}
         <Route path="*" element={<NotFound />} />

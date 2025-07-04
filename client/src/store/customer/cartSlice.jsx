@@ -84,6 +84,10 @@ const cartSlice = createSlice({
 
       state.items[GUEST_ID] = [];
     },
+    setCartFromServer(state, { payload }) {
+      const { userId, items } = payload;
+      state.items[userId] = items;
+    }
   },
   extraReducers: (builder) => {
     builder.addCase(logout, (state) => {
@@ -99,5 +103,6 @@ export const {
   increaseQuantity,
   decreaseQuantity,
   mergeGuestCart,
+  setCartFromServer,
 } = cartSlice.actions;
 export default cartSlice.reducer;

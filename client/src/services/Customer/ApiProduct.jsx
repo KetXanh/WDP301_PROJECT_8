@@ -27,3 +27,24 @@ export const sortProduct = (sort) => {
 export const searchProduct = (search) => {
     return instance.get(`/user/products/search/${search}`)
 }
+
+export const addItemToCart = (productId, quantity, price) => {
+    return instance.post(`/user/carts`, { productId, quantity, price })
+}
+
+export const increItemToCart = (productId) => {
+    return instance.put(`/user/carts/incre-item/${productId}`)
+}
+
+export const decreItemToCart = (productId) => {
+    return instance.put(`/user/carts/decre-item/${productId}`)
+}
+
+export const removeItemToCart = (productId) => {
+    return instance.delete(`/user/carts/remove-item/${productId}`)
+}
+
+export const getAllItemCart = () => {
+    return instance.get(`/user/carts/user-cart`)
+}
+
