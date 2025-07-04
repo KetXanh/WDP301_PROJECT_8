@@ -10,9 +10,10 @@ const baseProductSchema = new mongoose.Schema(
       url: String,
       public_id: String,
     },
+    origin: String,
     subCategory: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'SubCategories'
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "SubCategories",
     },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,

@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 
 const discountSchema = new mongoose.Schema(
   {
-    code: { type: String, required: true, unique: true }, // VD: SUMMER2025
+    code: { type: String, required: true, unique: true }, 
     description: { type: String },
     discountType: {
       type: String,

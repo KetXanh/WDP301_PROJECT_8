@@ -1,4 +1,3 @@
-// Form/UpdateProduct.jsx
 import { useState, useEffect } from "react";
 import {
   updateProduct,
@@ -13,12 +12,15 @@ export default function UpdateProduct({ product, onSuccess }) {
     price: "",
     stock: "",
     subCategoryId: "",
+    origin: "",
+    weight: "",
+    expiryDate: "",
     image: null,
   });
+
   const [subCategories, setSubCategories] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // Lấy dữ liệu sản phẩm hiện tại khi component mount
   useEffect(() => {
     if (product) {
       setFormData({
@@ -27,12 +29,16 @@ export default function UpdateProduct({ product, onSuccess }) {
         price: product.productVariant.price || "",
         stock: product.productVariant.stock || "",
         subCategoryId: product.baseProduct.subCategory?.toString() || "",
-        image: null, // Không preload image, người dùng sẽ upload lại nếu cần
+        origin: product.baseProduct.origin || "",
+        weight: product.productVariant.weight || "",
+        expiryDate: product.productVariant.expiryDate
+          ? product.productVariant.expiryDate.split("T")[0]
+          : "",
+        image: null, // ảnh không preload
       });
     }
   }, [product]);
 
-  // Lấy danh sách danh mục con
   useEffect(() => {
     const fetchSubCategories = async () => {
       try {
@@ -63,16 +69,22 @@ export default function UpdateProduct({ product, onSuccess }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (
       !formData.name ||
       !formData.price ||
       !formData.stock ||
-      !formData.subCategoryId
+      !formData.subCategoryId ||
+      !formData.origin ||
+      !formData.weight ||
+      !formData.expiryDate
     ) {
-      toast.error("Vui lòng điền đầy đủ tên, giá, tồn kho và danh mục con!");
+      toast.error("Vui lòng nhập đầy đủ thông tin!");
       return;
     }
+
     setLoading(true);
+
     try {
       const data = new FormData();
       data.append("name", formData.name);
@@ -80,11 +92,14 @@ export default function UpdateProduct({ product, onSuccess }) {
       data.append("price", formData.price);
       data.append("stock", formData.stock);
       data.append("subCategoryId", formData.subCategoryId);
+      data.append("origin", formData.origin);
+      data.append("weight", formData.weight);
+      data.append("expiryDate", formData.expiryDate);
       if (formData.image) {
         data.append("image", formData.image);
       }
 
-      await updateProduct(product.baseProduct._id, data); // Gửi ID sản phẩm để cập nhật
+      await updateProduct(product.baseProduct._id, data);
       toast.success("Cập nhật sản phẩm thành công!");
       if (onSuccess) onSuccess();
     } catch (error) {
@@ -117,8 +132,8 @@ export default function UpdateProduct({ product, onSuccess }) {
           name="name"
           value={formData.name}
           onChange={handleChange}
-          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
           required
+          className="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:ring-blue-500 focus:outline-none"
         />
       </div>
 
@@ -128,7 +143,7 @@ export default function UpdateProduct({ product, onSuccess }) {
           name="description"
           value={formData.description}
           onChange={handleChange}
-          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+          className="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:ring-blue-500 focus:outline-none"
         />
       </div>
 
@@ -139,8 +154,8 @@ export default function UpdateProduct({ product, onSuccess }) {
           name="price"
           value={formData.price}
           onChange={handleChange}
-          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
           required
+          className="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:ring-blue-500 focus:outline-none"
         />
       </div>
 
@@ -153,8 +168,50 @@ export default function UpdateProduct({ product, onSuccess }) {
           name="stock"
           value={formData.stock}
           onChange={handleChange}
-          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
           required
+          className="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:ring-blue-500 focus:outline-none"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700">
+          Xuất xứ
+        </label>
+        <input
+          type="text"
+          name="origin"
+          value={formData.origin}
+          onChange={handleChange}
+          required
+          className="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:ring-blue-500 focus:outline-none"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700">
+          Trọng lượng (g)
+        </label>
+        <input
+          type="number"
+          name="weight"
+          value={formData.weight}
+          onChange={handleChange}
+          required
+          className="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:ring-blue-500 focus:outline-none"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700">
+          Hạn sử dụng
+        </label>
+        <input
+          type="date"
+          name="expiryDate"
+          value={formData.expiryDate}
+          onChange={handleChange}
+          required
+          className="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:ring-blue-500 focus:outline-none"
         />
       </div>
 
@@ -166,8 +223,8 @@ export default function UpdateProduct({ product, onSuccess }) {
           name="subCategoryId"
           value={formData.subCategoryId}
           onChange={handleChange}
-          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
           required
+          className="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:ring-blue-500 focus:outline-none"
         >
           <option value="">Chọn danh mục con</option>
           {subCategories.map((subCat) => (
@@ -180,13 +237,13 @@ export default function UpdateProduct({ product, onSuccess }) {
 
       <div>
         <label className="block text-sm font-medium text-gray-700">
-          Hình ảnh (tải lên lại nếu cần)
+          Hình ảnh (tải lại nếu cần)
         </label>
         <input
           type="file"
           name="image"
           onChange={handleChange}
-          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+          className="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:ring-blue-500 focus:outline-none"
         />
         {product?.baseProduct?.image?.url && (
           <img

@@ -19,6 +19,7 @@ import {
 import * as Dialog from "@radix-ui/react-dialog";
 import AddProduct from "./Form/AddProduct";
 import UpdateProduct from "./Form/UpdateProduct";
+import ProductDetail from "./Form/ProductDetail";
 
 export default function Product() {
   const [products, setProducts] = useState([]);
@@ -29,6 +30,9 @@ export default function Product() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [selectedDetail, setSelectedDetail] = useState(null);
+
 
   const flattenProducts = (products) => {
     const flattened = [];
@@ -144,7 +148,7 @@ export default function Product() {
 
             <label className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 cursor-pointer">
               <FileSpreadsheet size={18} />
-              Add Excel
+              Import Excel
               <input
                 type="file"
                 accept=".xlsx"
@@ -345,7 +349,7 @@ export default function Product() {
                     "vi-VN"
                   )}
                 </td>
-                <td className="px-6 py-4 text-center flex justify-center gap-2">
+                <td className="px-6 py-4 text-center flex justify-center gap-2 mt-4">
                   <button
                     className="text-blue-600 hover:text-blue-800"
                     onClick={() => handleEditClick(product)}
@@ -357,6 +361,15 @@ export default function Product() {
                     onClick={() => handleDelete(product.baseProduct._id)}
                   >
                     <Trash2 size={18} />
+                  </button>
+                  <button
+                    className="text-green-600 hover:text-green-800"
+                    onClick={() => {
+                      setSelectedDetail(product);
+                      setIsDetailModalOpen(true);
+                    }}
+                  >
+                    <Eye size={18} />
                   </button>
                 </td>
               </tr>
@@ -399,6 +412,11 @@ export default function Product() {
           </Dialog.Content>
         </Dialog.Portal>
       </Dialog.Root>
+      <ProductDetail
+        open={isDetailModalOpen}
+        onOpenChange={setIsDetailModalOpen}
+        product={selectedDetail}
+      />
     </div>
   );
 }

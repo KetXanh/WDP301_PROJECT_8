@@ -9,6 +9,10 @@ const productVariantSchema = new mongoose.Schema(
     },
     price: Number,
     stock: Number,
+    weight: {
+      type: String, 
+      required: true,
+    },
 
     expiryDate: {
       type: Date,
