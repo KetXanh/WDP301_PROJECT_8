@@ -35,10 +35,11 @@ export const deleteProduct = (id) => {
 };
 
 // Kích hoạt / vô hiệu hóa sản phẩm
-export const activeProduct = (id) => {
-  return instance.put(`/productmanager/product/activeProduct/${id}`);
+export const activeProduct = (id, status) => {
+  return instance.put(`/productmanager/product/activeProduct/${id}`, {
+    status,
+  });
 };
-
 // Cập nhật tồn kho cho sản phẩm
 export const updateStock = (id, stockData) => {
   return instance.put(

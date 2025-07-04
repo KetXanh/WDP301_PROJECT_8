@@ -20,6 +20,7 @@ import * as Dialog from "@radix-ui/react-dialog";
 import AddProduct from "./Form/AddProduct";
 import UpdateProduct from "./Form/UpdateProduct";
 import ProductDetail from "./Form/ProductDetail";
+import ProductStatusToggle from "./Form/ProductStatusToggle";
 
 export default function Product() {
   const [products, setProducts] = useState([]);
@@ -314,6 +315,9 @@ export default function Product() {
                 Tồn kho
               </th>
               <th className="px-6 py-3 text-left font-semibold text-gray-700">
+                Trạng thái
+              </th>
+              <th className="px-6 py-3 text-left font-semibold text-gray-700">
                 Ngày tạo
               </th>
               <th className="px-6 py-3 text-center font-semibold text-gray-700">
@@ -343,6 +347,12 @@ export default function Product() {
                 </td>
                 <td className="px-6 py-4">
                   {product.stock !== null ? product.stock : "—"}
+                </td>
+                <td className="px-6 py-4">
+                  <ProductStatusToggle
+                    product={product}
+                    onStatusChange={fetchProducts}
+                  />
                 </td>
                 <td className="px-6 py-4">
                   {new Date(product.baseProduct.createdAt).toLocaleDateString(

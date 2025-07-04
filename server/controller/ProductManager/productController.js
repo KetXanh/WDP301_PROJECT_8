@@ -2,6 +2,7 @@ const BaseProduct = require("../../models/product/productBase");
 const ProductVariant = require("../../models/product/ProductVariant");
 const { SubCategory } = require("../../models/product/subCategory");
 const { cloudinary } = require("../../middleware/upload.middleware")
+const mongoose = require("mongoose");
 const slugify = require('slugify');
 const xlsx = require("xlsx");
 const ExcelJS = require("exceljs");
@@ -216,220 +217,202 @@ if (!name || !description || !price || !stock || !subCategoryId || !origin || !w
   }
 };
 
+
 module.exports.updateProduct = async (req, res) => {
   try {
+    console.log('Yêu cầu updateProduct:', { params: req.params, body: req.body });
+
     const { id } = req.params;
-    const {
-      name,
-      description,
-      subCategoryId,
-      origin,
-      weight,
-      expiryDate,
-      price,
-    } = req.body;
+    const { name, description, subCategoryId, origin, weight, expiryDate, price, stock, status } = req.body || {};
 
-    // Validate cơ bản
-    if (
-      !name ||
-      !description ||
-      !subCategoryId ||
-      !origin ||
-      !weight ||
-      !expiryDate ||
-      !price
-    ) {
-      return res.status(400).json({
-        message:
-          "Name, description, subCategoryId, origin, weight, expiryDate, and price are required",
-      });
-    }
+    // Xác thực đầu vào
+    if (!id || !mongoose.Types.ObjectId.isValid(id))
+      return res.status(400).json({ success: false, message: 'ID sản phẩm không hợp lệ' });
+    if (!name || !description || !subCategoryId || !origin || !weight || !expiryDate || !price || stock === undefined)
+      return res.status(400).json({ success: false, message: 'Thiếu các trường bắt buộc: name, description, subCategoryId, origin, weight, expiryDate, price, stock' });
+    if (isNaN(weight) || weight <= 0)
+      return res.status(400).json({ success: false, message: 'Trọng lượng phải là số dương' });
+    if (isNaN(price) || price <= 0)
+      return res.status(400).json({ success: false, message: 'Giá phải là số dương' });
+    if (isNaN(Date.parse(expiryDate)))
+      return res.status(400).json({ success: false, message: 'Ngày hết hạn không hợp lệ' });
+    if (isNaN(stock) || stock < -9999)
+      return res.status(400).json({ success: false, message: 'Số lượng tồn kho không hợp lệ' });
 
-    if (isNaN(weight) || weight <= 0) {
-      return res
-        .status(400)
-        .json({ message: "Weight must be a positive number" });
-    }
-
-    if (isNaN(price) || price <= 0) {
-      return res
-        .status(400)
-        .json({ message: "Price must be a positive number" });
-    }
-
-    if (isNaN(Date.parse(expiryDate))) {
-      return res.status(400).json({ message: "Expiry date is not valid" });
-    }
-
-    // Tìm sản phẩm
-    const existingProduct = await BaseProduct.findById(id);
-    if (!existingProduct) {
-      return res.status(404).json({ message: "Product not found" });
-    }
-
-    // Tìm subCategory
-    const subCategory = await SubCategory.findById(subCategoryId);
-    if (!subCategory) {
-      return res.status(404).json({ message: "Sub category not found" });
-    }
+    // Tìm sản phẩm và danh mục con
+    const [existingProduct, subCategory] = await Promise.all([
+      BaseProduct.findById(id),
+      SubCategory.findById(subCategoryId),
+    ]);
+    if (!existingProduct)
+      return res.status(404).json({ success: false, message: 'Không tìm thấy sản phẩm' });
+    if (!subCategory)
+      return res.status(404).json({ success: false, message: 'Không tìm thấy danh mục con' });
 
     // Xử lý ảnh
     let images = existingProduct.images || [];
     let image = existingProduct.image;
+    if (req.files?.image) {
+      const uploadedFiles = Array.isArray(req.files.image) ? req.files.image : [req.files.image];
+      if (uploadedFiles.length > 3)
+        return res.status(400).json({ success: false, message: 'Tối đa 3 ảnh được phép' });
 
-    if (req.files && req.files.image) {
-      const uploadedFiles = Array.isArray(req.files.image)
-        ? req.files.image
-        : [req.files.image];
-
-      if (uploadedFiles.length > 3) {
-        return res.status(400).json({ message: "Maximum 3 images allowed" });
-      }
-
-      // Xoá ảnh cũ trên cloudinary
-      if (existingProduct.images && existingProduct.images.length > 0) {
-        for (const img of existingProduct.images) {
-          if (img.public_id) {
-            await cloudinary.uploader.destroy(img.public_id);
-          }
-        }
+      // Xóa ảnh cũ trên Cloudinary
+      if (images.length) {
+        await Promise.all(images.map(img => img.public_id && cloudinary.uploader.destroy(img.public_id)));
       }
 
       // Upload ảnh mới
-      images = uploadedFiles.map((file) => ({
-        url: file.path,
-        public_id: file.filename,
-      }));
-
-      if (images.length > 0) {
-        image = images[0];
-      }
+      images = uploadedFiles.map(file => ({ url: file.path, public_id: file.filename }));
+      image = images[0] || image;
     }
 
-    // Cập nhật slug nếu name đổi
-    let slug = existingProduct.slug;
-    if (existingProduct.name !== name) {
-      slug = slugify(name, { lower: true, strict: true, locale: "vi" });
-    }
+    // Cập nhật slug nếu tên thay đổi
+    const slug = existingProduct.name !== name ? slugify(name, { lower: true, strict: true, locale: 'vi' }) : existingProduct.slug;
 
     // Cập nhật base product
     const updatedBaseProduct = await BaseProduct.findByIdAndUpdate(
       id,
-      {
-        name,
-        slug,
-        description,
-        origin,
-        subCategory: subCategoryId,
-        image,
-        images,
-      },
+      { name, slug, description, origin, subCategory: subCategoryId, image, images },
       { new: true }
-    );
+    ).lean();
 
-    // Cập nhật tất cả biến thể liên quan
-    await ProductVariant.updateMany(
-      { baseProduct: id },
-      {
-        $set: {
-          weight,
-          expiryDate,
-          price,
-        },
+    // Cập nhật biến thể với logic stock
+    const variants = await ProductVariant.find({ baseProduct: id }).lean();
+    if (!variants.length)
+      return res.status(404).json({ success: false, message: 'Không tìm thấy biến thể' });
+
+    await ProductVariant.bulkWrite(variants.map(variant => {
+      let newStock = stock;
+      if (status) {
+        if (status === 'inactive') {
+          newStock = stock > 0 ? -stock : stock === 0 ? -9999 : stock;
+        } else if (status === 'active') {
+          newStock = stock === -9999 ? 0 : stock < 0 ? Math.abs(stock) : stock;
+        }
       }
-    );
+      return {
+        updateOne: {
+          filter: { _id: variant._id },
+          update: { weight, expiryDate, price, stock: newStock },
+        },
+      };
+    }));
 
-  
-    const updatedVariants = await ProductVariant.find({ baseProduct: id });
+    const updatedVariants = await ProductVariant.find({ baseProduct: id }).lean();
+    const stockValue = updatedVariants[0].stock;
+    const message = status === 'active' || stockValue >= 0
+      ? stockValue > 0
+        ? `Sản phẩm đang bán với ${stockValue} mặt hàng`
+        : 'Sản phẩm đang bán nhưng hết hàng'
+      : stockValue === -9999
+        ? 'Sản phẩm không bán và hết hàng'
+        : `Sản phẩm không bán với ${Math.abs(stockValue)} mặt hàng`;
 
     return res.status(200).json({
-      message: "Product and its variants updated successfully!",
-      product: updatedBaseProduct,
-      variants: updatedVariants,
+      success: true,
+      message,
+      data: { product: updatedBaseProduct, variants: updatedVariants },
     });
   } catch (error) {
-    console.error("❌ Error in updateProduct:", error);
-    return res.status(500).json({ message: error.message });
+    console.error('Lỗi trong updateProduct:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Lỗi máy chủ',
+      error: error.message,
+    });
   }
 };
 
 
 
 module.exports.activeProduct = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { status } = req.body;
-        
-        if (!status || !['active', 'inactive'].includes(status)) {
-            return res.status(400).json({ 
-                message: "Status is required and must be either 'active' or 'inactive'" 
-            });
-        }
+  try {
+    console.log("Yêu cầu nhận được:", { params: req.params, body: req.body });
 
-        const variants = await ProductVariant.find({ baseProduct: id });
-        const baseProduct = await BaseProduct.findById(id);
+    const { id } = req.params;
+    const { status } = req.body || {};
 
-        if (!baseProduct || !variants || variants.length === 0) {
-            return res.status(404).json({ message: "Product not found" });
-        }
-
-        let message;
-        let updatedVariants = [];
-
-        for (let variant of variants) {
-            const currentStock = variant.stock;
-            let newStock;
-
-            if (status === 'inactive') {
-                if (currentStock > 0) {
-                    newStock = -currentStock;
-                } else if (currentStock === 0) {
-                    newStock = -9999;
-                } else {
-                    newStock = currentStock;
-                }
-            } else {
-                if (currentStock === -9999) {
-                    newStock = 0;
-                } else if (currentStock < 0) {
-                    newStock = Math.abs(currentStock);
-                } else {
-                    newStock = currentStock;
-                }
-            }
-
-            const updatedVariant = await ProductVariant.findByIdAndUpdate(
-                variant._id,
-                { stock: newStock },
-                { new: true }
-            );
-            updatedVariants.push(updatedVariant);
-        }
-
-        const firstVariant = updatedVariants[0];
-        if (status === 'active') {
-            if (firstVariant.stock > 0) {
-                message = `Product is now in business with ${firstVariant.stock} items in stock`;
-            } else {
-                message = "Product is now in business but out of stock";
-            }
-        } else {
-            if (firstVariant.stock === -9999) {
-                message = "Product is now out of business and out of stock";
-            } else {
-                message = `Product is now out of business with ${Math.abs(firstVariant.stock)} items in stock`;
-            }
-        }
-
-        res.status(200).json({
-            message,
-            product: baseProduct,
-            variants: updatedVariants
+    // Xác thực đầu vào
+    if (!id || !mongoose.Types.ObjectId.isValid(id))
+      return res
+        .status(400)
+        .json({ success: false, message: "ID sản phẩm không hợp lệ" });
+    if (!status || !["active", "inactive"].includes(status))
+      return res
+        .status(400)
+        .json({
+          success: false,
+          message: 'Trạng thái phải là "active" hoặc "inactive"',
         });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-}
+
+    // Lấy sản phẩm và biến thể
+    const [baseProduct, variants] = await Promise.all([
+      BaseProduct.findById(id).lean(),
+      ProductVariant.find({ baseProduct: id }).lean(),
+    ]);
+
+    if (!baseProduct)
+      return res
+        .status(404)
+        .json({ success: false, message: "Không tìm thấy sản phẩm" });
+    if (!variants.length)
+      return res
+        .status(404)
+        .json({ success: false, message: "Không tìm thấy biến thể" });
+
+    // Cập nhật stock hàng loạt
+    await ProductVariant.bulkWrite(
+      variants.map((variant) => ({
+        updateOne: {
+          filter: { _id: variant._id },
+          update: {
+            stock:
+              status === "inactive"
+                ? variant.stock > 0
+                  ? -(variant.stock + 1)
+                  : variant.stock === 0
+                  ? -9999
+                  : variant.stock
+                : variant.stock === -9999
+                ? 0
+                : variant.stock < 0
+                ? Math.abs(variant.stock) - 1
+                : variant.stock,
+          },
+        },
+      }))
+    );
+
+    // Lấy biến thể đã cập nhật
+    const updatedVariants = await ProductVariant.find({
+      baseProduct: id,
+    }).lean();
+    const stock = updatedVariants[0].stock;
+    const message =
+      status === "active"
+        ? stock > 0
+          ? `Sản phẩm đang bán với ${stock} mặt hàng`
+          : "Sản phẩm đang bán nhưng hết hàng"
+        : stock === -9999
+        ? "Sản phẩm không bán và hết hàng"
+        : `Sản phẩm không bán với ${Math.abs(stock)} mặt hàng`;
+
+    return res.status(200).json({
+      success: true,
+      message,
+      data: { product: baseProduct, variants: updatedVariants },
+    });
+  } catch (error) {
+    console.error("Lỗi trong activeProduct:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Lỗi máy chủ",
+      error: error.message,
+    });
+  }
+};
+
 
 module.exports.updateStock = async (req, res) => {
     try {
