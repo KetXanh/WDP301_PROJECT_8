@@ -13,7 +13,7 @@ const ProductFilters = ({
     onPriceRangeChange,
 }) => {
     const [openParent, setOpenParent] = useState(null);
-    const { t } = useTranslation("user");
+    const { t } = useTranslation('translation');
 
     const [categories, setCategories] = useState([])
     const getAllCategories = async () => {
@@ -35,6 +35,9 @@ const ProductFilters = ({
     const toggleParent = (parentId) => {
         setOpenParent(openParent === parentId ? null : parentId);
     };
+
+    console.log(categories);
+
 
     return (
         <Card className="bg-white shadow-lg">

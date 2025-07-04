@@ -36,15 +36,14 @@ instance.interceptors.request.use(
 instance.interceptors.response.use(
     response => response,
     async (error) => {
-        const { status } = error.response || {};
-        const originalRequest = error.config;
+        if (!error.response) return Promise.reject(error);
 
+        const { status } = error.response;
+        const originalRequest = error.config;
         const isAuthError = [401, 403].includes(status);
 
-        // Nếu đã retry rồi thì không retry nữa (tránh vòng lặp vô tận)
         if (isAuthError && !originalRequest._retry) {
             originalRequest._retry = true;
-
             const { refreshToken } = store.getState().customer || {};
             if (!refreshToken) {
                 store.dispatch(logout());
@@ -52,7 +51,7 @@ instance.interceptors.response.use(
             }
 
             if (isRefreshing) {
-                return new Promise(function (resolve, reject) {
+                return new Promise((resolve, reject) => {
                     failedQueue.push({ resolve, reject });
                 })
                     .then(token => {
@@ -65,16 +64,11 @@ instance.interceptors.response.use(
             isRefreshing = true;
 
             try {
-                const res = await axios.post('http://localhost:3000/api/auth/refresh-token', {
-                    refreshToken: refreshToken,
-                });
-
+                const res = await axios.post('/auth/refresh-token', { refreshToken });
                 const { accessToken } = res.data;
 
                 store.dispatch(login({ accessToken, refreshToken }));
-
                 processQueue(null, accessToken);
-
                 originalRequest.headers['Authorization'] = 'Bearer ' + accessToken;
                 return instance(originalRequest);
             } catch (err) {
@@ -89,5 +83,6 @@ instance.interceptors.response.use(
         return Promise.reject(error);
     }
 );
+
 
 export default instance;

@@ -11,7 +11,7 @@ import { useTranslation } from 'react-i18next';
 const LoginGoogle = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const { t } = useTranslation(["message", "user"])
+    const { t } = useTranslation(['translation'])
     const loginGg = useGoogleLogin({
         onSuccess: async (tokenResponse) => {
             // Gửi access_token hoặc gọi API để lấy profile

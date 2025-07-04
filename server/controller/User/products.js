@@ -81,10 +81,10 @@ module.exports.detailProducts = async (req, res) => {
         }
 
         const formatProduct = {
-            id: product._id,
+            _id: product._id,
             name: product?.baseProduct?.name,
             description: product?.baseProduct?.description,
-            imageUrl: product?.baseProduct?.image?.url,
+            image: product?.baseProduct?.image?.url,
             slug: product?.baseProduct?.slug,
             price: product?.price,
             stock: product?.stock,

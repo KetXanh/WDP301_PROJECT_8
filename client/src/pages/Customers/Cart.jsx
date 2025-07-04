@@ -28,10 +28,10 @@ const EMPTY_ARRAY = [];
 
 const Cart = () => {
     const navigate = useNavigate();
+    const { t } = useTranslation('translation');
     const accessToken = useSelector((state) => state.customer.accessToken);
     const username = useMemo(() => {
         if (typeof accessToken !== 'string' || !accessToken.trim()) return GUEST_ID;
-
         try {
             const decoded = jwtDecode(accessToken);
             return decoded.username || GUEST_ID;
@@ -39,10 +39,7 @@ const Cart = () => {
             return GUEST_ID;
         }
     }, [accessToken]);
-    const reduxCartItems = useSelector(
-        (state) => state.cart.items[username] ?? EMPTY_ARRAY,
-        shallowEqual
-    );
+    const reduxCartItems = useSelector((state) => state.cart.items[username] ?? EMPTY_ARRAY, shallowEqual);
     const [cartItems, setCartItems] = useState(reduxCartItems);
     const [addresses, setAddresses] = useState([]);
     const [selectedAddress, setSelectedAddress] = useState(null);
@@ -55,10 +52,8 @@ const Cart = () => {
         district: '',
         province: '',
         phone: '',
-        isDefault: false
+        isDefault: false,
     });
-    const { t } = useTranslation(["message", "user"]);
-
     const dispatch = useDispatch();
 
     const getAddress = async () => {
@@ -78,7 +73,7 @@ const Cart = () => {
     }, [username]);
 
     useEffect(() => {
-        const defaultAddr = addresses.find(a => a.isDefault);
+        const defaultAddr = addresses.find((a) => a.isDefault);
         if (defaultAddr) setSelectedAddress(defaultAddr.id);
     }, [addresses]);
 
@@ -91,9 +86,9 @@ const Cart = () => {
         try {
             const res = await deleteAddress(addressId);
             if (res.data && res.data.code === 200) {
-                setAddresses(addresses.filter(addr => addr.id !== addressId));
+                setAddresses(addresses.filter((addr) => addr.id !== addressId));
                 if (selectedAddress === addressId) {
-                    const newDefault = addresses.find(addr => addr.id !== addressId && addr.isDefault);
+                    const newDefault = addresses.find((addr) => addr.id !== addressId && addr.isDefault);
                     setSelectedAddress(newDefault ? newDefault.id : null);
                 }
                 await getAddress();
@@ -102,29 +97,36 @@ const Cart = () => {
                 toast.error(t('toast.delete_address_fail'));
             }
         } catch (error) {
-            console.error("Delete address failed:", error);
+            console.error('Delete address failed:', error);
         }
     };
 
     // Calculate total price of selected items
     const totalPrice = cartItems
-        .filter(item => item.selected)
+        .filter((item) => item.selected && item.stock >= 0)
         .reduce((total, item) => total + item.price * item.quantity, 0);
 
     // Handle select all checkbox
     const handleSelectAll = () => {
-        const allSelected = cartItems.every(item => item.selected);
-        setCartItems(cartItems.map(item => ({ ...item, selected: !allSelected })));
+        const allSelected = cartItems.every((item) => item.selected || item.stock < 0);
+        setCartItems(
+            cartItems.map((item) => ({
+                ...item,
+                selected: item.stock < 0 ? false : !allSelected, // Không chọn nếu stock < 0
+            }))
+        );
     };
 
     // Handle delete all selected items
     const handleDeleteAll = async () => {
-        const selectedProductIds = cartItems.filter(item => item.selected).map(item => item.productId);
+        const selectedProductIds = cartItems
+            .filter((item) => item.selected && item.stock >= 0)
+            .map((item) => item.productId);
 
         try {
             const res = await removeMultiItemToCart(selectedProductIds);
             if (res.data.code === 200) {
-                selectedProductIds.forEach(id => {
+                selectedProductIds.forEach((id) => {
                     dispatch(removeFromCart({ userId: username, productId: id }));
                 });
                 toast.success(t('toast.remove_selected_success'));
@@ -138,13 +140,22 @@ const Cart = () => {
 
     // Handle individual checkbox change
     const toggleItemSelection = (id) => {
-        setCartItems(cartItems.map(item =>
-            item.productId === id ? { ...item, selected: !item.selected } : item
-        ));
+        setCartItems(
+            cartItems.map((item) =>
+                item.productId === id && item.stock >= 0
+                    ? { ...item, selected: !item.selected }
+                    : item
+            )
+        );
     };
 
     // Handle quantity increase
     const increaseQuantities = async (id) => {
+        const item = cartItems.find((item) => item.productId === id);
+        if (item.stock < 0) {
+            toast.error(t('toast.productPaused')); // Thông báo nếu sản phẩm đã tạm dừng
+            return;
+        }
         try {
             const res = await increItemToCart(id);
             if (res.data.code === 200) {
@@ -154,12 +165,17 @@ const Cart = () => {
                 toast.error(t('toast.cart_deleted'));
             }
         } catch (error) {
-            console.error("Increase failed:", error);
+            console.error('Increase failed:', error);
         }
     };
 
     // Handle quantity decrease
     const decreaseQuantities = async (id) => {
+        const item = cartItems.find((item) => item.productId === id);
+        if (item.stock < 0) {
+            toast.error(t('toast.productPaused')); // Thông báo nếu sản phẩm đã tạm dừng
+            return;
+        }
         try {
             const res = await decreItemToCart(id);
             if (res.data.code === 200) {
@@ -169,7 +185,7 @@ const Cart = () => {
                 toast.error(t('toast.cart_deleted'));
             }
         } catch (error) {
-            console.error("Decrease failed:", error);
+            console.error('Decrease failed:', error);
         }
     };
 
@@ -185,7 +201,7 @@ const Cart = () => {
                 toast.error(t('toast.cart_deleted'));
             }
         } catch (error) {
-            console.error("Remove failed:", error);
+            console.error('Remove failed:', error);
         }
     };
 
@@ -196,9 +212,14 @@ const Cart = () => {
 
     // Handle checkout
     const handleCheckout = () => {
-        const selectedItems = cartItems.filter(item => item.selected);
+        const selectedItems = cartItems.filter((item) => item.selected && item.stock >= 0);
         if (selectedItems.length > 0 && selectedAddress !== null) {
-            navigate('/checkout', { state: { selectedItems, selectedAddress: addresses.find(addr => addr.id === selectedAddress) } });
+            navigate('/checkout', {
+                state: {
+                    selectedItems,
+                    selectedAddress: addresses.find((addr) => addr.id === selectedAddress),
+                },
+            });
         } else {
             toast.error(t('toast.select_items_and_address'));
         }
@@ -207,23 +228,30 @@ const Cart = () => {
     // Handle input change for new address
     const handleInputChange = (e) => {
         const { name, value } = e.target;
-        setNewAddress(prev => ({
+        setNewAddress((prev) => ({
             ...prev,
-            [name]: value
+            [name]: value,
         }));
     };
 
     // Handle isDefault change
     const handleIsDefaultChange = (value) => {
-        setNewAddress(prev => ({
+        setNewAddress((prev) => ({
             ...prev,
-            isDefault: value === 'true'
+            isDefault: value === 'true',
         }));
     };
 
     // Handle add new address
     const handleAddAddress = async () => {
-        if (newAddress.fullname && newAddress.street && newAddress.ward && newAddress.district && newAddress.province && newAddress.phone) {
+        if (
+            newAddress.fullname &&
+            newAddress.street &&
+            newAddress.ward &&
+            newAddress.district &&
+            newAddress.province &&
+            newAddress.phone
+        ) {
             try {
                 const res = await addNewAddress({
                     fullName: newAddress.fullname,
@@ -233,7 +261,7 @@ const Cart = () => {
                     district: newAddress.district,
                     province: newAddress.province,
                     label: newAddress.label || 'Nhà riêng',
-                    isDefault: newAddress.isDefault
+                    isDefault: newAddress.isDefault,
                 });
 
                 if (res.data && res.data.code === 200) {
@@ -246,7 +274,7 @@ const Cart = () => {
                         district: '',
                         province: '',
                         phone: '',
-                        isDefault: false
+                        isDefault: false,
                     });
                     setIsAddressDialogOpen(false);
                     setSelectedAddress(res.data.address._id);
@@ -256,7 +284,7 @@ const Cart = () => {
                     toast.error(t('toast.add_address_fail'));
                 }
             } catch (error) {
-                console.error("Add address failed:", error);
+                console.error('Add address failed:', error);
             }
         } else {
             toast.error(t('toast.missing_address_fields'));
@@ -270,14 +298,14 @@ const Cart = () => {
                     <div className="w-32 h-32 mx-auto bg-gradient-to-br from-emerald-100 to-teal-100 rounded-full flex items-center justify-center">
                         <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-full opacity-20"></div>
                     </div>
-                    <h1 className="text-3xl font-bold text-gray-800">{t('user:cart.empty_title')}</h1>
-                    <p className="text-gray-600 text-lg">{t('user:cart.empty_message')}</p>
+                    <h1 className="text-3xl font-bold text-gray-800">{t('cart.empty_title')}</h1>
+                    <p className="text-gray-600 text-lg">{t('cart.empty_message')}</p>
                     <Button
                         onClick={() => navigate('/products')}
                         size="lg"
                         className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 px-8 py-3 text-lg font-semibold"
                     >
-                        {t('user:cart.explore_products')}
+                        {t('cart.explore_products')}
                     </Button>
                 </div>
             </div>
@@ -291,15 +319,17 @@ const Cart = () => {
                 <div className="container mx-auto px-4 py-6">
                     <div className="flex items-center justify-between">
                         <div>
-                            <h1 className="text-3xl font-bold text-gray-800">{t('user:cart.title')}</h1>
-                            <p className="text-gray-600 mt-1">{cartItems.length} {t('user:cart.items_count')}</p>
+                            <h1 className="text-3xl font-bold text-gray-800">{t('cart.title')}</h1>
+                            <p className="text-gray-600 mt-1">
+                                {cartItems.length} {t('cart.items_count')}
+                            </p>
                         </div>
                         <Button
                             variant="outline"
                             onClick={() => navigate('/products')}
                             className="hidden md:flex"
                         >
-                            {t('user:cart.continue_shopping')}
+                            {t('cart.continue_shopping')}
                         </Button>
                     </div>
                 </div>
@@ -316,20 +346,22 @@ const Cart = () => {
                                     <label className="flex items-center space-x-3 cursor-pointer">
                                         <input
                                             type="checkbox"
-                                            checked={cartItems.every(item => item.selected)}
+                                            checked={cartItems.every((item) => item.selected || item.stock < 0)}
                                             onChange={handleSelectAll}
                                             className="h-5 w-5 text-emerald-600 rounded border-gray-300 focus:ring-emerald-500"
                                         />
-                                        <span className="text-gray-800 font-medium">{t('user:cart.select_all')} ({cartItems.length})</span>
+                                        <span className="text-gray-800 font-medium">
+                                            {t('cart.select_all')} ({cartItems.length})
+                                        </span>
                                     </label>
                                     <Button
                                         variant="ghost"
                                         onClick={handleDeleteAll}
-                                        disabled={!cartItems.some(item => item.selected)}
+                                        disabled={!cartItems.some((item) => item.selected && item.stock >= 0)}
                                         className="text-red-600 hover:text-red-700 hover:bg-red-50"
                                     >
                                         <Trash2 className="h-4 w-4 mr-2" />
-                                        {t('user:cart.delete_selected')}
+                                        {t('cart.delete_selected')}
                                     </Button>
                                 </div>
                             </CardContent>
@@ -338,7 +370,10 @@ const Cart = () => {
                         {/* Cart Items List */}
                         <div className="space-y-4">
                             {cartItems.map((item) => (
-                                <Card key={item.productId} className="shadow-sm hover:shadow-md transition-shadow duration-300">
+                                <Card
+                                    key={item.productId}
+                                    className="shadow-sm hover:shadow-md transition-shadow duration-300"
+                                >
                                     <CardContent className="p-6">
                                         <div className="flex items-start space-x-4">
                                             <input
@@ -346,8 +381,12 @@ const Cart = () => {
                                                 checked={item.selected}
                                                 onChange={() => toggleItemSelection(item.productId)}
                                                 className="h-5 w-5 text-emerald-600 rounded border-gray-300 focus:ring-emerald-500 mt-1"
+                                                disabled={item.stock < 0} // Vô hiệu hóa checkbox nếu stock < 0
                                             />
-                                            <Link to={`/products/${item.slug}`} className="w-24 h-24 bg-gray-50 rounded-lg flex-shrink-0 overflow-hidden">
+                                            <Link
+                                                to={`/products/${item.slug}`}
+                                                className="w-24 h-24 bg-gray-50 rounded-lg flex-shrink-0 overflow-hidden"
+                                            >
                                                 <img
                                                     src={item.imageUrl}
                                                     alt={item.name}
@@ -365,6 +404,11 @@ const Cart = () => {
                                                         <p className="text-emerald-600 font-medium mb-3">
                                                             {item.price.toLocaleString('vi-VN')}đ
                                                         </p>
+                                                        <p className="text-gray-600 mb-3">
+                                                            {item.stock < 0 &&
+                                                                t('toast.productPaused')
+                                                            }
+                                                        </p>
                                                         <div className="flex items-center justify-between">
                                                             <div className="flex items-center border rounded-lg bg-gray-50">
                                                                 <Button
@@ -372,7 +416,7 @@ const Cart = () => {
                                                                     size="sm"
                                                                     onClick={() => decreaseQuantities(item.productId)}
                                                                     className="h-10 w-10 p-0 hover:bg-gray-200"
-                                                                    disabled={item.quantity <= 1}
+                                                                    disabled={item.quantity <= 1 || item.stock < 0}
                                                                 >
                                                                     <Minus className="h-4 w-4" />
                                                                 </Button>
@@ -384,6 +428,7 @@ const Cart = () => {
                                                                     size="sm"
                                                                     onClick={() => increaseQuantities(item.productId)}
                                                                     className="h-10 w-10 p-0 hover:bg-gray-200"
+                                                                    disabled={item.stock < 0}
                                                                 >
                                                                     <Plus className="h-4 w-4" />
                                                                 </Button>
@@ -418,7 +463,7 @@ const Cart = () => {
                         <Card className="shadow-sm">
                             <CardHeader className="pb-2">
                                 <CardTitle className="text-xl font-bold text-gray-800 flex items-center">
-                                    {t('user:cart.shipping_address')}
+                                    {t('cart.shipping_address')}
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
@@ -434,8 +479,10 @@ const Cart = () => {
                                             />
                                             <div>
                                                 <p className="text-lg font-semibold text-gray-800">{address.label}</p>
-                                                <p className="text-gray-600">{address.fullName} - {address.details}</p>
-                                                <p className="text-gray-600">{t('user:cart.phone')}: {address.phone}</p>
+                                                <p className="text-gray-600">
+                                                    {address.fullName} - {address.details}
+                                                </p>
+                                                <p className="text-gray-600">{t('cart.phone')}: {address.phone}</p>
                                             </div>
                                         </div>
                                         <Button
@@ -454,89 +501,87 @@ const Cart = () => {
                                             variant="outline"
                                             className="w-full text-emerald-600 border-emerald-600 hover:bg-emerald-50"
                                         >
-                                            + {t('user:cart.add_new_address')}
+                                            + {t('cart.add_new_address')}
                                         </Button>
                                     </DialogTrigger>
                                     <DialogContent className="sm:max-w-[425px]">
                                         <DialogHeader>
-                                            <DialogTitle>{t('user:cart.add_new_address')}</DialogTitle>
-                                            <DialogDescription>
-                                                {t('user:cart.add_address_description')}
-                                            </DialogDescription>
+                                            <DialogTitle>{t('cart.add_new_address')}</DialogTitle>
+                                            <DialogDescription>{t('cart.add_address_description')}</DialogDescription>
                                         </DialogHeader>
                                         <div className="grid gap-4 py-4">
                                             <div className="grid gap-2">
-                                                <Label htmlFor="fullname">{t('user:cart.receiver_name')}</Label>
+                                                <Label htmlFor="fullname">{t('cart.receiver_name')}</Label>
                                                 <Input
                                                     id="fullname"
                                                     name="fullname"
-                                                    placeholder={t('user:cart.receiver_name')}
+                                                    placeholder={t('cart.receiver_name')}
                                                     value={newAddress.fullname}
                                                     onChange={handleInputChange}
                                                 />
                                             </div>
                                             <div className="grid gap-2">
-                                                <Label htmlFor="label">{t('user:cart.address_label')}</Label>
+                                                <Label htmlFor="label">{t('cart.address_label')}</Label>
                                                 <Input
                                                     id="label"
                                                     name="label"
-                                                    placeholder={t('user:cart.label')}
+                                                    placeholder={t('cart.label')}
                                                     value={newAddress.label}
                                                     onChange={handleInputChange}
                                                 />
                                             </div>
                                             <div className="grid gap-2">
-                                                <Label htmlFor="street">{t('user:cart.street')}</Label>
+                                                <Label htmlFor="street">{t('cart.street')}</Label>
                                                 <Input
                                                     id="street"
                                                     name="street"
-                                                    placeholder={t('user:cart.street')}
+                                                    placeholder={t('cart.street')}
                                                     value={newAddress.street}
                                                     onChange={handleInputChange}
                                                 />
                                             </div>
                                             <div className="grid gap-2">
-                                                <Label htmlFor="ward">{t('user:cart.ward')}</Label>
+                                                <Label htmlFor="ward">{t('cart.ward')}</Label>
                                                 <Input
                                                     id="ward"
                                                     name="ward"
-                                                    placeholder={t('user:cart.ward')}
+                                                    placeholder={t('cart.ward')}
                                                     value={newAddress.ward}
                                                     onChange={handleInputChange}
                                                 />
                                             </div>
                                             <div className="grid gap-2">
-                                                <Label htmlFor="district">{t('user:cart.district')}</Label>
+                                                <Label htmlFor="district">{t('cart.district')}</Label>
                                                 <Input
                                                     id="district"
                                                     name="district"
-                                                    placeholder={t('user:cart.district')}
+                                                    placeholder={t('cart.district')}
                                                     value={newAddress.district}
                                                     onChange={handleInputChange}
                                                 />
                                             </div>
                                             <div className="grid gap-2">
-                                                <Label htmlFor="province">{t('user:cart.province')}</Label>
+                                                <Label htmlFor="province">{t('cart.province')}</Label>
                                                 <Input
                                                     id="province"
                                                     name="province"
-                                                    placeholder={t('user:cart.province')}
+                                                    placeholder={t('cart.province')}
                                                     value={newAddress.province}
                                                     onChange={handleInputChange}
                                                 />
                                             </div>
                                             <div className="grid gap-2">
-                                                <Label htmlFor="phone">{t('user:cart.phone')}</Label>
+                                                <Label htmlFor="phone">{t('cart.phone')}</Label>
                                                 <Input
                                                     id="phone"
                                                     name="phone"
-                                                    placeholder={t('user:cart.phone')}
+                                                    placeholder={t('cart.phone')}
                                                     value={newAddress.phone}
                                                     onChange={handleInputChange}
                                                 />
                                             </div>
                                             <div className="grid gap-2">
-                                                <Label>{t('user:cart.set_default')}</Label>
+                                                <Label>{t('cart.set_default')}</Label>
                                                 <RadioGroup
                                                     value={newAddress.isDefault.toString()}
                                                     onValueChange={handleIsDefaultChange}
@@ -544,22 +589,20 @@ const Cart = () => {
                                                 >
                                                     <div className="flex items-center space-x-2">
                                                         <RadioGroupItem value="true" id="isDefaultTrue" />
-                                                        <Label htmlFor="isDefaultTrue">{t('user:cart.yes')}</Label>
+                                                        <Label htmlFor="isDefaultTrue">{t('cart.yes')}</Label>
                                                     </div>
                                                     <div className="flex items-center space-x-2">
                                                         <RadioGroupItem value="false" id="isDefaultFalse" />
-                                                        <Label htmlFor="isDefaultFalse">{t('user:cart.no')}</Label>
+                                                        <Label htmlFor="isDefaultFalse">{t('cart.no')}</Label>
                                                     </div>
                                                 </RadioGroup>
                                             </div>
                                         </div>
                                         <DialogFooter>
                                             <Button variant="outline" onClick={() => setIsAddressDialogOpen(false)}>
-                                                {t('user:cart.cancel')}
+                                                {t('cart.cancel')}
                                             </Button>
-                                            <Button onClick={handleAddAddress}>
-                                                {t('user:cart.add_new_address')}
-                                            </Button>
+                                            <Button onClick={handleAddAddress}>{t('cart.add_new_address')}</Button>
                                         </DialogFooter>
                                     </DialogContent>
                                 </Dialog>
@@ -570,22 +613,22 @@ const Cart = () => {
                         <Card className="shadow-sm sticky top-4">
                             <CardHeader className="pb-4">
                                 <CardTitle className="text-xl font-bold text-gray-800">
-                                    {t('user:cart.order_summary')}
+                                    {t('cart.order_summary')}
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <div className="space-y-3">
                                     <div className="flex justify-between text-gray-600">
-                                        <span>{t('user:cart.items_selected')}</span>
-                                        <span>{cartItems.filter(item => item.selected).length}</span>
+                                        <span>{t('cart.items_selected')}</span>
+                                        <span>{cartItems.filter((item) => item.selected && item.stock >= 0).length}</span>
                                     </div>
                                     <div className="flex justify-between text-gray-600">
-                                        <span>{t('user:cart.subtotal')}</span>
+                                        <span>{t('cart.subtotal')}</span>
                                         <span>{totalPrice.toLocaleString('vi-VN')}đ</span>
                                     </div>
                                     <Separator />
                                     <div className="flex justify-between items-center">
-                                        <span className="text-lg font-semibold text-gray-800">{t('user:cart.total')}</span>
+                                        <span className="text-lg font-semibold text-gray-800">{t('cart.total')}</span>
                                         <span className="text-2xl font-bold text-emerald-600">
                                             {totalPrice.toLocaleString('vi-VN')}đ
                                         </span>
@@ -595,13 +638,14 @@ const Cart = () => {
                                     size="lg"
                                     className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 py-3 text-lg font-semibold"
                                     onClick={handleCheckout}
-                                    disabled={cartItems.filter(item => item.selected).length === 0 || selectedAddress === null}
+                                    disabled={
+                                        cartItems.filter((item) => item.selected && item.stock >= 0).length === 0 ||
+                                        selectedAddress === null
+                                    }
                                 >
-                                    {t('user:cart.checkout')}
+                                    {t('cart.checkout')}
                                 </Button>
-                                <p className="text-xs text-gray-500 text-center">
-                                    {t('user:cart.agree_terms')}
-                                </p>
+                                <p className="text-xs text-gray-500 text-center">{t('cart.agree_terms')}</p>
                             </CardContent>
                         </Card>
                     </div>
@@ -611,11 +655,9 @@ const Cart = () => {
             {/* CTA Section */}
             <section className="bg-gradient-to-r from-emerald-600 to-teal-600 py-16 mt-16">
                 <div className="container mx-auto px-4 text-center">
-                    <h2 className="text-3xl font-bold text-white mb-4">
-                        {t('user:cart.discover_more')}
-                    </h2>
+                    <h2 className="text-3xl font-bold text-white mb-4">{t('cart.discover_more')}</h2>
                     <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
-                        {t('user:cart.discover_message')}
+                        {t('cart.discover_message')}
                     </p>
                     <Link to="/products">
                         <Button
@@ -623,7 +665,7 @@ const Cart = () => {
                             variant="secondary"
                             className="text-lg px-8 py-3 bg-white text-emerald-600 hover:bg-gray-50 shadow-lg hover:shadow-xl transition-all duration-300"
                         >
-                            {t('user:cart.view_all_products')}
+                            {t('cart.view_all_products')}
                         </Button>
                     </Link>
                 </div>

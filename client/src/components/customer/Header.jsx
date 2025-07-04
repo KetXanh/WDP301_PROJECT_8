@@ -23,7 +23,7 @@ import { toast } from "react-toastify";
 
 const Header = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const { t, i18n } = useTranslation(['user', 'message']);
+  const { t, i18n } = useTranslation(['translation']);
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -53,7 +53,6 @@ const Header = () => {
         setUser(res.data.user);
       } else if (res.data && res.data.code === 401) {
         dispatch(logout());
-
         setIsLoggedIn(false);
         setUser(null);
       }
@@ -61,7 +60,6 @@ const Header = () => {
       console.log('Lỗi gọi profile:', error.response?.status);
       if (error.response?.status === 403 || error.response?.status === 401) {
         dispatch(logout());
-
         setIsLoggedIn(false);
         setUser(null);
       }
@@ -109,7 +107,10 @@ const Header = () => {
     dispatch(logout());
     toast.success(t('message:toast.logout'))
     navigate('/');
+  };
 
+  const changeLanguage = (lang) => {
+    i18n.changeLanguage(lang);
   };
 
   return (
@@ -219,27 +220,30 @@ const Header = () => {
                     {t("home.register")}
                   </Button>
                 </Link>
-
               </>
             )}
-            <div className="flex items-center gap-2 ml-2">
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  className="sr-only peer"
-                  checked={i18n.language === "en"}
-                  onChange={() => {
-                    const newLang = i18n.language === "vi" ? "en" : "vi";
-                    i18n.changeLanguage(newLang);
-                  }}
-                />
-                <div className="w-11 h-6 bg-gray-300 rounded-full peer peer-checked:bg-green-500 transition-colors duration-300"></div>
-                <div className="absolute left-0.5 top-0.5 w-5 h-5 bg-white border border-gray-300 rounded-full transition-transform duration-300 peer-checked:translate-x-full"></div>
-              </label>
-              <span className="text-sm text-gray-700 dark:text-gray-300 select-none">
-                {i18n.language === "vi" ? "VN" : "EN"}
-              </span>
-            </div>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="flex items-center gap-2">
+                  <span>{i18n.language === "vi" ? "VN" : "EN"}</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-32">
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  onClick={() => changeLanguage("en")}
+                >
+                  English
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  onClick={() => changeLanguage("vi")}
+                >
+                  Tiếng Việt
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </div>

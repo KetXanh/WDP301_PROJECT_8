@@ -20,7 +20,7 @@ const ResetPassword = () => {
     const location = useLocation();
     const email = location.state?.email;
     const navigate = useNavigate();
-    const { t } = useTranslation(["message", "user"]);
+    const { t } = useTranslation(['translation']);
     const handleInputChange = (e) => {
         setPasswords({
             ...passwords,
@@ -70,7 +70,7 @@ const ResetPassword = () => {
                         className="inline-flex items-center text-gray-600 hover:text-gray-800 transition-colors"
                     >
                         <ArrowLeft className="h-4 w-4 mr-2" />
-                        {t("user:reset_password.back")}
+                        {t("reset_password.back")}
                     </Link>
                 </div>
 
@@ -80,23 +80,23 @@ const ResetPassword = () => {
                             <Lock className="h-8 w-8 text-white" />
                         </div>
                         <CardTitle className="text-2xl font-bold text-gray-800">
-                            {t("user:reset_password.title")}
+                            {t("reset_password.title")}
                         </CardTitle>
                         <CardDescription className="text-gray-600">
-                            {t("user:reset_password.subtitle")}
+                            {t("reset_password.subtitle")}
                         </CardDescription>
                     </CardHeader>
 
                     <CardContent>
                         <form onSubmit={handleSubmit} className="space-y-6">
                             <div className="space-y-2">
-                                <Label htmlFor="newPassword">{t("user:reset_password.newPassword")}</Label>
+                                <Label htmlFor="newPassword">{t("reset_password.newPassword")}</Label>
                                 <div className="relative">
                                     <Input
                                         id="newPassword"
                                         name="newPassword"
                                         type={showNewPassword ? 'text' : 'password'}
-                                        placeholder={t("user:reset_password.newPasswordPlaceholder")}
+                                        placeholder={t("reset_password.newPasswordPlaceholder")}
                                         value={passwords.newPassword}
                                         onChange={handleInputChange}
                                         className="pr-10"
@@ -113,13 +113,13 @@ const ResetPassword = () => {
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="confirmPassword">{t("user:reset_password.confirmPassword")}</Label>
+                                <Label htmlFor="confirmPassword">{t("reset_password.confirmPassword")}</Label>
                                 <div className="relative">
                                     <Input
                                         id="confirmPassword"
                                         name="confirmPassword"
                                         type={showConfirmPassword ? 'text' : 'password'}
-                                        placeholder={t("user:reset_password.confirmPasswordPlaceholder")}
+                                        placeholder={t("reset_password.confirmPasswordPlaceholder")}
                                         value={passwords.confirmPassword}
                                         onChange={handleInputChange}
                                         className="pr-10"
@@ -136,11 +136,11 @@ const ResetPassword = () => {
                             </div>
 
                             <div className="bg-blue-50 p-4 rounded-lg">
-                                <h4 className="text-sm font-medium text-blue-800 mb-2">{t("user:reset_password.passwordRequirementTitle")}</h4>
+                                <h4 className="text-sm font-medium text-blue-800 mb-2">{t("reset_password.passwordRequirementTitle")}</h4>
                                 <ul className="text-xs text-blue-700 space-y-1">
-                                    <li>{t("user:reset_password.passwordRequirement1")}</li>
-                                    <li>{t("user:reset_password.passwordRequirement2")}</li>
-                                    <li>{t("user:reset_password.passwordRequirement3")}</li>
+                                    <li>{t("reset_password.passwordRequirement1")}</li>
+                                    <li>{t("reset_password.passwordRequirement2")}</li>
+                                    <li>{t("reset_password.passwordRequirement3")}</li>
                                 </ul>
                             </div>
 
@@ -149,18 +149,18 @@ const ResetPassword = () => {
                                 disabled={isLoading}
                                 className="w-full bg-gradient-to-r from-green-600 to-amber-600 hover:from-green-700 hover:to-amber-700"
                             >
-                                {isLoading ? t("user:reset_password.updating") : t("user:reset_password.updateButton")}
+                                {isLoading ? t("reset_password.updating") : t("reset_password.updateButton")}
                             </Button>
                         </form>
 
                         <div className="mt-6 text-center">
                             <p className="text-sm text-gray-600">
-                                {t("user:reset_password.rememberPassword")}{' '}
+                                {t("reset_password.rememberPassword")}{' '}
                                 <Link
                                     to="/login"
                                     className="text-green-600 hover:text-green-700 font-medium underline"
                                 >
-                                    {t("user:reset_password.loginNow")}
+                                    {t("reset_password.loginNow")}
                                 </Link>
                             </p>
                         </div>

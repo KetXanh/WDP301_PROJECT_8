@@ -13,7 +13,7 @@ const ForgotOtp = () => {
     const location = useLocation();
     const email = location.state?.email;
     const navigate = useNavigate();
-    const { t } = useTranslation(["message", "user"]);
+    const { t } = useTranslation(['translation']);
     const handleVerify = async () => {
         if (otpValue.length !== 6) {
             toast.error(t("toast.otpRequired"));

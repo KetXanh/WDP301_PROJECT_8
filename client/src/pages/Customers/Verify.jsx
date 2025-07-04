@@ -12,7 +12,7 @@ const Verify = () => {
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
     const { email } = useParams();
-    const { t } = useTranslation(["message", "user"]);
+    const { t } = useTranslation(['translation']);
     const handleVerify = async () => {
         if (otpValue.length !== 6) {
             toast.error(t("toast.otpRequired_verify"));
@@ -76,7 +76,7 @@ const Verify = () => {
                         className="inline-flex items-center text-gray-600 hover:text-gray-800 transition-colors"
                     >
                         <ArrowLeft className="h-4 w-4 mr-2" />
-                        {t("user:verify.back")}
+                        {t("verify.back")}
                     </Link>
                 </div>
 
@@ -86,17 +86,17 @@ const Verify = () => {
                             <span className="text-2xl">📧</span>
                         </div>
                         <CardTitle className="text-2xl font-bold text-gray-800">
-                            {t("user:verify.title")}
+                            {t("verify.title")}
                         </CardTitle>
                         <CardDescription className="text-gray-600">
-                            {t("user:verify.subtitle")}
+                            {t("verify.subtitle")}
                         </CardDescription>
                     </CardHeader>
 
                     <CardContent className="space-y-6">
                         <div className="flex flex-col items-center space-y-4">
                             <label className="text-sm font-medium text-gray-700">
-                                {t("user:verify.label")}
+                                {t("verify.label")}
                             </label>
 
                             <InputOTP
@@ -120,18 +120,18 @@ const Verify = () => {
                             disabled={isLoading || otpValue.length !== 6}
                             className="w-full bg-gradient-to-r from-green-600 to-amber-600 hover:from-green-700 hover:to-amber-700"
                         >
-                            {isLoading ? t("user:verify.verifying") : ("user:verify.verify")}
+                            {isLoading ? t("verify.verifying") : ("verify.verify")}
                         </Button>
 
                         <div className="text-center">
                             <p className="text-sm text-gray-600 mb-2">
-                                {t("user:verify.notReceived")}
+                                {t("verify.notReceived")}
                             </p>
                             <button
                                 onClick={handleResendCode}
                                 className="text-sm text-green-600 hover:text-green-700 font-medium underline"
                             >
-                                {t("user:verify.resend")}
+                                {t("verify.resend")}
                             </button>
                         </div>
                     </CardContent>

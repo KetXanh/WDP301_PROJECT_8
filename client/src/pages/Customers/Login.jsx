@@ -29,7 +29,7 @@ const Login = () => {
   });
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { t } = useTranslation(["message", "user"]);
+  const { t } = useTranslation(['translation']);
   const handleInputChange = (e) => {
     setFormData({
       ...formData,
@@ -105,10 +105,10 @@ const Login = () => {
               <img className="" src={logo} />
             </div>
             <CardTitle className="text-2xl font-bold text-gray-800">
-              {t('user:login.title')}
+              {t('login.title')}
             </CardTitle>
             <CardDescription className="text-gray-600">
-              {t('user:login.subtitle')}
+              {t('login.subtitle')}
             </CardDescription>
           </CardHeader>
 
@@ -127,7 +127,7 @@ const Login = () => {
                     id="email"
                     name="email"
                     type="email"
-                    placeholder={t('user:login.emailPlaceholder')}
+                    placeholder={t('login.emailPlaceholder')}
                     value={formData.email}
                     onChange={handleInputChange}
                     className="pl-10 h-12 border-gray-200 focus:border-green-500 focus:ring-green-500"
@@ -140,7 +140,7 @@ const Login = () => {
                   htmlFor="password"
                   className="text-sm font-medium text-gray-700"
                 >
-                  {t('user:login.passwordLabel')}
+                  {t('login.passwordLabel')}
                 </Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
@@ -148,7 +148,7 @@ const Login = () => {
                     id="password"
                     name="password"
                     type={showPassword ? "text" : "password"}
-                    placeholder={t('user:login.passwordPlaceholder')}
+                    placeholder={t('login.passwordPlaceholder')}
                     value={formData.password}
                     onChange={handleInputChange}
                     className="pl-10 pr-10 h-12 border-gray-200 focus:border-green-500 focus:ring-green-500"
@@ -174,7 +174,7 @@ const Login = () => {
                   type="button"
                   className="text-sm text-green-600 hover:text-green-700 font-medium"
                 >
-                  {t('user:login.forgotPassword')}
+                  {t('login.forgotPassword')}
                 </button>
               </div>
 
@@ -182,7 +182,7 @@ const Login = () => {
                 type="submit"
                 className="w-full h-12 bg-gradient-to-r from-green-600 to-amber-600 hover:from-green-700 hover:to-amber-700 text-white font-medium rounded-lg transition-all duration-200 transform hover:scale-[1.02]"
               >
-                {t('user:login.loginButton')}
+                {t('login.loginButton')}
               </Button>
             </form>
 
@@ -192,7 +192,7 @@ const Login = () => {
                   <div className="w-full border-t border-gray-200" />
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white text-gray-500">{t('user:login.divider')}</span>
+                  <span className="px-2 bg-white text-gray-500">{t('login.divider')}</span>
                 </div>
               </div>
 
@@ -203,12 +203,12 @@ const Login = () => {
 
             <div className="mt-6 text-center">
               <p className="text-sm text-gray-600">
-                {t('user:login.noAccount')}
+                {t('login.noAccount')}
                 <Link
                   to="/register"
                   className="ml-1 text-green-600 hover:text-green-700 font-medium"
                 >
-                  {t('user:login.registerNow')}
+                  {t('login.registerNow')}
                 </Link>
               </p>
             </div>
@@ -217,13 +217,13 @@ const Login = () => {
 
         <div className="mt-6 text-center">
           <p className="text-xs text-gray-500">
-            {t('user:login.termsPrefix')}{" "}
+            {t('login.termsPrefix')}{" "}
             <a href="#" className="text-green-600 hover:text-green-700">
-              {t('user:login.termsOfUse')}
+              {t('login.termsOfUse')}
             </a>{" "}
-            {t('user:login.and')}{" "}
+            {t('login.and')}{" "}
             <a href="#" className="text-green-600 hover:text-green-700">
-              {t('user:login.privacyPolicy')}{" "}
+              {t('login.privacyPolicy')}{" "}
             </a>
           </p>
         </div>

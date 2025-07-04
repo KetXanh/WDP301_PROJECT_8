@@ -50,7 +50,7 @@ const Profile = () => {
   });
   const accessToken = useSelector((state) => state.customer.accessToken);
   const [isLoading, setIsLoading] = useState(false);
-  const { t } = useTranslation(["message", "user"]);
+  const { t } = useTranslation(['translation']);
 
   const handleAvatarUpload = (e) => {
     const file = e.target.files[0];
@@ -164,7 +164,7 @@ const Profile = () => {
             className="inline-flex items-center text-gray-600 hover:text-gray-800 transition-colors"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
-            {t("user:profile.backHome")}
+            {t("profile.backHome")}
           </Link>
         </div>
 
@@ -191,7 +191,7 @@ const Profile = () => {
                     className="absolute bottom-0 right-1/2 transform translate-x-1/2 translate-y-2"
                   >
                     <Camera className="h-4 w-4 mr-2" />
-                    {t("user:profile.changePhoto")}
+                    {t("profile.changePhoto")}
                   </Button>
                   <input
                     id="avatar-upload"
@@ -204,7 +204,7 @@ const Profile = () => {
               )}
             </div>
             <CardTitle className="text-2xl font-bold text-gray-800 flex items-center justify-center gap-2">
-              {t("user:profile.title")}
+              {t("profile.title")}
               {!isEditing && (
                 <Button
                   variant="ghost"
@@ -218,8 +218,8 @@ const Profile = () => {
             </CardTitle>
             <CardDescription className="text-gray-600">
               {isEditing
-                ? t("user:profile.editHint")
-                : t("user:profile.viewHint")}
+                ? t("profile.editHint")
+                : t("profile.viewHint")}
             </CardDescription>
           </CardHeader>
 
@@ -232,7 +232,7 @@ const Profile = () => {
                     htmlFor="username"
                     className="text-sm font-medium text-gray-700"
                   >
-                    {t("user:profile.usernameLabel")}
+                    {t("profile.usernameLabel")}
                   </Label>
                   {isEditing ? (
                     <Input
@@ -241,11 +241,11 @@ const Profile = () => {
                       value={formData.username || ""}
                       onChange={handleInputChange}
                       className="mt-1"
-                      placeholder={t("user:profile.usernamePlaceholder")}
+                      placeholder={t("profile.usernamePlaceholder")}
                     />
                   ) : (
                     <p className="mt-1 text-gray-900">
-                      {formData.username || t("user:profile.updatePrompt")}
+                      {formData.username || t("profile.updatePrompt")}
                     </p>
                   )}
                 </div>
@@ -254,7 +254,7 @@ const Profile = () => {
                     htmlFor="fullName"
                     className="text-sm font-medium text-gray-700"
                   >
-                    {t("user:profile.fullNameLabel")}
+                    {t("profile.fullNameLabel")}
                   </Label>
                   {isEditing ? (
                     <Input
@@ -267,7 +267,7 @@ const Profile = () => {
                   ) : (
                     <p className="mt-1 text-gray-900">
                       {formData?.address[0]?.fullName ||
-                        t("user:profile.updatePrompt")}
+                        t("profile.updatePrompt")}
                     </p>
                   )}
                 </div>
@@ -293,7 +293,7 @@ const Profile = () => {
                     />
                   ) : (
                     <p className="mt-1 text-gray-900">
-                      {formData.email || t("user:profile.updatePrompt")}
+                      {formData.email || t("profile.updatePrompt")}
                     </p>
                   )}
                 </div>
@@ -303,7 +303,7 @@ const Profile = () => {
                 <Phone className="h-5 w-5 text-gray-500" />
                 <div className="flex-1">
                   <Label htmlFor="phone" className="text-sm font-medium text-gray-700">
-                    {t("user:profile.phoneLabel")}
+                    {t("profile.phoneLabel")}
                   </Label>
                   {isEditing ? (
                     <Input
@@ -314,7 +314,7 @@ const Profile = () => {
                       className="mt-1"
                     />
                   ) : (
-                    <p className="mt-1 text-gray-900">{formData?.address[0]?.phone || t("user:profile.updatePrompt")}</p>
+                    <p className="mt-1 text-gray-900">{formData?.address[0]?.phone || t("profile.updatePrompt")}</p>
                   )}
                 </div>
               </div>
@@ -323,35 +323,35 @@ const Profile = () => {
                 <MapPin className="h-5 w-5 text-gray-500 mt-1" />
                 <div className="flex-1">
                   <Label className="text-sm font-medium text-gray-700">
-                    {t("user:profile.addressLabel")}
+                    {t("profile.addressLabel")}
                   </Label>
                   {isEditing ? (
                     <div className="grid grid-cols-1 gap-3 mt-1">
                       <Input
                         id="street"
                         name="street"
-                        placeholder={t("user:profile.streetPlaceholder")}
+                        placeholder={t("profile.streetPlaceholder")}
                         value={formData?.address[0]?.street || ""}
                         onChange={handleInputChange}
                       />
                       <Input
                         id="ward"
                         name="ward"
-                        placeholder={t("user:profile.wardPlaceholder")}
+                        placeholder={t("profile.wardPlaceholder")}
                         value={formData?.address[0]?.ward || ""}
                         onChange={handleInputChange}
                       />
                       <Input
                         id="district"
                         name="district"
-                        placeholder={t("user:profile.districtPlaceholder")}
+                        placeholder={t("profile.districtPlaceholder")}
                         value={formData?.address[0]?.district || ""}
                         onChange={handleInputChange}
                       />
                       <Input
                         id="province"
                         name="province"
-                        placeholder={t("user:profile.provincePlaceholder")}
+                        placeholder={t("profile.provincePlaceholder")}
                         value={formData?.address[0]?.province || ""}
                         onChange={handleInputChange}
                       />
@@ -359,7 +359,7 @@ const Profile = () => {
                   ) : (
                     <p className="mt-1 text-gray-900">
                       {formData.address.length === 0
-                        ? t("user:profile.updatePrompt")
+                        ? t("profile.updatePrompt")
                         : `${formData.address[0].street} ${formData.address[0].ward} ${formData.address[0].district} ${formData.address[0].province}`}
                     </p>
                   )}
@@ -374,7 +374,7 @@ const Profile = () => {
                   disabled={isLoading}
                   className="flex-1 bg-gradient-to-r from-green-600 to-amber-600 hover:from-green-700 hover:to-amber-700"
                 >
-                  {isLoading ? t("user:profile.saving") : t("user:profile.save")}
+                  {isLoading ? t("profile.saving") : t("profile.save")}
                 </Button>
                 <Button
                   variant="outline"
@@ -382,7 +382,7 @@ const Profile = () => {
                   disabled={isLoading}
                   className="flex-1"
                 >
-                  {t("user:profile.cancel")}
+                  {t("profile.cancel")}
                 </Button>
               </div>
             )}

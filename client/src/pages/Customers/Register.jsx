@@ -20,7 +20,7 @@ const Register = () => {
         confirmPassword: ''
     });
     const navigate = useNavigate();
-    const { t } = useTranslation(["message", "user"]);
+    const { t } = useTranslation(['translation']);
     const handleInputChange = (e) => {
         setFormData({
             ...formData,
@@ -78,10 +78,10 @@ const Register = () => {
                             <img className='' src={logo} />
                         </div>
                         <CardTitle className="text-2xl font-bold text-gray-800">
-                            {t('user:register.title')}
+                            {t('register.title')}
                         </CardTitle>
                         <CardDescription className="text-gray-600">
-                            {t('user:register.subtitle')}
+                            {t('register.subtitle')}
                         </CardDescription>
                     </CardHeader>
 
@@ -89,7 +89,7 @@ const Register = () => {
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div className="space-y-2">
                                 <Label htmlFor="username" className="text-sm font-medium text-gray-700">
-                                    {t('user:register.usernameLabel')}
+                                    {t('register.usernameLabel')}
                                 </Label>
                                 <div className="relative">
                                     <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
@@ -97,7 +97,7 @@ const Register = () => {
                                         id="username"
                                         name="username"
                                         type="text"
-                                        placeholder={t('user:register.usernamePlaceholder')}
+                                        placeholder={t('register.usernamePlaceholder')}
                                         value={formData.username}
                                         onChange={handleInputChange}
                                         className="pl-10 h-12 border-gray-200 focus:border-green-500 focus:ring-green-500"
@@ -115,7 +115,7 @@ const Register = () => {
                                         id="email"
                                         name="email"
                                         type="email"
-                                        placeholder={t('user:register.emailPlaceholder')}
+                                        placeholder={t('register.emailPlaceholder')}
                                         value={formData.email}
                                         onChange={handleInputChange}
                                         className="pl-10 h-12 border-gray-200 focus:border-green-500 focus:ring-green-500"
@@ -125,7 +125,7 @@ const Register = () => {
 
                             <div className="space-y-2">
                                 <Label htmlFor="password" className="text-sm font-medium text-gray-700">
-                                    {t('user:register.passwordLabel')}
+                                    {t('register.passwordLabel')}
                                 </Label>
                                 <div className="relative">
                                     <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
@@ -133,7 +133,7 @@ const Register = () => {
                                         id="password"
                                         name="password"
                                         type={showPassword ? 'text' : 'password'}
-                                        placeholder={t('user:register.passwordPlaceholder')}
+                                        placeholder={t('register.passwordPlaceholder')}
                                         value={formData.password}
                                         onChange={handleInputChange}
                                         className="pl-10 pr-10 h-12 border-gray-200 focus:border-green-500 focus:ring-green-500"
@@ -150,7 +150,7 @@ const Register = () => {
 
                             <div className="space-y-2">
                                 <Label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">
-                                    {t('user:register.confirmPasswordLabel')}
+                                    {t('register.confirmPasswordLabel')}
                                 </Label>
                                 <div className="relative">
                                     <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
@@ -158,7 +158,7 @@ const Register = () => {
                                         id="confirmPassword"
                                         name="confirmPassword"
                                         type={showConfirmPassword ? 'text' : 'password'}
-                                        placeholder={t('user:register.confirmPasswordPlaceholder')}
+                                        placeholder={t('register.confirmPasswordPlaceholder')}
                                         value={formData.confirmPassword}
                                         onChange={handleInputChange}
                                         className="pl-10 pr-10 h-12 border-gray-200 focus:border-green-500 focus:ring-green-500"
@@ -177,7 +177,7 @@ const Register = () => {
                                 type="submit"
                                 className="w-full h-12 bg-gradient-to-r from-green-600 to-amber-600 hover:from-green-700 hover:to-amber-700 text-white font-medium rounded-lg transition-all duration-200 transform hover:scale-[1.02]"
                             >
-                                {t('user:register.registerButton')}
+                                {t('register.registerButton')}
                             </Button>
                         </form>
 
@@ -187,7 +187,7 @@ const Register = () => {
                                     <div className="w-full border-t border-gray-200" />
                                 </div>
                                 <div className="relative flex justify-center text-sm">
-                                    <span className="px-2 bg-white text-gray-500">{t('user:register.divider')}</span>
+                                    <span className="px-2 bg-white text-gray-500">{t('register.divider')}</span>
                                 </div>
                             </div>
 
@@ -198,12 +198,12 @@ const Register = () => {
 
                         <div className="mt-6 text-center">
                             <p className="text-sm text-gray-600">
-                                {t('user:register.alreadyHaveAccount')}
+                                {t('register.alreadyHaveAccount')}
                                 <Link
                                     to="/login"
                                     className="ml-1 text-green-600 hover:text-green-700 font-medium"
                                 >
-                                    {t('user:register.loginNow')}
+                                    {t('register.loginNow')}
                                 </Link>
                             </p>
                         </div>
@@ -212,10 +212,10 @@ const Register = () => {
 
                 <div className="mt-6 text-center">
                     <p className="text-xs text-gray-500">
-                        {t('user:register.termsPrefix')}{' '}
-                        <a href="#" className="text-green-600 hover:text-green-700">{t('user:register.termsOfUse')}{' '}</a>
-                        {' '}{t('user:register.and')}{' '}
-                        <a href="#" className="text-green-600 hover:text-green-700">{t('user:register.privacyPolicy')}</a>
+                        {t('register.termsPrefix')}{' '}
+                        <a href="#" className="text-green-600 hover:text-green-700">{t('register.termsOfUse')}{' '}</a>
+                        {' '}{t('register.and')}{' '}
+                        <a href="#" className="text-green-600 hover:text-green-700">{t('register.privacyPolicy')}</a>
                     </p>
                 </div>
             </div>

@@ -5,33 +5,34 @@ const Users = require("../../models/user");
 module.exports.getCart = async (req, res) => {
     try {
         const email = req.user.email;
-        const userId = await Users.findOne({
-            email: email
-        }).select('_id');
+        const userId = await Users.findOne({ email }).select('_id');
 
         if (!userId) {
             return res.status(404).json({
                 code: 404,
-                message: "User not found"
+                message: "User not found",
             });
         }
 
-        const cart = await Carts.findOne({ user: userId }).populate({
-            path: 'items.product',
-            select: 'price stock baseProduct',
-            populate: {
-                path: 'baseProduct',
-                select: 'name image slug',
-            },
-        })
+        const cart = await Carts.findOne({ user: userId })
+            .populate({
+                path: 'items.product',
+                select: 'price stock baseProduct',
+                populate: {
+                    path: 'baseProduct',
+                    select: 'name image slug',
+                },
+            })
             .lean();
+
         if (!cart) {
             return res.status(404).json({
                 code: 404,
-                message: "Cart not found for this user"
+                message: "Cart not found for this user",
             });
         }
-        const enriched = cart.items.map(it => ({
+
+        const enriched = cart.items.map((it) => ({
             productId: it.product._id,
             slug: it.product.baseProduct.slug,
             name: it.product.baseProduct.name,
@@ -39,18 +40,19 @@ module.exports.getCart = async (req, res) => {
             price: it.price,
             quantity: it.quantity,
             stock: it.product.stock,
+            status: it.product.stock < 0 ? 'paused' : 'active',
         }));
 
         return res.status(200).json({
             code: 200,
             message: "Cart retrieved successfully",
-            data: enriched
+            data: enriched,
         });
     } catch (error) {
         return res.status(500).json({
             code: 500,
             message: "Server Error",
-            error: error.message
+            error: error.message,
         });
     }
 };

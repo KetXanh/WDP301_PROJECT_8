@@ -33,7 +33,7 @@ const CheckoutDemo = () => {
     const { selectedItems, selectedAddress } = location.state || {};
     const accessToken = useSelector((state) => state.customer.accessToken);
 
-    const { t } = useTranslation(["message", "user"]);
+    const { t } = useTranslation(['translation']);
 
     useEffect(() => {
         if (!selectedItems || !selectedAddress) {
@@ -102,8 +102,8 @@ const CheckoutDemo = () => {
                             <ArrowLeft className="h-5 w-5" />
                         </Button>
                         <div>
-                            <h1 className="text-3xl font-bold text-gray-800">{t('user:checkout.title')}</h1>
-                            <p className="text-gray-600 mt-1">{t('user:checkout.subtitle')}</p>
+                            <h1 className="text-3xl font-bold text-gray-800">{t('checkout.title')}</h1>
+                            <p className="text-gray-600 mt-1">{t('checkout.subtitle')}</p>
                         </div>
                     </div>
                 </div>
@@ -119,7 +119,7 @@ const CheckoutDemo = () => {
                             <CardHeader className="pb-4">
                                 <CardTitle className="flex items-center space-x-2">
                                     <MapPin className="h-5 w-5 text-emerald-600" />
-                                    <span>{t('user:checkout.shipping_address')}</span>
+                                    <span>{t('checkout.shipping_address')}</span>
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
@@ -133,7 +133,7 @@ const CheckoutDemo = () => {
                                                 {selectedAddress.fullName}-{selectedAddress.details}
                                             </p>
                                             <p className="text-gray-600">
-                                                {t('user:checkout.phone')}: {selectedAddress.phone}
+                                                {t('checkout.phone')}: {selectedAddress.phone}
                                             </p>
                                         </div>
                                     </div>
@@ -146,7 +146,7 @@ const CheckoutDemo = () => {
                             <CardHeader className="pb-4">
                                 <CardTitle className="flex items-center space-x-2">
                                     <CreditCard className="h-5 w-5 text-emerald-600" />
-                                    <span>{t('user:checkout.payment_method')}</span>
+                                    <span>{t('checkout.payment_method')}</span>
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
@@ -163,10 +163,10 @@ const CheckoutDemo = () => {
                                                     <Truck className="h-5 w-5 text-amber-600" />
                                                     <div>
                                                         <p className="font-medium">
-                                                            {t('user:checkout.cod_title')}
+                                                            {t('checkout.cod_title')}
                                                         </p>
                                                         <p className="text-sm text-gray-500">
-                                                            {t('user:checkout.cod_description')}
+                                                            {t('checkout.cod_description')}
                                                         </p>
                                                     </div>
                                                 </div>
@@ -174,7 +174,7 @@ const CheckoutDemo = () => {
                                                     variant="secondary"
                                                     className="bg-amber-100 text-amber-800"
                                                 >
-                                                    {t('user:checkout.popular')}
+                                                    {t('checkout.popular')}
                                                 </Badge>
                                             </div>
                                         </Label>
@@ -189,10 +189,10 @@ const CheckoutDemo = () => {
                                                     <CreditCard className="h-5 w-5 text-blue-600" />
                                                     <div>
                                                         <p className="font-medium">
-                                                            {t('user:checkout.bank_title')}
+                                                            {t('checkout.bank_title')}
                                                         </p>
                                                         <p className="text-sm text-gray-500">
-                                                            {t('user:checkout.bank_description')}
+                                                            {t('checkout.bank_description')}
                                                         </p>
                                                     </div>
                                                 </div>
@@ -200,7 +200,7 @@ const CheckoutDemo = () => {
                                                     variant="secondary"
                                                     className="bg-blue-100 text-blue-800"
                                                 >
-                                                    {t('user:checkout.safe')}
+                                                    {t('checkout.safe')}
                                                 </Badge>
                                             </div>
                                         </Label>
@@ -210,11 +210,11 @@ const CheckoutDemo = () => {
                                 {paymentMethod === 'bank' && (
                                     <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                                         <h4 className="font-medium text-blue-800 mb-2">
-                                            {t('user:checkout.titlePayemnt')}
+                                            {t('checkout.titlePayemnt')}
                                         </h4>
                                         {/* <div className="space-y-1 text-sm text-blue-700">
                                             <p>
-                                                <strong>{t('user:checkout.bank')}:</strong> Vietcombank
+                                                <strong>{t('checkout.bank')}:</strong> Vietcombank
                                             </p>
                                             <p>
                                                 <strong>Số TK:</strong> 1234567890
@@ -234,11 +234,11 @@ const CheckoutDemo = () => {
                         {/* Ghi chú */}
                         <Card className="shadow-sm">
                             <CardHeader className="pb-4">
-                                <CardTitle>{t('user:checkout.noteOrder')}</CardTitle>
+                                <CardTitle>{t('checkout.noteOrder')}</CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <Textarea
-                                    placeholder={t('user:checkout.noteCheckout')}
+                                    placeholder={t('checkout.noteCheckout')}
                                     value={orderNote}
                                     onChange={(e) => setOrderNote(e.target.value)}
                                     className="min-h-[100px]"
@@ -255,7 +255,7 @@ const CheckoutDemo = () => {
                                 <CardTitle className="flex items-center space-x-2">
                                     <Package className="h-5 w-5 text-emerald-600" />
                                     <span>
-                                        {t('user:checkout.noteOrder', { count: selectedItems.length })}
+                                        {t('checkout.noteOrder', { count: selectedItems.length })}
                                     </span>
                                 </CardTitle>
                             </CardHeader>
@@ -297,22 +297,22 @@ const CheckoutDemo = () => {
                         {/* Tổng tiền */}
                         <Card className="shadow-sm sticky top-4">
                             <CardHeader className="pb-4">
-                                <CardTitle>{t('user:checkout.order_total')}:</CardTitle>
+                                <CardTitle>{t('checkout.order_total')}:</CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <div className="space-y-3">
                                     <div className="flex justify-between text-gray-600">
-                                        <span>{t('user:checkout.subtotal')}:</span>
+                                        <span>{t('checkout.subtotal')}:</span>
                                         <span>{subtotal.toLocaleString('vi-VN')}đ</span>
                                     </div>
                                     <div className="flex justify-between text-gray-600">
-                                        <span>{t('user:checkout.shipping_fee')}:</span>
+                                        <span>{t('checkout.shipping_fee')}:</span>
                                         <span>{shippingFee.toLocaleString('vi-VN')}đ</span>
                                     </div>
                                     <Separator />
                                     <div className="flex justify-between items-center">
                                         <span className="text-lg font-semibold text-gray-800">
-                                            {t('user:checkout.total_payment')}:
+                                            {t('checkout.total_payment')}:
                                         </span>
                                         <span className="text-2xl font-bold text-emerald-600">
                                             {total.toLocaleString('vi-VN')}đ
@@ -329,10 +329,10 @@ const CheckoutDemo = () => {
                                     {isProcessing ? (
                                         <div className="flex items-center space-x-2">
                                             <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                                            <span>{t('user:checkout.processing')}</span>
+                                            <span>{t('checkout.processing')}</span>
                                         </div>
                                     ) : (
-                                        t('user:checkout.place_order')
+                                        t('checkout.place_order')
                                     )}
                                 </Button>
                             </CardContent>

@@ -12,7 +12,7 @@ const ForgotPassword = () => {
     const [email, setEmail] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
-    const { t } = useTranslation(["message", "user"]);
+    const { t } = useTranslation(['translation']);
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -49,7 +49,7 @@ const ForgotPassword = () => {
                         className="inline-flex items-center text-gray-600 hover:text-gray-800 transition-colors"
                     >
                         <ArrowLeft className="h-4 w-4 mr-2" />
-                        {t("user:forgot-password.backToLogin")}
+                        {t("forgot-password.backToLogin")}
                     </Link>
                 </div>
 
@@ -59,10 +59,10 @@ const ForgotPassword = () => {
                             <Mail className="h-8 w-8 text-white" />
                         </div>
                         <CardTitle className="text-2xl font-bold text-gray-800">
-                            {t("user:forgot-password.title")}
+                            {t("forgot-password.title")}
                         </CardTitle>
                         <CardDescription className="text-gray-600">
-                            {t("user:forgot-password.subtitle")}
+                            {t("forgot-password.subtitle")}
                         </CardDescription>
                     </CardHeader>
 
@@ -86,18 +86,18 @@ const ForgotPassword = () => {
                                 disabled={isLoading}
                                 className="w-full bg-gradient-to-r from-green-600 to-amber-600 hover:from-green-700 hover:to-amber-700"
                             >
-                                {isLoading ? t("user:forgot-password.sending") : t("user:forgot-password.sendLink")}
+                                {isLoading ? t("forgot-password.sending") : t("forgot-password.sendLink")}
                             </Button>
                         </form>
 
                         <div className="mt-6 text-center">
                             <p className="text-sm text-gray-600">
-                                {t("user:forgot-password.remember")}{' '}
+                                {t("forgot-password.remember")}{' '}
                                 <Link
                                     to="/login"
                                     className="text-green-600 hover:text-green-700 font-medium underline"
                                 >
-                                    {t("user:forgot-password.loginNow")}
+                                    {t("forgot-password.loginNow")}
                                 </Link>
                             </p>
                         </div>

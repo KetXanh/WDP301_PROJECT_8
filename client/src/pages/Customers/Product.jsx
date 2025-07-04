@@ -25,7 +25,7 @@ const Product = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const productsPerPage = 9;
   const navigate = useNavigate();
-  const { t } = useTranslation("user");
+  const { t } = useTranslation('translation');
 
   const products = async () => {
     try {
@@ -42,12 +42,16 @@ const Product = () => {
     products();
   }, []);
 
+
+  console.log(allProduct);
+
+
   const filteredProducts = allProduct.filter((product) => {
     const matchesSearch = product.name
       .toLowerCase()
       .includes(searchTerm.toLowerCase());
     const matchesCategory =
-      selectedCategory === "all" || product.category?.name === selectedCategory;
+      selectedCategory === "all" || product.subCategory?.name === selectedCategory;
     const matchesPrice =
       product.price >= priceRange[0] && product.price <= priceRange[1];
 
