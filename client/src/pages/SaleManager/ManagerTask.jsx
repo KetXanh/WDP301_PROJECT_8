@@ -22,7 +22,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { toast } from "sonner"
-import { getAllTasks, createTask, updateTask, deleteTask, getAllSaleStaff, createTaskAssignment } from "@/services/SaleManager/ApiSaleManager"
+import { getAllTasks, createTask, updateTask, deleteTask, getAllSaleStaff, createTaskAssignment, getAssignedTasks, removeTaskAssignment } from "@/services/SaleManager/ApiSaleManager"
+import TaskStaffFilter from "./components/TaskStaffFilter"
 
 export default function ManagerTask() {
   const [tasks, setTasks] = useState([])
@@ -33,17 +34,28 @@ export default function ManagerTask() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [taskToDelete, setTaskToDelete] = useState(null)
   const [isAssignAllDialogOpen, setIsAssignAllDialogOpen] = useState(false)
+  const [selectedStaffId, setSelectedStaffId] = useState('all')
+  const [assignments, setAssignments] = useState([])
 
   useEffect(() => {
     fetchTasks()
     fetchSaleStaff()
   }, [])
 
+  useEffect(() => {
+    if (selectedStaffId === 'all') {
+      fetchTasks();
+      setAssignments([]);
+    } else {
+      fetchAssignments(selectedStaffId);
+    }
+  }, [selectedStaffId]);
+
   const fetchTasks = async () => {
     try {
       const res = await getAllTasks()
       // Sử dụng cấu trúc API response thực tế
-      const tasksData = res.data.tasks || []
+      const tasksData = res.data.data || []
       setTasks(tasksData)
     } catch {
       toast.error("Không thể tải danh sách task")
@@ -53,13 +65,25 @@ export default function ManagerTask() {
   const fetchSaleStaff = async () => {
     try {
       const res = await getAllSaleStaff()
-      // Handle different possible response structures
-      const staffData = res.data?.users || res.data || []
+      // Lấy đúng cấu trúc API mới
+      let staffData = res.data.data || []
+      if (!Array.isArray(staffData)) staffData = [];
       setSaleStaff(staffData)
     } catch {
+      setSaleStaff([])
       toast.error("Không thể tải danh sách nhân viên")
     }
   }
+
+  const fetchAssignments = async (staffId) => {
+    try {
+      const res = await getAssignedTasks(staffId);
+      setAssignments(res.data.data || []);
+    } catch {
+      setAssignments([]);
+      toast.error("Không thể tải danh sách phân công");
+    }
+  };
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -119,17 +143,22 @@ export default function ManagerTask() {
 
   const handleAssignToAll = async () => {
     // Lấy danh sách task chưa giao
-    const unassignedTasks = tasks.filter(task => !task.assignedTo || (Array.isArray(task.assignedTo) && task.assignedTo.length === 0));
+    const unassignedTasks = tasks.filter(task => !task.assignedTo || task.assignedTo === '' || (Array.isArray(task.assignedTo) && task.assignedTo.length === 0));
     if (unassignedTasks.length === 0 || saleStaff.length === 0) {
       toast.error("Không có công việc hoặc nhân viên để giao việc");
       return;
     }
+    // Chia đều task cho staff
+    const assignments = Array(saleStaff.length).fill().map(() => []);
+    unassignedTasks.forEach((task, idx) => {
+      assignments[idx % saleStaff.length].push(task);
+    });
     let successCount = 0;
     let failCount = 0;
-    for (let task of unassignedTasks) {
-      for (let staff of saleStaff) {
+    for (let i = 0; i < saleStaff.length; i++) {
+      for (let task of assignments[i]) {
         try {
-          await createTaskAssignment({ taskId: task._id, assignedTo: [staff._id] });
+          await createTaskAssignment({ taskId: task._id, assignedTo: saleStaff[i]._id });
           successCount++;
         } catch {
           failCount++;
@@ -170,7 +199,12 @@ export default function ManagerTask() {
 
   const handleAssignmentSubmit = async (data) => {
     try {
-      await createTaskAssignment({ taskId: selectedTask._id, assignedTo: data.selectedStaff, notes: data.notes })
+      await createTaskAssignment({
+        taskId: selectedTask._id,
+        assignedTo: data.assignedTo,
+        notes: data.notes,
+        deadline: selectedTask.deadline
+      })
       toast.success("Đã gán công việc cho nhân viên được chọn")
       fetchTasks()
     } catch {
@@ -178,6 +212,24 @@ export default function ManagerTask() {
     }
     setIsAssignmentFormOpen(false)
   }
+
+  const handleRemoveAssignment = async (task) => {
+    if (!task) return;
+    // Nếu đang filter theo sale staff, dùng assignmentId, còn lại dùng task._id
+    const idToRemove = selectedStaffId === 'all' ? task._id : task.assignmentId;
+    try {
+      await removeTaskAssignment(idToRemove);
+      toast.success("Đã hủy gán công việc cho nhân viên!");
+      if (selectedStaffId === 'all') fetchTasks();
+      else fetchAssignments(selectedStaffId);
+    } catch {
+      toast.error("Không thể hủy gán công việc!");
+    }
+  }
+
+  const filteredTasks = selectedStaffId === 'all'
+    ? tasks
+    : assignments.map(a => ({ ...a.task, assignmentId: a._id, assignment: a }));
 
   return (
     <div className="space-y-4">
@@ -188,7 +240,12 @@ export default function ManagerTask() {
             Danh sách các công việc và phân công
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center">
+          <TaskStaffFilter
+            saleStaff={saleStaff}
+            selectedStaffId={selectedStaffId}
+            onChange={setSelectedStaffId}
+          />
           <Button variant="outline" onClick={handleAssignToAll}>
             <UserPlus className="mr-2 h-4 w-4" />
             Giao cho tất cả
@@ -216,7 +273,7 @@ export default function ManagerTask() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {tasks.map((task) => (
+            {filteredTasks.map((task) => (
               <TableRow key={task._id}>
                 <TableCell className="font-medium">{task.title}</TableCell>
                 <TableCell className="max-w-xs truncate">{task.description}</TableCell>
@@ -246,13 +303,16 @@ export default function ManagerTask() {
                   </span>
                 </TableCell>
                 <TableCell>
-                  {task.assignedTo ? (
-                    <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
-                      {task.assignedTo}
-                    </span>
-                  ) : (
-                    <span className="text-muted-foreground text-sm">Chưa giao</span>
-                  )}
+                  {task.assignedTo
+                    ? (
+                        <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
+                          {task.assignedTo.username}
+                        </span>
+                      )
+                    : (
+                        <span className="text-muted-foreground text-sm">Chưa giao</span>
+                      )
+                  }
                 </TableCell>
                 <TableCell>
                   {task.createdBy ? (
@@ -269,30 +329,45 @@ export default function ManagerTask() {
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-1">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleAssignTask(task)}
-                      title="Giao việc"
-                    >
-                      <Users className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleEditTask(task)}
-                      title="Chỉnh sửa"
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleDeleteTask(task)}
-                      title="Xóa"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    {selectedStaffId === 'all' ? (
+                      <>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleAssignTask(task)}
+                          title="Giao việc"
+                        >
+                          <Users className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDeleteTask(task)}
+                          title="Xóa"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleEditTask(task)}
+                          title="Cập nhật"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleRemoveAssignment(task)}
+                          title="Hủy gán"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </>
+                    )}
                   </div>
                 </TableCell>
               </TableRow>
@@ -313,7 +388,7 @@ export default function ManagerTask() {
         onOpenChange={setIsAssignmentFormOpen}
         onSubmit={handleAssignmentSubmit}
         task={selectedTask}
-        saleStaff={saleStaff}
+        saleStaff={Array.isArray(saleStaff) ? saleStaff : []}
       />
 
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>

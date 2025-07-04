@@ -1,6 +1,6 @@
 const Task = require("../../models/sale/Task");
 const Users = require("../../models/user");
-
+const TaskAssignment = require("../../models/sale/TaskAssignment");
 // Tạo task mới
 
 module.exports.createTask = async (req, res) => {
@@ -28,19 +28,31 @@ module.exports.createTask = async (req, res) => {
 exports.getTasks = async (req, res) => {
   try {
     const query = {};
-    if (req.query.employeeId) {
-      query.assignedTo = req.query.employeeId;
+    if (req.query.id) {
+      query.assignedTo = req.query.id;
     }
 
     const tasks = await Task.find(query)
       .populate("createdBy", "username email role");
+    const taskAssignments = await TaskAssignment.find({ task: { $in: tasks.map(task => task._id) } })
+      .populate("assignedTo", "username email role")
+      .populate("assignedBy", "username email role");
+    const final_result = tasks.map(task => {
+      const assignment = taskAssignments.find(assignment => assignment.task.equals(task._id));
+      return {
+        ...task.toObject(),
+        assignedTo: assignment ? assignment.assignedTo : null,
+        assignedBy: assignment ? assignment.assignedBy : null
+      };
+    });
 
     res.json({
+      code: 200,
       message: "Lấy danh sách task thành công",
-      tasks
+      data: final_result
     });
   } catch (err) {
-    res.status(500).json({ message: "Lỗi server", error: err.message });
+    res.json({ code: 500, message: "Lỗi máy chủ", error: err.message });
   }
 };
 
@@ -50,14 +62,15 @@ exports.getTaskById = async (req, res) => {
     const task = await Task.findById(req.params.id)
       .populate("createdBy", "username email role");
 
-    if (!task) return res.status(404).json({ message: "Không tìm thấy task" });
+    if (!task) return res.json({ code: 404, message: "Không tìm thấy task" });
 
     res.json({
+      code: 200,
       message: "Lấy thông tin task thành công",
-      task
+      data: task
     });
   } catch (err) {
-    res.status(500).json({ message: "Lỗi server", error: err.message });
+    res.json({ code: 500, message: "Lỗi máy chủ", error: err.message });
   }
 };
 
@@ -67,18 +80,18 @@ exports.updateTask = async (req, res) => {
     const rawUser = req.user
     const user = await Users.findOne({ email: rawUser.email });
     if (!user) {
-      return res.status(404).json({ message: "Không tìm thấy người dùng" });
+      return res.json({ code: 404, message: "Không tìm thấy người dùng" });
     }
 
     const { title, description, status, deadline } = req.body;
     if (!title || !description || !status || !deadline) {
-      return res.status(400).json({ message: "Vui lòng điền đầy đủ thông tin" });
+      return res.json({ code: 400, message: "Vui lòng điền đầy đủ thông tin" });
     }
 
     // Kiểm tra status hợp lệ
     const validStatuses = ["pending", "in-progress", "done", "late"];
     if (!validStatuses.includes(status)) {
-      return res.status(400).json({ message: "Trạng thái không hợp lệ" });
+      return res.json({ code: 400, message: "Trạng thái không hợp lệ" });
     }
 
     const updated = await Task.findByIdAndUpdate(
@@ -93,15 +106,16 @@ exports.updateTask = async (req, res) => {
     ).populate("createdBy", "username email role");
 
     if (!updated) {
-      return res.status(404).json({ message: "Không tìm thấy task" });
+      return res.json({ code: 404, message: "Không tìm thấy task" });
     }
 
     res.json({
+      code: 200,
       message: "Cập nhật task thành công",
-      task: updated
+      data: updated
     });
   } catch (err) {
-    res.status(400).json({ message: "Lỗi server", error: err.message });
+    res.json({ code: 500, message: "Lỗi máy chủ", error: err.message });
   }
 };
 
@@ -111,17 +125,17 @@ exports.deleteTask = async (req, res) => {
     const rawUser = req.user
     const user = await Users.findOne({ email: rawUser.email });
     if (!user) {
-      return res.status(404).json({ message: "Không tìm thấy người dùng" });
+      return res.json({ code: 404, message: "Không tìm thấy người dùng" });
     }
 
     const deleted = await Task.findByIdAndDelete(req.params.id);
     if (!deleted) {
-      return res.status(404).json({ message: "Không tìm thấy task" });
+      return res.json({ code: 404, message: "Không tìm thấy task" });
     }
 
     res.status(200).json({ message: "Xóa task thành công" });
   } catch (err) {
-    res.status(500).json({ message: "Lỗi server", error: err.message });
+    res.json({ code: 500, message: "Lỗi máy chủ", error: err.message });
   }
 };
 
@@ -130,22 +144,27 @@ exports.getAllSaleStaff = async (req, res) => {
   try {
     const users = await Users.find({ role: 4 }, "_id username email role");
     if (!users || users.length === 0) {
-      return res.status(404).json({ message: "Không tìm thấy nhân viên bán hàng" });
+      return res.json({ code: 404, message: "Không tìm thấy nhân viên bán hàng" });
     }
-    res.status(200).json({
+    res.json({
+      code: 200,
       message: "Lấy danh sách nhân viên bán hàng thành công",
-      users
+      data: users
     });
   } catch (err) {
-    res.status(500).json({ message: "Lỗi server", error: err.message });
+    res.json({ code: 500, message: "Lỗi máy chủ", error: err.message });
   }
 };
 
 exports.getAllUsers = async (req, res) => {
   try {
     const users = await Users.find({}, "username email role");
-    res.json(users);
+    res.json({
+      code: 200,
+      message: "Lấy danh sách người dùng thành công",
+      data: users
+    });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.json({ code: 500, message: "Lỗi máy chủ", error: err.message });
   }
 };

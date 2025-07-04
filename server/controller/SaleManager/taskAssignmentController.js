@@ -39,12 +39,9 @@ module.exports.assignTask = async (req, res) => {
             .populate("assignedTo", "username email role")
             .populate("assignedBy", "username email role");
 
-        res.status(201).json({
-            message: "Gán task thành công",
-            assignment: populatedAssignment
-        });
+        res.json({ code: 201, message: "Gán task thành công", data: populatedAssignment });
     } catch (err) {
-        res.status(500).json({ message: "Lỗi server", error: err.message });
+        res.json({ code: 500, message: "Lỗi máy chủ", error: err.message });
     }
 };
 
@@ -64,11 +61,12 @@ module.exports.getAssignedTasks = async (req, res) => {
             .populate("assignedBy", "username email role");
 
         res.json({
+            code: 200,
             message: "Lấy danh sách task đã gán thành công",
-            assignments
+            data: assignments
         });
     } catch (err) {
-        res.status(500).json({ message: "Lỗi server", error: err.message });
+        res.json({ code: 500, message: "Lỗi máy chủ", error: err.message });
     }
 };
 
@@ -81,7 +79,7 @@ module.exports.updateTaskStatus = async (req, res) => {
         // Kiểm tra status hợp lệ
         const validStatuses = ["pending", "in-progress", "done", "late"];
         if (!validStatuses.includes(status)) {
-            return res.status(400).json({ message: "Trạng thái không hợp lệ" });
+            return res.json({ code: 400, message: "Trạng thái không hợp lệ" });
         }
 
         // Kiểm tra task có tồn tại không
@@ -89,7 +87,7 @@ module.exports.updateTaskStatus = async (req, res) => {
 
         console.log(existingTask)
         if (!existingTask) {
-            return res.status(404).json({ message: "Không tìm thấy task đã gán" });
+            return res.json({ code: 404, message: "Không tìm thấy task đã gán" });
         }
 
         const updated = await TaskAssignment.findByIdAndUpdate(
@@ -101,7 +99,7 @@ module.exports.updateTaskStatus = async (req, res) => {
             .populate("assignedBy", "username email role");
 
         if (!updated) {
-            return res.status(404).json({ message: "Không tìm thấy task đã gán" });
+            return res.json({ code: 404, message: "Không tìm thấy task đã gán" });
         }
 
         res.json({
@@ -110,7 +108,7 @@ module.exports.updateTaskStatus = async (req, res) => {
         });
     } catch (err) {
         console.error('Error updating task status:', err);
-        res.status(500).json({ message: "Lỗi server", error: err.message });
+        res.json({ code: 500, message: "Lỗi máy chủ", error: err.message });
     }
 };
 
@@ -121,12 +119,12 @@ module.exports.removeAssignment = async (req, res) => {
 
         const deleted = await TaskAssignment.findByIdAndDelete(task);
         if (!deleted) {
-            return res.status(404).json({ message: "Không tìm thấy task đã gán" });
+            return res.json({ code: 404, message: "Không tìm thấy task đã gán" });
         }
 
         res.json({ message: "Hủy gán task thành công" });
     } catch (err) {
-        res.status(500).json({ message: "Lỗi server", error: err.message });
+        res.json({ code: 500, message: "Lỗi máy chủ", error: err.message });
     }
 };
 
@@ -136,16 +134,16 @@ module.exports.assignTaskToAllStaff = async (req, res) => {
         const user = req.user;
         const userID = await Users.findOne({ email: user.email });
         if (!userID) {
-            return res.status(404).json({ message: "Không tìm thấy người dùng" });
+            return res.json({ code: 404, message: "Không tìm thấy người dùng" });
         }
         const { taskId, deadline, notes } = req.body;
         const task = await Task.findById(taskId);
         if (!task) {
-            return res.status(404).json({ message: "Không tìm thấy task" });
+            return res.json({ code: 404, message: "Không tìm thấy task" });
         }
         const staff = await Users.find({ role: 4 });
         if (!staff) {
-            return res.status(404).json({ message: "Không tìm thấy nhân viên bán hàng" });
+            return res.json({ code: 404, message: "Không tìm thấy nhân viên bán hàng" });
         }
         const assignments = await TaskAssignment.create({
             task: taskId,
@@ -154,8 +152,8 @@ module.exports.assignTaskToAllStaff = async (req, res) => {
             deadline: deadline,
             notes: notes
         });
-        res.status(201).json({ message: "Gán task thành công", assignment: assignments });
+        res.json({ code: 201, message: "Gán task thành công", data: assignments });
     } catch (err) {
-        res.status(500).json({ message: "Lỗi server", error: err.message });
+        res.json({ code: 500, message: "Lỗi máy chủ", error: err.message });
     }
 };

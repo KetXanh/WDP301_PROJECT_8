@@ -27,7 +27,7 @@ import {
 import { Textarea } from "@/components/ui/textarea"
 
 const assignmentSchema = z.object({
-  selectedStaff: z.array(z.string()).min(1, "Vui lòng chọn ít nhất một nhân viên"),
+  assignedTo: z.string().min(1, "Vui lòng chọn một nhân viên"),
   notes: z.string().optional(),
 })
 
@@ -35,7 +35,7 @@ export function TaskAssignmentForm({ open, onOpenChange, onSubmit, task, saleSta
   const form = useForm({
     resolver: zodResolver(assignmentSchema),
     defaultValues: {
-      selectedStaff: [],
+      assignedTo: "",
       notes: "",
     },
   })
@@ -43,12 +43,12 @@ export function TaskAssignmentForm({ open, onOpenChange, onSubmit, task, saleSta
   useEffect(() => {
     if (task) {
       form.reset({
-        selectedStaff: task.assignedTo || [],
+        assignedTo: task.assignedTo?._id || "",
         notes: task.notes || "",
       })
     } else {
       form.reset({
-        selectedStaff: [],
+        assignedTo: "",
         notes: "",
       })
     }
@@ -56,7 +56,7 @@ export function TaskAssignmentForm({ open, onOpenChange, onSubmit, task, saleSta
 
   const handleSubmit = (data) => {
     onSubmit({
-      selectedStaff: data.selectedStaff,
+      assignedTo: data.assignedTo,
       notes: data.notes,
     })
     form.reset()
@@ -72,18 +72,11 @@ export function TaskAssignmentForm({ open, onOpenChange, onSubmit, task, saleSta
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
             <FormField
               control={form.control}
-              name="selectedStaff"
+              name="assignedTo"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Chọn nhân viên</FormLabel>
-                  <Select
-                    onValueChange={(value) => {
-                      const currentValue = field.value || []
-                      if (!currentValue.includes(value)) {
-                        field.onChange([...currentValue, value])
-                      }
-                    }}
-                  >
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Chọn nhân viên" />
@@ -97,28 +90,6 @@ export function TaskAssignmentForm({ open, onOpenChange, onSubmit, task, saleSta
                       ))}
                     </SelectContent>
                   </Select>
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {(Array.isArray(field.value) ? field.value : []).map((staffId) => {
-                      const staff = saleStaff.find(s => s._id === staffId);
-                      return (
-                        <span
-                          key={staffId}
-                          className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs flex items-center gap-1"
-                        >
-                          {staff ? staff.username : staffId}
-                          <button
-                            type="button"
-                            onClick={() => {
-                              field.onChange(field.value.filter((s) => s !== staffId))
-                            }}
-                            className="hover:text-blue-600"
-                          >
-                            ×
-                          </button>
-                        </span>
-                      );
-                    })}
-                  </div>
                   <FormMessage />
                 </FormItem>
               )}

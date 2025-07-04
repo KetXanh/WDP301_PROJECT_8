@@ -20,10 +20,9 @@ import { toast } from 'sonner';
 
 const navigation = [
   { name: 'Dashboard', href: '/sale-staff', icon: Home },
-  { name: 'Thống kê', href: '/sale-staff/statistics', icon: BarChart3 },
+  { name: 'Task', href: '/sale-staff/tasks', icon: ClipboardList },
   { name: 'KPI', href: '/sale-staff/kpi', icon: Target },
   { name: 'Đơn hàng', href: '/sale-staff/orders', icon: ShoppingCart },
-  { name: 'Task', href: '/sale-staff/tasks', icon: ClipboardList },
   { name: 'Chat', href: '/sale-staff/chat', icon: MessageSquare },
   { name: 'Hồ sơ', href: '/sale-staff/profile', icon: User },
 ];

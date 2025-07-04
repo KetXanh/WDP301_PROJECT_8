@@ -46,7 +46,7 @@ exports.getAllOrders = async (req, res) => {
                     { email: { $regex: search, $options: 'i' } }
                 ]
             }).select('_id');
-            
+
             const userIds = users.map(user => user._id);
             query.user = { $in: userIds };
         }
@@ -70,30 +70,27 @@ exports.getAllOrders = async (req, res) => {
         ]);
         const totalRevenue = revenueResult[0]?.totalRevenue || 0;
 
-        res.status(200).json({
-            success: true,
-            message: "Lấy danh sách đơn hàng thành công",
-            data: {
-                orders,
-                pagination: {
-                    currentPage: parseInt(page),
-                    totalPages: Math.ceil(total / limit),
-                    totalItems: total,
-                    itemsPerPage: parseInt(limit)
-                },
-                summary: {
-                    totalRevenue,
-                    totalOrders: total
+        res.json(
+            {
+                code: 200,
+                message: "Lấy danh sách đơn hàng thành công",
+                data: {
+                    orders,
+                    pagination: {
+                        currentPage: parseInt(page),
+                        totalPages: Math.ceil(total / limit),
+                        totalItems: total,
+                        itemsPerPage: parseInt(limit)
+                    },
+                    summary: {
+                        totalRevenue,
+                        totalOrders: total
+                    }
                 }
-            }
-        });
+            });
     } catch (error) {
         console.error('Error in getAllOrders:', error);
-        res.status(500).json({
-            success: false,
-            message: "Lỗi máy chủ",
-            error: error.message
-        });
+        res.json({ code: 500, message: "Lỗi máy chủ", error: error.message });
     }
 };
 
@@ -103,34 +100,20 @@ exports.getOrderById = async (req, res) => {
         const { id } = req.params;
 
         if (!id) {
-            return res.status(400).json({
-                success: false,
-                message: "ID đơn hàng là bắt buộc"
-            });
+            return res.json({ code: 400, message: "ID đơn hàng là bắt buộc" });
         }
 
         const order = await Orders.findById(id)
             .populate('user', 'username email phone address');
 
         if (!order) {
-            return res.status(404).json({
-                success: false,
-                message: "Không tìm thấy đơn hàng"
-            });
+            return res.json({ code: 404, message: "Không tìm thấy đơn hàng" });
         }
 
-        res.status(200).json({
-            success: true,
-            message: "Lấy chi tiết đơn hàng thành công",
-            data: order
-        });
+        res.json({ code: 200, message: "Lấy chi tiết đơn hàng thành công", data: order });
     } catch (error) {
         console.error('Error in getOrderById:', error);
-        res.status(500).json({
-            success: false,
-            message: "Lỗi máy chủ",
-            error: error.message
-        });
+        res.json({ code: 500, message: "Lỗi máy chủ", error: error.message });
     }
 };
 
@@ -141,33 +124,21 @@ exports.updateOrderStatus = async (req, res) => {
         const { status, notes } = req.body;
 
         if (!id) {
-            return res.status(400).json({
-                success: false,
-                message: "ID đơn hàng là bắt buộc"
-            });
+            return res.json({ code: 400, message: "ID đơn hàng là bắt buộc" });
         }
 
         if (!status) {
-            return res.status(400).json({
-                success: false,
-                message: "Trạng thái là bắt buộc"
-            });
+            return res.json({ code: 400, message: "Trạng thái là bắt buộc" });
         }
 
         const validStatuses = ["pending", "confirmed", "processing", "shipped", "delivered", "cancelled", "refunded"];
         if (!validStatuses.includes(status)) {
-            return res.status(400).json({
-                success: false,
-                message: "Trạng thái không hợp lệ"
-            });
-        }
+            return res.json({ code: 400, message: "Trạng thái không hợp lệ" });
+        }   
 
         const order = await Orders.findById(id);
         if (!order) {
-            return res.status(404).json({
-                success: false,
-                message: "Không tìm thấy đơn hàng"
-            });
+            return res.json({ code: 404, message: "Không tìm thấy đơn hàng" });
         }
 
         // Cập nhật trạng thái và ghi chú
@@ -182,62 +153,38 @@ exports.updateOrderStatus = async (req, res) => {
             { new: true }
         ).populate('user', 'username email phone');
 
-        res.status(200).json({
-            success: true,
-            message: "Cập nhật trạng thái đơn hàng thành công",
-            data: updatedOrder
-        });
+        res.json({ code: 200, message: "Cập nhật trạng thái đơn hàng thành công", data: updatedOrder });
     } catch (error) {
         console.error('Error in updateOrderStatus:', error);
-        res.status(500).json({
-            success: false,
-            message: "Lỗi máy chủ",
-            error: error.message
-        });
+        res.json({ code: 500, message: "Lỗi máy chủ", error: error.message });
     }
 };
 
-// Xóa đơn hàng
+// Xóa đơn hàng 
 exports.deleteOrder = async (req, res) => {
     try {
         const { id } = req.params;
 
         if (!id) {
-            return res.status(400).json({
-                success: false,
-                message: "ID đơn hàng là bắt buộc"
-            });
+            return res.json({ code: 400, message: "ID đơn hàng là bắt buộc" });
         }
 
         const order = await Orders.findById(id);
         if (!order) {
-            return res.status(404).json({
-                success: false,
-                message: "Không tìm thấy đơn hàng"
-            });
+            return res.json({ code: 404, message: "Không tìm thấy đơn hàng" });
         }
 
         // Chỉ cho phép xóa đơn hàng có trạng thái pending hoặc cancelled
         if (!["pending", "cancelled"].includes(order.status)) {
-            return res.status(400).json({
-                success: false,
-                message: "Chỉ có thể xóa đơn hàng có trạng thái pending hoặc cancelled"
-            });
+            return res.json({ code: 400, message: "Chỉ có thể xóa đơn hàng có trạng thái pending hoặc cancelled" });
         }
 
         await Orders.findByIdAndDelete(id);
 
-        res.status(200).json({
-            success: true,
-            message: "Xóa đơn hàng thành công"
-        });
+        res.json({ code: 200, message: "Xóa đơn hàng thành công" });
     } catch (error) {
         console.error('Error in deleteOrder:', error);
-        res.status(500).json({
-            success: false,
-            message: "Lỗi máy chủ",
-            error: error.message
-        });
+        res.json({ code: 500, message: "Lỗi máy chủ", error: error.message });
     }
 };
 
@@ -250,26 +197,17 @@ exports.assignOrder = async (req, res) => {
         const { assignedTo, notes, priority = 'medium' } = req.body;
 
         if (!id) {
-            return res.status(400).json({
-                success: false,
-                message: "ID đơn hàng là bắt buộc"
-            });
+            return res.json({ code: 400, message: "ID đơn hàng là bắt buộc" });
         }
 
         if (!assignedTo) {
-            return res.status(400).json({
-                success: false,
-                message: "ID nhân viên được gán là bắt buộc"
-            });
+            return res.json({ code: 400, message: "ID nhân viên được gán là bắt buộc" });
         }
 
         // Kiểm tra đơn hàng tồn tại
         const order = await Orders.findById(id);
         if (!order) {
-            return res.status(404).json({
-                success: false,
-                message: "Không tìm thấy đơn hàng"
-            });
+            return res.json
         }
 
         // Kiểm tra đơn hàng đã được gán chưa
@@ -611,33 +549,20 @@ exports.deleteOrderAssignment = async (req, res) => {
 
         const assignment = await OrderAssignment.findById(id);
         if (!assignment) {
-            return res.status(404).json({
-                success: false,
-                message: "Không tìm thấy assignment"
-            });
+            return res.json({ code: 404, message: "Không tìm thấy assignment" });
         }
 
         // Chỉ cho phép xóa assignment có status pending
         if (assignment.status !== 'pending') {
-            return res.status(400).json({
-                success: false,
-                message: "Chỉ có thể xóa assignment có trạng thái pending"
-            });
+            return res.json({ code: 400, message: "Chỉ có thể xóa assignment có trạng thái pending" });
         }
 
         await OrderAssignment.findByIdAndDelete(id);
 
-        res.status(200).json({
-            success: true,
-            message: "Xóa assignment thành công"
-        });
+        res.json({ code: 200, message: "Xóa assignment thành công" });
     } catch (error) {
         console.error('Error in deleteOrderAssignment:', error);
-        res.status(500).json({
-            success: false,
-            message: "Lỗi máy chủ",
-            error: error.message
-        });
+        res.json({ code: 500, message: "Lỗi máy chủ", error: error.message });
     }
 };
 
@@ -661,17 +586,11 @@ exports.getAssignmentsByStaff = async (req, res) => {
         // Kiểm tra staff tồn tại và có role Sale Staff (role = 4)
         const staff = await Users.findById(staffId);
         if (!staff) {
-            return res.status(404).json({
-                success: false,
-                message: "Không tìm thấy nhân viên bán hàng"
-            });
+            return res.json({ code: 404, message: "Không tìm thấy nhân viên bán hàng" });
         }
 
         if (staff.role !== 4) {
-            return res.status(400).json({
-                success: false,
-                message: "Người dùng này không phải là nhân viên bán hàng"
-            });
+            return res.json({ code: 400, message: "Người dùng này không phải là nhân viên bán hàng" });
         }
 
         const assignments = await OrderAssignment.find(query)
@@ -690,9 +609,8 @@ exports.getAssignmentsByStaff = async (req, res) => {
 
         const total = await OrderAssignment.countDocuments(query);
 
-        res.status(200).json({
-            success: true,
-            message: "Lấy danh sách assignment theo nhân viên thành công",
+        res.json({
+            code: 200, message: "Lấy danh sách assignment theo nhân viên thành công",
             data: {
                 assignments,
                 pagination: {
@@ -705,11 +623,7 @@ exports.getAssignmentsByStaff = async (req, res) => {
         });
     } catch (error) {
         console.error('Error in getAssignmentsByStaff:', error);
-        res.status(500).json({
-            success: false,
-            message: "Lỗi máy chủ",
-            error: error.message
-        });
+        res.json({ code: 500, message: "Lỗi máy chủ", error: error.message });
     }
 };
 

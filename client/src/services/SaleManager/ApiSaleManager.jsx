@@ -37,6 +37,13 @@ export const getAllTaskAssignments = () => {
     return instance.get('/saleManager/taskAssignment/assigned-tasks')
 }
 
+export const getAssignedTasks = (staffId) => {
+    const url = staffId
+        ? `/saleManager/taskAssignment/assigned-tasks?staffId=${staffId}`
+        : '/saleManager/taskAssignment/assigned-tasks';
+    return instance.get(url);
+}
+
 export const createTaskAssignment = (assignmentData) => {
     return instance.post('/saleManager/taskAssignment/assign', assignmentData)
 }
@@ -45,12 +52,17 @@ export const updateTaskAssignment = (assignmentId, assignmentData) => {
     return instance.put(`/saleManager/taskAssignment/update-status/${assignmentId}`, assignmentData)
 }
 
-export const deleteTaskAssignment = (assignmentId) => {
+// Xóa/hủy gán task cho nhân viên (dùng cho filter theo sale manager)
+export const removeTaskAssignment = (assignmentId) => {
     return instance.delete(`/saleManager/taskAssignment/remove/${assignmentId}`)
 }
 
 export const getTaskAssignmentById = (assignmentId) => {
     return instance.get(`/saleManager/taskAssignment/assigned-tasks/${assignmentId}`)
+}
+
+export const assignTaskToAllStaff = (taskId, deadline, notes) => {
+    return instance.post('/saleManager/taskAssignment/assign-all', { taskId, deadline, notes })
 }
 
 // Discount Management APIs

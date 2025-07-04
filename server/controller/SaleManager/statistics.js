@@ -89,10 +89,11 @@ module.exports.getStatistics = async (req, res) => {
             { $group: { _id: "$status", count: { $sum: 1 } } }
         ]);
 
-        res.status(200).json({
-            success: true,
+        res.json({
+            code: 200,
             message: "Lấy thống kê tổng quan thành công",
             data: {
+
                 orders: {
                     totalOrders,
                     totalRevenue,
@@ -117,11 +118,7 @@ module.exports.getStatistics = async (req, res) => {
         });
     } catch (error) {
         console.error('Error in getStatistics:', error);
-        res.status(500).json({
-            success: false,
-            message: "Lỗi server",
-            error: error.message
-        });
+        res.json({ code: 500, message: "Lỗi máy chủ", error: error.message });
     }
 };
 
@@ -240,10 +237,11 @@ module.exports.getProductStatistics = async (req, res) => {
             }
         ]);
 
-        res.status(200).json({
-            success: true,
+        res.json({
+            code: 200,
             message: "Lấy thống kê sản phẩm thành công",
             data: {
+
                 products,
                 productBase,
                 productByMonth,
@@ -255,11 +253,7 @@ module.exports.getProductStatistics = async (req, res) => {
         });
     } catch (error) {
         console.error('Error in getProductStatistics:', error);
-        res.status(500).json({
-            success: false,
-            message: "Lỗi server",
-            error: error.message
-        });
+        res.json({ code: 500, message: "Lỗi máy chủ", error: error.message });
     }
 };
 
@@ -368,10 +362,11 @@ module.exports.getOrderStatistics = async (req, res) => {
             { $group: { _id: null, total: { $sum: "$totalAmount" } } }
         ]);
 
-        res.status(200).json({
-            success: true,
+        res.json({
+            code: 200,
             message: "Lấy thống kê đơn hàng thành công",
             data: {
+
                 orders,
                 orderByMonth,
                 orderByYear,
@@ -386,11 +381,7 @@ module.exports.getOrderStatistics = async (req, res) => {
         });
     } catch (error) {
         console.error('Error in getOrderStatistics:', error);
-        res.status(500).json({
-            success: false,
-            message: "Lỗi server",
-            error: error.message
-        });
+            res.json({ code: 500, message: "Lỗi máy chủ", error: error.message });
     }
 };
 
@@ -459,8 +450,8 @@ module.exports.getCustomerStatistics = async (req, res) => {
 
         const totalCustomers = await Users.countDocuments(query);
 
-        res.status(200).json({
-            success: true,
+        res.json({
+            code: 200,
             message: "Lấy thống kê khách hàng thành công",
             data: {
                 customers,
@@ -475,11 +466,7 @@ module.exports.getCustomerStatistics = async (req, res) => {
         });
     } catch (error) {
         console.error('Error in getCustomerStatistics:', error);
-        res.status(500).json({
-            success: false,
-            message: "Lỗi server",
-            error: error.message
-        });
+        res.json({ code: 500, message: "Lỗi máy chủ", error: error.message });
     }
 };
 
@@ -536,8 +523,8 @@ module.exports.getLoyalCustomer = async (req, res) => {
         const totalRevenueFromLoyal = loyalCustomers.reduce((sum, customer) => sum + customer.totalSpent, 0);
         const averageSpentPerLoyalCustomer = totalLoyalCustomers > 0 ? totalRevenueFromLoyal / totalLoyalCustomers : 0;
 
-        res.status(200).json({
-            success: true,
+        res.json({
+            code: 200,
             message: "Lấy thống kê khách hàng trung thành thành công",
             data: {
                 loyalCustomers,
@@ -550,11 +537,7 @@ module.exports.getLoyalCustomer = async (req, res) => {
         });
     } catch (error) {
         console.error('Error in getLoyalCustomer:', error);
-        res.status(500).json({
-            success: false,
-            message: "Lỗi server",
-            error: error.message
-        });
+        res.json({ code: 500, message: "Lỗi máy chủ", error: error.message });
     }
 };
 
@@ -614,8 +597,8 @@ module.exports.getKPIStatistics = async (req, res) => {
         // Tỷ lệ hoàn thành task
         const taskCompletionRate = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
 
-        res.status(200).json({
-            success: true,
+        res.json({
+            code: 200,
             message: "Lấy thống kê KPI thành công",
             data: {
                 revenue: {
@@ -639,10 +622,6 @@ module.exports.getKPIStatistics = async (req, res) => {
         });
     } catch (error) {
         console.error('Error in getKPIStatistics:', error);
-        res.status(500).json({
-            success: false,
-            message: "Lỗi server",
-            error: error.message
-        });
+        res.json({ code: 500, message: "Lỗi máy chủ", error: error.message });
     }
 };

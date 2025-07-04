@@ -24,9 +24,8 @@ export default function ManagerOrder() {
   const fetchOrders = async () => {
     try {
       const res = await getAllOrders();
-      console.log("res: ", res.data.data);
-      // Sử dụng cấu trúc API response thực tế
-      const ordersData = res.data.data.orders || [];
+      // Sử dụng cấu trúc API response thực tế mới
+      const ordersData = res.data?.data?.orders || [];
       setOrders(ordersData);
     } catch {
       toast.error("Không thể tải danh sách order");
@@ -134,13 +133,13 @@ export default function ManagerOrder() {
   };
 
   // Filter orders based on status
-  const filteredOrders = orders.filter(order => 
+  const filteredOrders = orders.filter(order =>
     statusFilter === "all" || order.status === statusFilter
   );
 
   // Tính toán thống kê
   const totalOrders = orders.length;
-  const totalRevenue = orders.reduce((sum, order) => sum + order.totalAmount, 0);
+  const totalRevenue = orders.reduce((sum, order) => sum + (order.totalAmount || 0), 0);
   const pendingOrders = orders.filter(order => order.status === "pending").length;
   const deliveredOrders = orders.filter(order => order.status === "delivered").length;
 
@@ -243,7 +242,7 @@ export default function ManagerOrder() {
             {filteredOrders.map((order, index) => (
               <TableRow key={order._id}>
                 <TableCell className="text-center font-medium">{index + 1}</TableCell>
-                <TableCell className="font-medium">{order.COD}</TableCell>
+                <TableCell className="font-medium">{order._id}</TableCell>
                 <TableCell>
                   <div className="text-sm">
                     <div className="font-medium">{order.user?.username}</div>
@@ -263,7 +262,7 @@ export default function ManagerOrder() {
                   </div>
                 </TableCell>
                 <TableCell>{formatCurrency(order.totalAmount)}</TableCell>
-                <TableCell>{order.totalQuantity}</TableCell>
+                <TableCell>{order.items?.reduce((sum, i) => sum + i.quantity, 0)}</TableCell>
                 <TableCell>
                   <Badge variant="outline" className="text-xs">
                     {order.payment === "CASH" ? "Tiền mặt" : order.payment}
@@ -275,7 +274,7 @@ export default function ManagerOrder() {
                   </Badge>
                 </TableCell>
                 <TableCell className="text-xs text-gray-500">
-                  {new Date(order.createdAt).toLocaleDateString('vi-VN')}
+                  {order.createdAt ? new Date(order.createdAt).toLocaleDateString('vi-VN') : ""}
                 </TableCell>
                 <TableCell className="text-right">
                   {order.status === "pending" && (

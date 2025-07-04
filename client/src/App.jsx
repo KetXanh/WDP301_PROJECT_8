@@ -42,7 +42,6 @@ import SaleManagerProfile from "./pages/SaleManager/Profile";
 //Sale Staff Pages
 import SaleStaffLayout from "./pages/SaleStaff/SaleStaffLayout";
 import SaleStaffDashboard from "./pages/SaleStaff/Dashboard";
-import SaleStaffStatistics from "./pages/SaleStaff/Statistics";
 import SaleStaffKPI from "./pages/SaleStaff/KPI";
 import SaleStaffOrders from "./pages/SaleStaff/Orders";
 import SaleStaffTasks from "./pages/SaleStaff/Tasks";
@@ -164,7 +163,6 @@ function App() {
         {/* Sale Staff Routes */}
         <Route path="/sale-staff" element={<SaleStaffLayout />}>
           <Route index element={<SaleStaffDashboard />} />
-          <Route path="statistics" element={<SaleStaffStatistics />} />
           <Route path="kpi" element={<SaleStaffKPI />} />
           <Route path="orders" element={<SaleStaffOrders />} />
           <Route path="tasks" element={<SaleStaffTasks />} />

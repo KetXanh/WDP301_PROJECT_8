@@ -5,9 +5,10 @@ const OrderAssignment = require("../../models/sale/OrderAssignment");
 // Lấy tất cả đơn hàng của sale staff hiện tại
 exports.getMyOrders = async (req, res) => {
     try {
-        const user = await Users.findOne({ email: req.user.email });
+        const userLogin = req.user;
+        const user = await Users.findOne({ email: userLogin.email });
         if (!user) return res.status(404).json({ message: "Không tìm thấy người dùng" });
-        const orders = await Orders.find({ user: user._id }).sort({ createdAt: -1 });
+        const orders = await OrderAssignment.find({ assignedTo: user._id }).populate("orderId", "totalAmount status createdAt user items shippingAddress");
         res.status(200).json({ message: "Lấy danh sách đơn hàng thành công", orders });
     } catch (error) {
         res.status(500).json({ message: "Lỗi máy chủ", error: error.message });
@@ -17,11 +18,13 @@ exports.getMyOrders = async (req, res) => {
 // Lấy chi tiết đơn hàng của chính mình
 exports.getMyOrderById = async (req, res) => {
     try {
-        const user = await Users.findOne({ email: req.user.email });
+        const userLogin = req.user;
+        const user = await Users.findOne({ email: userLogin.email });
         if (!user) return res.status(404).json({ message: "Không tìm thấy người dùng" });
-        const order = await Orders.findOne({ _id: req.params.id, user: user._id });
+        const order = await OrderAssignment.findOne({ _id: req.params.id, assignedTo: user._id }).populate("orderId", "totalAmount status createdAt user items shippingAddress");
         if (!order) return res.status(404).json({ message: "Không tìm thấy đơn hàng" });
-        res.status(200).json({ message: "Lấy chi tiết đơn hàng thành công", order });
+        const orderDetail = await Orders.findOne({ _id: order.orderId });
+        res.status(200).json({ message: "Lấy chi tiết đơn hàng thành công", orderDetail });
     } catch (error) {
         res.status(500).json({ message: "Lỗi máy chủ", error: error.message });
     }
@@ -30,15 +33,16 @@ exports.getMyOrderById = async (req, res) => {
 // Cập nhật trạng thái đơn hàng của chính mình
 exports.updateMyOrderStatus = async (req, res) => {
     try {
-        const user = await Users.findOne({ email: req.user.email });
-        if (!user) return res.status(404).json({ message: "Không tìm thấy người dùng" });
+        const userLogin = req.user;
+        const user = await Users.findOne({ email: userLogin.email });
+        if (!user) return res.json({ code: 404, message: "Không tìm thấy người dùng" });
         const { status } = req.body;
-        const validStatuses = ["shipped", "delivered"];
+        const validStatuses = ["pending", "shipped", "delivered"];
         if (!validStatuses.includes(status)) {
             return res.status(400).json({ message: "Chỉ được cập nhật sang trạng thái 'shipped' hoặc 'delivered'" });
         }
-        const order = await Orders.findOneAndUpdate(
-            { _id: req.params.id, user: user._id },
+        const order = await OrderAssignment.findOneAndUpdate(
+            { _id: req.params.id, assignedTo: user._id },
             { status },
             { new: true }
         );
@@ -52,23 +56,24 @@ exports.updateMyOrderStatus = async (req, res) => {
 // Lấy danh sách đơn hàng được gán cho sale staff hiện tại
 exports.getMyAssignedOrders = async (req, res) => {
     try {
-        const { 
-            page = 1, 
-            limit = 10, 
-            status 
+        const {
+            page = 1,
+            limit = 10,
+            status
         } = req.query;
 
         const skip = (page - 1) * limit;
-        
+
         // Tìm user hiện tại theo email
-        const currentUser = await Users.findOne({ email: req.user.email });
+        const userLogin = req.user;
+        const currentUser = await Users.findOne({ email: userLogin.email });
         if (!currentUser) {
             return res.status(404).json({
                 success: false,
                 message: "Không tìm thấy thông tin người dùng"
             });
         }
-        
+
         const query = { assignedTo: currentUser._id };
 
         if (status) {
@@ -119,7 +124,8 @@ exports.getMyAssignedOrderDetail = async (req, res) => {
         }
 
         // Tìm user hiện tại theo email
-        const currentUser = await Users.findOne({ email: req.user.email });
+        const userLogin = req.user;
+        const currentUser = await Users.findOne({ email: userLogin.email });
         if (!currentUser) {
             return res.status(404).json({
                 success: false,
@@ -131,7 +137,7 @@ exports.getMyAssignedOrderDetail = async (req, res) => {
             _id: assignmentId,
             assignedTo: currentUser._id
         })
-        .populate("orderId", "totalAmount status createdAt user items shippingAddress");
+            .populate("orderId", "totalAmount status createdAt user items shippingAddress");
 
         if (!assignment) {
             return res.status(404).json({
@@ -184,7 +190,8 @@ exports.updateOrderProcessingStatus = async (req, res) => {
         }
 
         // Tìm user hiện tại theo email
-        const currentUser = await Users.findOne({ email: req.user.email });
+        const userLogin = req.user;
+        const currentUser = await Users.findOne({ email: userLogin.email });
         if (!currentUser) {
             return res.status(404).json({
                 success: false,
@@ -221,8 +228,8 @@ exports.updateOrderProcessingStatus = async (req, res) => {
             updateData,
             { new: true }
         )
-        .populate("orderId", "totalAmount status createdAt")
-        .populate("assignedBy", "username");
+            .populate("orderId", "totalAmount status createdAt")
+            .populate("assignedBy", "username");
 
         res.status(200).json({
             success: true,
@@ -243,7 +250,15 @@ exports.updateOrderProcessingStatus = async (req, res) => {
 exports.getMyOrderStatistics = async (req, res) => {
     try {
         const { startDate, endDate } = req.query;
-        const query = { assignedTo: req.user.id };
+        const userLogin = req.user;
+        const currentUser = await Users.findOne({ email: userLogin.email });
+        if (!currentUser) {
+            return res.status(404).json({
+                success: false,
+                message: "Không tìm thấy thông tin người dùng"
+            });
+        }
+        const query = { assignedTo: currentUser._id };
 
         if (startDate || endDate) {
             query.assignedAt = {};
