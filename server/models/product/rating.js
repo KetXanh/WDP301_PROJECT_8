@@ -2,14 +2,14 @@ const mongoose = require("mongoose");
 
 const ratingSchema = new mongoose.Schema(
   {
-    productVariant: {
+    productBase: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "ProductVariant",
+      ref: "BaseProduct",
       required: true,
     },
     user: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: "Users",
       required: true,
     },
     stars: {

@@ -26,10 +26,6 @@ router.get("/orders/total",  ordersController.getTotalOrders);
 router.get("/orders/:orderId",  Authozation.authenticateToken, Authozation.authorizeRoles(3),ordersController.getOrderDetailById);
 router.post("/orders",  Authozation.authenticateToken, Authozation.authorizeRoles(3),ordersController.createOrder);
 router.put("/order/status/:orderId", Authozation.authenticateToken, Authozation.authorizeRoles(3), ordersController.updateOrderStatus);
-router.get("/ratings/:productId", ratingController.getRatingsByProduct);
-router.post("/ratings", Authozation.authenticateToken, Authozation.authorizeRoles(3), ratingController.createRating);
-router.delete("/ratings/:ratingId",Authozation.authenticateToken,Authozation.authorizeRoles(3),ratingController.deleteRating);
-router.get("/ratings/:productId/stats",Authozation.authenticateToken,Authozation.authorizeRoles(1, 2),ratingController.getRatingStats);
 
 router.post("/discount",Authozation.authenticateToken, Authozation.authorizeRoles(3), discountController.createDiscount);
 router.get("/discount",Authozation.authenticateToken, Authozation.authorizeRoles(3), discountController.getAllDiscounts);
