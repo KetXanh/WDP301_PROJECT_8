@@ -22,6 +22,8 @@ import { useSelector } from 'react-redux';
 import { jwtDecode } from 'jwt-decode';
 import { ROLE } from '../../constants';
 import { useTranslation } from 'react-i18next';
+import { createPaymentUrl } from '../../services/Customer/vnPay';
+import i18n from '../../i18n/i18n';
 
 
 const CheckoutDemo = () => {
@@ -54,10 +56,10 @@ const CheckoutDemo = () => {
         try {
             const decoded = jwtDecode(accessToken);
             if (decoded && ROLE.includes(decoded.role)) {
-                return toast.error("Bạn Không có quyền đặt hàng")
+                return toast.error(t("toast.no_permission"))
             }
             if (!accessToken) {
-                toast.error("Vui lòng đăng nhập để thực hiện đặt hàng")
+                toast.error(t("toast.please_login"))
                 navigate('/login')
                 return;
             }
@@ -77,14 +79,25 @@ const CheckoutDemo = () => {
                 province,
                 phone: selectedAddress.phone,
             }
-            const res = await userOrder(items, dataShipping);
-            if (res.data && res.data.code === 201) {
-                toast.success("Đặt hàng thành công")
-                navigate('/')
-            } else if (res.data && res.data.code === 401) {
-                toast.error("Địa chỉ giao hàng không hợp lệ")
+            const res = await userOrder(items, dataShipping, paymentMethod);
+            if (paymentMethod === "COD") {
+                if (res.data && res.data.code === 201) {
+                    toast.success(t("toast.order_success"))
+                    navigate('/')
+                } else if (res.data && res.data.code === 401) {
+                    toast.error(t("toast.invalid_address"))
+                }
+                return setIsProcessing(false);
             }
-            setIsProcessing(false)
+            const order = res.data.orderId;
+            const payRes = await createPaymentUrl(
+                order._id,
+                order.totalAmount,
+                '',
+                i18n.language === "vi" ? "vn" : "en"
+            );
+            const { paymentUrl } = payRes.data;
+            window.location.href = paymentUrl;
         } catch (error) {
             console.log(error);
 
@@ -156,7 +169,7 @@ const CheckoutDemo = () => {
                                 >
                                     {/* COD */}
                                     <div className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-gray-50">
-                                        <RadioGroupItem value="cod" id="cod" />
+                                        <RadioGroupItem value="COD" id="cod" />
                                         <Label htmlFor="cod" className="flex-1 cursor-pointer">
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center space-x-3">
@@ -182,7 +195,7 @@ const CheckoutDemo = () => {
 
                                     {/* BANK */}
                                     <div className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-gray-50 mt-4">
-                                        <RadioGroupItem value="bank" id="bank" />
+                                        <RadioGroupItem value="BANK" id="bank" />
                                         <Label htmlFor="bank" className="flex-1 cursor-pointer">
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center space-x-3">
@@ -207,25 +220,11 @@ const CheckoutDemo = () => {
                                     </div>
                                 </RadioGroup>
 
-                                {paymentMethod === 'bank' && (
+                                {paymentMethod === 'BANK' && (
                                     <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                                         <h4 className="font-medium text-blue-800 mb-2">
                                             {t('checkout.titlePayemnt')}
                                         </h4>
-                                        {/* <div className="space-y-1 text-sm text-blue-700">
-                                            <p>
-                                                <strong>{t('checkout.bank')}:</strong> Vietcombank
-                                            </p>
-                                            <p>
-                                                <strong>Số TK:</strong> 1234567890
-                                            </p>
-                                            <p>
-                                                <strong>Chủ TK:</strong> CÔNG TY TNHH ABC
-                                            </p>
-                                            <p>
-                                                <strong>Nội dung:</strong> Thanh toán đơn hàng + SĐT
-                                            </p>
-                                        </div> */}
                                     </div>
                                 )}
                             </CardContent>

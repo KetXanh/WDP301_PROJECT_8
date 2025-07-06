@@ -33,6 +33,7 @@ import SubCategory from "./pages/admin/SubCategory";
 import Task from "./pages/admin/Task";
 import Kpi from "./pages/admin/Kpi";
 import Checkout from "./pages/Customers/Checkout";
+import PaymentResult from "./pages/Customers/PaymentResult";
 
 // Customer Layout
 const CustomerLayout = () => (
@@ -61,9 +62,8 @@ const AdminLayout = ({
     <div className="flex">
       <Sidebar isSidebarOpen={isSidebarOpen} />
       <main
-        className={`flex-1 p-4 pt-20 transition-all duration-300 ${
-          isSidebarOpen ? "md:ml-40" : "md:ml-0"
-        }`}
+        className={`flex-1 p-4 pt-20 transition-all duration-300 ${isSidebarOpen ? "md:ml-40" : "md:ml-0"
+          }`}
       >
         <Outlet />
       </main>
@@ -95,7 +95,7 @@ function App() {
 
           {/* Công khai */}
           <Route path="products" element={<Products />} />
-        
+
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/verify/:email" element={<Verify />} />
@@ -109,6 +109,7 @@ function App() {
             <>
               <Route path="/profile" element={<ProtectedRoute element={<Profile />} />} />
               <Route path="/checkout" element={<Checkout />} />
+              <Route path="/payment/:status" element={<PaymentResult />} />
             </>
           }
 

@@ -55,7 +55,7 @@ const ForgotOtp = () => {
                         className="inline-flex items-center text-gray-600 hover:text-gray-800 transition-colors"
                     >
                         <ArrowLeft className="h-4 w-4 mr-2" />
-                        {t("user:otp.back")}
+                        {t("otp.back")}
                     </Link>
                 </div>
 
@@ -65,17 +65,17 @@ const ForgotOtp = () => {
                             <span className="text-2xl">🔐</span>
                         </div>
                         <CardTitle className="text-2xl font-bold text-gray-800">
-                            {t("user:otp.title")}
+                            {t("otp.title")}
                         </CardTitle>
                         <CardDescription className="text-gray-600">
-                            {t("user:otp.subtitle")}
+                            {t("otp.subtitle")}
                         </CardDescription>
                     </CardHeader>
 
                     <CardContent className="space-y-6">
                         <div className="flex flex-col items-center space-y-4">
                             <label className="text-sm font-medium text-gray-700">
-                                {t("user:otp.label")}
+                                {t("otp.label")}
                             </label>
 
                             <InputOTP
@@ -99,7 +99,7 @@ const ForgotOtp = () => {
                             disabled={isLoading || otpValue.length !== 6}
                             className="w-full bg-gradient-to-r from-green-600 to-amber-600 hover:from-green-700 hover:to-amber-700"
                         >
-                            {isLoading ? t("user:otp.verifying") : t("user:otp.verifyBtn")}
+                            {isLoading ? t("otp.verifying") : t("otp.verifyBtn")}
                         </Button>
 
                     </CardContent>
