@@ -17,6 +17,7 @@ import {
   FaSun,
   FaCartPlus,
   FaBox,
+  FaStarHalfAlt,
 } from "react-icons/fa";
 import { HiOutlineMenuAlt2 } from "react-icons/hi";
 import { MdCategory, MdOutlineCategory, MdSpaceDashboard } from "react-icons/md";
@@ -45,6 +46,11 @@ export const links = [
     href: "/admin/order",
     icon: FaCartPlus,
     text: "menu.order",
+  },
+  {
+    href: "/admin/rating",
+    icon: FaStarHalfAlt,
+    text: "Rating",
   },
   {
     href: "/admin/product",
