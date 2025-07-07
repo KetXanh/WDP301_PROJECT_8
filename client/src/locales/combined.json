@@ -1274,6 +1274,10 @@
             "en": "You don't have permission to place an order",
             "vi": "Bạn không có quyền đặt hàng"
         },
+        "login_required": {
+            "vi": "Vui lòng đăng nhập trước khi thực hiện thao tác này",
+            "en": "Please log in to perform this action"
+        },
         "please_login": {
             "en": "Please log in to place an order",
             "vi": "Vui lòng đăng nhập để đặt hàng"
@@ -1289,6 +1293,152 @@
         "error_occurred": {
             "en": "An error occurred while placing the order",
             "vi": "Đã xảy ra lỗi khi đặt hàng"
+        },
+        "out_of_stock": {
+            "vi": "Sản phẩm đã hết hàng",
+            "en": "This product is out of stock"
+        },
+        "add_success": {
+            "vi": "Đã thêm vào giỏ",
+            "en": "Added to cart"
+        },
+        "add_fail": {
+            "vi": "Không thể thêm vào giỏ hàng",
+            "en": "Could not add to cart"
+        },
+        "add_error": {
+            "vi": "Lỗi khi thêm vào giỏ hàng",
+            "en": "Error adding to cart"
+        }
+    },
+    "payment_result": {
+        "success": {
+            "en": "Payment Successful!",
+            "vi": "Thanh toán thành công!"
+        },
+        "success_subtitle": {
+            "en": "Your order has been confirmed.",
+            "vi": "Đơn hàng của bạn đã được xác nhận."
+        },
+        "failed": {
+            "en": "Payment Failed!",
+            "vi": "Thanh toán thất bại!"
+        },
+        "failed_subtitle": {
+            "en": "{{message}}",
+            "vi": "{{message}}"
+        },
+        "error": {
+            "en": "Payment Error!",
+            "vi": "Lỗi thanh toán!"
+        },
+        "error_subtitle": {
+            "en": "{{message}}",
+            "vi": "{{message}}"
+        },
+        "unknown": {
+            "en": "Unknown Status",
+            "vi": "Trạng thái không xác định"
+        },
+        "unknown_subtitle": {
+            "en": "Please contact support for assistance.",
+            "vi": "Vui lòng liên hệ hỗ trợ để được trợ giúp."
+        },
+        "order_id": {
+            "en": "Order ID",
+            "vi": "Mã đơn hàng"
+        },
+        "order_details": {
+            "en": "Order Details",
+            "vi": "Chi tiết đơn hàng"
+        },
+        "quantity": {
+            "en": "Quantity",
+            "vi": "Số lượng"
+        },
+        "total": {
+            "en": "Total",
+            "vi": "Tổng cộng"
+        },
+        "payment_method": {
+            "en": "Payment Method",
+            "vi": "Phương thức thanh toán"
+        },
+        "date": {
+            "en": "Date",
+            "vi": "Ngày"
+        },
+        "shipping_address": {
+            "en": "Shipping Address",
+            "vi": "Địa chỉ giao hàng"
+        },
+        "back_to_home": {
+            "en": "Back to Home",
+            "vi": "Về trang chủ"
+        },
+        "view_orders": {
+            "en": "View My Orders",
+            "vi": "Xem đơn hàng của tôi"
+        },
+        "back_to_cart": {
+            "en": "Back to Cart",
+            "vi": "Quay lại giỏ hàng"
+        },
+        "try_again": {
+            "en": "Try Payment Again",
+            "vi": "Thử thanh toán lại"
+        },
+        "important_info": {
+            "en": "Important Information",
+            "vi": "Thông tin quan trọng"
+        },
+        "info_processing": {
+            "en": "Your order will be processed within 1-2 business days.",
+            "vi": "Đơn hàng của bạn sẽ được xử lý trong vòng 1-2 ngày làm việc."
+        },
+        "info_email": {
+            "en": "You will receive an email confirmation and shipping details.",
+            "vi": "Bạn sẽ nhận được email xác nhận và thông tin vận chuyển."
+        },
+        "info_support": {
+            "en": "Contact our hotline at 1900-1234 for support.",
+            "vi": "Liên hệ hotline 1900-1234 để được hỗ trợ."
+        },
+        "support_title": {
+            "en": "Need Help?",
+            "vi": "Bạn cần giúp đỡ?"
+        },
+        "support_contact": {
+            "en": "Contact our hotline at 1900-1234 for assistance.",
+            "vi": "Liên hệ hotline 1900-1234 để được hỗ trợ."
+        },
+        "support_alternative": {
+            "en": "Try a different payment method.",
+            "vi": "Thử phương thức thanh toán khác."
+        },
+        "support_check_order": {
+            "en": "Check your order details.",
+            "vi": "Kiểm tra chi tiết đơn hàng của bạn."
+        },
+        "error_reasons": {
+            "en": "Possible Reasons",
+            "vi": "Nguyên nhân có thể"
+        },
+        "error_card_info": {
+            "en": "Incorrect card information.",
+            "vi": "Thông tin thẻ không chính xác."
+        },
+        "error_balance": {
+            "en": "Insufficient account balance.",
+            "vi": "Số dư tài khoản không đủ."
+        },
+        "error_network": {
+            "en": "Unstable network connection.",
+            "vi": "Kết nối mạng không ổn định."
+        },
+        "error_support": {
+            "en": "Contact our hotline at 1900-1234 if the issue persists.",
+            "vi": "Liên hệ hotline 1900-1234 nếu sự cố vẫn tiếp diễn."
         }
     }
 }

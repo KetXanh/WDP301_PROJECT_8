@@ -58,12 +58,14 @@ module.exports.userOrder = async (req, res) => {
             totalQuantity,
             shippingAddress: req.body.shippingAddress,
             COD: cod,
-            payment: req.body.paymentMethod
+            payment: req.body.paymentMethod,
+            note: req.body.note
         });
         res.json({
             code: 201,
             message: "Order successfully",
-            orderId: order._id
+            orderId: order._id,
+            totalAmount: order.totalAmount
         })
     } catch (error) {
         return res.status(500).json({

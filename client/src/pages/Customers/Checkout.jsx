@@ -29,7 +29,7 @@ import i18n from '../../i18n/i18n';
 const CheckoutDemo = () => {
     const navigate = useNavigate();
     const [orderNote, setOrderNote] = useState('');
-    const [paymentMethod, setPaymentMethod] = useState('cod');
+    const [paymentMethod, setPaymentMethod] = useState('CASH');
     const [isProcessing, setIsProcessing] = useState(false);
     const location = useLocation();
     const { selectedItems, selectedAddress } = location.state || {};
@@ -79,8 +79,8 @@ const CheckoutDemo = () => {
                 province,
                 phone: selectedAddress.phone,
             }
-            const res = await userOrder(items, dataShipping, paymentMethod);
-            if (paymentMethod === "COD") {
+            const res = await userOrder(items, dataShipping, paymentMethod, orderNote);
+            if (paymentMethod === "CASH") {
                 if (res.data && res.data.code === 201) {
                     toast.success(t("toast.order_success"))
                     navigate('/')
@@ -88,16 +88,20 @@ const CheckoutDemo = () => {
                     toast.error(t("toast.invalid_address"))
                 }
                 return setIsProcessing(false);
+            } else {
+                const order = res.data;
+
+                const payRes = await createPaymentUrl(
+                    {
+                        orderId: order.orderId,
+                        amount: order.totalAmount,
+                        language: i18n.language === 'vi' ? 'vn' : 'en',
+                    }
+                );
+                console.log(payRes.data);
+
+                window.location.href = payRes.data;
             }
-            const order = res.data.orderId;
-            const payRes = await createPaymentUrl(
-                order._id,
-                order.totalAmount,
-                '',
-                i18n.language === "vi" ? "vn" : "en"
-            );
-            const { paymentUrl } = payRes.data;
-            window.location.href = paymentUrl;
         } catch (error) {
             console.log(error);
 
@@ -169,7 +173,7 @@ const CheckoutDemo = () => {
                                 >
                                     {/* COD */}
                                     <div className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-gray-50">
-                                        <RadioGroupItem value="COD" id="cod" />
+                                        <RadioGroupItem value="CASH" id="cod" />
                                         <Label htmlFor="cod" className="flex-1 cursor-pointer">
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center space-x-3">

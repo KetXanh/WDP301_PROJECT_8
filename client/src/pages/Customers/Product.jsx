@@ -43,9 +43,6 @@ const Product = () => {
   }, []);
 
 
-  console.log(allProduct);
-
-
   const filteredProducts = allProduct.filter((product) => {
     const matchesSearch = product.name
       .toLowerCase()

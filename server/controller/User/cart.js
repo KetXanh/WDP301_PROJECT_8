@@ -32,16 +32,18 @@ module.exports.getCart = async (req, res) => {
             });
         }
 
-        const enriched = cart.items.map((it) => ({
-            productId: it.product._id,
-            slug: it.product.baseProduct.slug,
-            name: it.product.baseProduct.name,
-            imageUrl: it.product.baseProduct.image.url,
-            price: it.price,
-            quantity: it.quantity,
-            stock: it.product.stock,
-            status: it.product.stock < 0 ? 'paused' : 'active',
-        }));
+        const enriched = cart.items
+            .filter(it => it.product && it.product.baseProduct)
+            .map((it) => ({
+                productId: it.product._id,
+                slug: it.product.baseProduct.slug,
+                name: it.product.baseProduct.name,
+                imageUrl: it.product.baseProduct.image.url,
+                price: it.price,
+                quantity: it.quantity,
+                stock: it.product.stock,
+                status: it.product.stock < 0 ? 'paused' : 'active',
+            }));
 
         return res.status(200).json({
             code: 200,

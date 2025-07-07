@@ -105,7 +105,7 @@ const Header = () => {
     setIsLoggedIn(false);
     setUser(null);
     dispatch(logout());
-    toast.success(t('message:toast.logout'))
+    toast.success(t('toast.logout'))
     navigate('/');
   };
 

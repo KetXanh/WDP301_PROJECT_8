@@ -496,14 +496,24 @@ const Cart = () => {
                                     </div>
                                 ))}
                                 <Dialog open={isAddressDialogOpen} onOpenChange={setIsAddressDialogOpen}>
-                                    <DialogTrigger asChild>
+                                    {username === "guest" ? (
                                         <Button
                                             variant="outline"
                                             className="w-full text-emerald-600 border-emerald-600 hover:bg-emerald-50"
+                                            onClick={() => toast.error(t('toast.login_required'))}
                                         >
                                             + {t('cart.add_new_address')}
                                         </Button>
-                                    </DialogTrigger>
+                                    ) : (
+                                        <DialogTrigger asChild>
+                                            <Button
+                                                variant="outline"
+                                                className="w-full text-emerald-600 border-emerald-600 hover:bg-emerald-50"
+                                            >
+                                                + {t('cart.add_new_address')}
+                                            </Button>
+                                        </DialogTrigger>
+                                    )}
                                     <DialogContent className="sm:max-w-[425px]">
                                         <DialogHeader>
                                             <DialogTitle>{t('cart.add_new_address')}</DialogTitle>
@@ -637,8 +647,15 @@ const Cart = () => {
                                 <Button
                                     size="lg"
                                     className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 py-3 text-lg font-semibold"
-                                    onClick={handleCheckout}
+                                    onClick={() => {
+                                        if (username === 'guest') {
+                                            toast.error(t('toast.login_required'));
+                                            return;
+                                        }
+                                        handleCheckout()
+                                    }}
                                     disabled={
+                                        username === "guest" ||
                                         cartItems.filter((item) => item.selected && item.stock >= 0).length === 0 ||
                                         selectedAddress === null
                                     }

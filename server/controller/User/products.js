@@ -13,26 +13,29 @@ module.exports.allProducts = async (req, res) => {
             path: 'baseProduct',
             populate:
                 { path: 'subCategory', select: '-createdBy', populate: { path: 'category', select: 'name description' } }
-        }).sort({ createdAt: -1 })
-        const formatProduct = products.map((p) => ({
-            _id: p._id,
-            image: p?.baseProduct?.image?.url,
-            name: p?.baseProduct?.name,
-            description: p.baseProduct?.description,
-            slug: p.baseProduct?.slug,
-            price: p.price,
-            stock: p.stock,
-            category: {
-                name: p.baseProduct.subCategory.category.name,
-                description: p.baseProduct.subCategory.category.description
-            },
-            subCategory: {
-                name: p.baseProduct.subCategory.name,
-                description: p.baseProduct.subCategory.description
-            },
-            createdAt: p.createdAt,
-            updatedAt: p.updatedAt
-        }))
+        }).sort({ createdAt: -1 }).lean()
+
+        const formatProduct = products
+            .filter(v => v.baseProduct && v.baseProduct.subCategory && v.baseProduct.subCategory.category)
+            .map((p) => ({
+                _id: p._id,
+                image: p?.baseProduct?.image?.url,
+                name: p?.baseProduct?.name,
+                description: p.baseProduct?.description,
+                slug: p.baseProduct?.slug,
+                price: p.price,
+                stock: p.stock,
+                category: {
+                    name: p.baseProduct?.subCategory?.category?.name,
+                    description: p.baseProduct?.subCategory?.category?.description
+                },
+                subCategory: {
+                    name: p.baseProduct?.subCategory?.name,
+                    description: p.baseProduct?.subCategory?.description
+                },
+                createdAt: p.createdAt,
+                updatedAt: p.updatedAt
+            }))
 
         res.json({
             code: 200,

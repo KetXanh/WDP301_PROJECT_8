@@ -36,9 +36,6 @@ const ProductFilters = ({
         setOpenParent(openParent === parentId ? null : parentId);
     };
 
-    console.log(categories);
-
-
     return (
         <Card className="bg-white shadow-lg">
             <CardHeader>
