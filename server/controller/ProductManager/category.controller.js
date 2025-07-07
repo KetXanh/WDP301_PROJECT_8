@@ -110,36 +110,42 @@ module.exports.createCategory = async (req, res) => {
 }
 
 module.exports.updateCategory = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { name, description } = req.body;
-        if (!name || !description) {
-            return res.status(400).json({ message: "Name and description are required" });
-        }
+  try {
+    const { id } = req.params;
+    const { name, description } = req.body;
 
-        const existingCategory = await Category.findOne({ name, _id: { $ne: id } });
-        if (existingCategory) {
-            return res.status(400).json({ message: "Another category with this name already exists" });
-        }
-
-        const category = await Category.findByIdAndUpdate(
-            id, 
-            { name, description, createdBy: user.id }, 
-            { new: true }
-        );
-
-        if (!category) {
-            return res.status(404).json({ message: "Category not found" });
-        }
-
-        res.status(200).json({
-            message: "Category updated successfully !!!",
-            category
-        });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
+    if (!name || !description) {
+      return res
+        .status(400)
+        .json({ message: "Name and description are required" });
     }
-}
+
+    const existingCategory = await Category.findOne({ name, _id: { $ne: id } });
+    if (existingCategory) {
+      return res
+        .status(400)
+        .json({ message: "Another category with this name already exists" });
+    }
+
+    const category = await Category.findByIdAndUpdate(
+      id,
+      { name, description, createdBy: req.user.id },
+      { new: true }
+    );
+
+    if (!category) {
+      return res.status(404).json({ message: "Category not found" });
+    }
+
+    res.status(200).json({
+      message: "Category updated successfully !!!",
+      category,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 
 module.exports.deleteCategory = async (req, res) => {
     try {
@@ -222,25 +228,35 @@ module.exports.createSubCategory = async (req, res) => {
 }
 
 module.exports.updateSubCategory = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { name, description, categoryId } = req.body;
-        if (!name || !description || !categoryId) {
-            return res.status(400).json({ message: "Name, description and categoryId are required" });
-        }
-        const category = await Category.findById(categoryId);
-        if (!category) {
-            return res.status(404).json({ message: "Category not found" });
-        }
-        const subCategory = await SubCategory.findByIdAndUpdate(id, { name, description, category: categoryId, createdBy: user.id }, { new: true });
-        res.status(200).json({
-            message: "Sub category updated successfully !!!",
-            subCategory
-        });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
+  try {
+    const { id } = req.params;
+    const { name, description, categoryId } = req.body;
+    if (!name || !description || !categoryId) {
+      return res
+        .status(400)
+        .json({ message: "Name, description and categoryId are required" });
     }
-}
+
+    const category = await Category.findById(categoryId);
+    if (!category) {
+      return res.status(404).json({ message: "Category not found" });
+    }
+
+    const subCategory = await SubCategory.findByIdAndUpdate(
+      id,
+      { name, description, category: categoryId, createdBy: req.user.id },
+      { new: true }
+    );
+
+    res.status(200).json({
+      message: "Sub category updated successfully !!!",
+      subCategory,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 
 module.exports.deleteSubCategory = async (req, res) => {
     try {
