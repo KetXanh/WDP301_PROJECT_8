@@ -110,7 +110,7 @@ function App() {
             <>
               <Route path="/profile" element={<ProtectedRoute element={<Profile />} />} />
               <Route path="/checkout" element={<Checkout />} />
-              <Route path="/payment/:status" element={<PaymentResult />} />
+              <Route path="/vnpay_return" element={<PaymentResult />} />
               {/* <Route path="/vnpay_return" element={<VnpayWaiting />} /> */}
             </>
           }

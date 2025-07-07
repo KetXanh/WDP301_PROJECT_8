@@ -150,7 +150,7 @@ const CheckoutDemo = () => {
                                                 {selectedAddress.fullName}-{selectedAddress.details}
                                             </p>
                                             <p className="text-gray-600">
-                                                {t('checkout.phone')}: {selectedAddress.phone}
+                                                {t('cart.phone')}: {selectedAddress.phone}
                                             </p>
                                         </div>
                                     </div>
@@ -224,13 +224,6 @@ const CheckoutDemo = () => {
                                     </div>
                                 </RadioGroup>
 
-                                {paymentMethod === 'BANK' && (
-                                    <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                                        <h4 className="font-medium text-blue-800 mb-2">
-                                            {t('checkout.titlePayemnt')}
-                                        </h4>
-                                    </div>
-                                )}
                             </CardContent>
                         </Card>
 

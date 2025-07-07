@@ -96,6 +96,10 @@
             "en": "Register now to receive special offers and updates on the latest products",
             "vi": "Đăng ký ngay để nhận ưu đãi đặc biệt và cập nhật những sản phẩm mới nhất"
         },
+        "viewOrder": {
+            "en": "View Orders History",
+            "vi": "Lịch Sử Mua Hàng"
+        },
         "registerNow": {
             "en": "Register Now",
             "vi": "Đăng Ký Ngay"
@@ -1309,6 +1313,38 @@
         "add_error": {
             "vi": "Lỗi khi thêm vào giỏ hàng",
             "en": "Error adding to cart"
+        },
+        "payment_url_failed": {
+            "en": "Failed to generate payment URL. Please try again.",
+            "vi": "Không thể tạo URL thanh toán. Vui lòng thử lại."
+        },
+        "order_error": {
+            "en": "An error occurred while placing the order.",
+            "vi": "Có lỗi xảy ra khi đặt hàng."
+        },
+        "payment_success": {
+            "en": "Payment completed successfully!",
+            "vi": "Thanh toán thành công!"
+        },
+        "payment_failed": {
+            "en": "Payment failed: {{message}}",
+            "vi": "Thanh toán thất bại: {{message}}"
+        },
+        "payment_error": {
+            "en": "Payment error: {{message}}",
+            "vi": "Lỗi thanh toán: {{message}}"
+        },
+        "payment_error_generic": {
+            "en": "An error occurred while processing the payment.",
+            "vi": "Có lỗi xảy ra khi xử lý thanh toán."
+        },
+        "invalid_order_id": {
+            "en": "Invalid order ID. Please try again.",
+            "vi": "Mã đơn hàng không hợp lệ. Vui lòng thử lại."
+        },
+        "order_fetch_failed": {
+            "en": "Failed to fetch order details. Please try again.",
+            "vi": "Không thể lấy chi tiết đơn hàng. Vui lòng thử lại."
         }
     },
     "payment_result": {

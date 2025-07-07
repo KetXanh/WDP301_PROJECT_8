@@ -30,7 +30,7 @@ const AddToCartButton = ({ product, quantity }) => {
     }, [accessToken]);
 
 
-    const isGuest = username === GUEST_ID;
+
 
 
 
@@ -51,7 +51,7 @@ const AddToCartButton = ({ product, quantity }) => {
             quantity: quantity,
             stock: product.stock,
         };
-        if (!isGuest) {
+        if (username !== "guest") {
             try {
                 const response = await addItemToCart(itemPayload.productId, itemPayload.quantity, itemPayload.price);
                 if (response.data && response.data.code === 200) {
@@ -65,9 +65,11 @@ const AddToCartButton = ({ product, quantity }) => {
                 toast.error(t("toast.add_error"));
                 console.error(error);
             }
+        } else {
+
+            dispatch(addToCart({ item: itemPayload, userId: username }));
+            toast.success(t("toast.add_success"));
         }
-        dispatch(addToCart({ item: itemPayload, userId: username }));
-        toast.success(t("toast.add_success"));
 
     };
 

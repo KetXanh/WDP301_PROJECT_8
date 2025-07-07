@@ -13,7 +13,7 @@ export default function PaymentResult() {
     const { t } = useTranslation(['translation']);
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
-    const orderId = searchParams.get('vnp_TxnRef'); // VNPay uses vnp_TxnRef for order ID
+    const orderId = searchParams.get('vnp_TxnRef');
     const [order, setOrder] = useState(null);
     const [paymentStatus, setPaymentStatus] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -25,13 +25,13 @@ export default function PaymentResult() {
 
             // Call vnpay_return API to validate payment
             const res = await returnVnpay(params);
-            const { status, message } = res.data;
+            console.log(res);
 
-            setPaymentStatus({ status, message });
+            const { status } = res.data;
+
+            setPaymentStatus({ status });
 
             if (status === 'SUCCESS') {
-                toast.success(t('toast.payment_success'));
-                // Fetch order details for successful payments
                 if (orderId) {
                     const orderRes = await getOrderById(orderId);
                     if (orderRes.data && orderRes.data.code === 200) {
@@ -41,9 +41,9 @@ export default function PaymentResult() {
                     }
                 }
             } else if (status === 'FAILED') {
-                toast.error(t('toast.payment_failed', { message }));
+                toast.error(t('toast.payment_failed'));
             } else {
-                toast.error(t('toast.payment_error', { message }));
+                toast.error(t('toast.payment_error'));
             }
         } catch (error) {
             console.error('Error fetching payment status:', error);
@@ -81,7 +81,7 @@ export default function PaymentResult() {
                 return {
                     icon: XCircle,
                     title: t('payment_result.failed'),
-                    subtitle: t('payment_result.failed_subtitle', { message: paymentStatus?.message || '' }),
+                    subtitle: t('payment_result.failed_subtitle'),
                     color: 'text-red-600',
                     bgColor: 'bg-red-50',
                     borderColor: 'border-red-200',
@@ -90,7 +90,7 @@ export default function PaymentResult() {
                 return {
                     icon: AlertCircle,
                     title: t('payment_result.error'),
-                    subtitle: t('payment_result.error_subtitle', { message: paymentStatus?.message || '' }),
+                    subtitle: t('payment_result.error_subtitle'),
                     color: 'text-yellow-600',
                     bgColor: 'bg-yellow-50',
                     borderColor: 'border-yellow-200',
@@ -109,6 +109,7 @@ export default function PaymentResult() {
 
     const statusConfig = getStatusConfig();
     const StatusIcon = statusConfig.icon;
+
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 py-8 px-4">
@@ -140,16 +141,15 @@ export default function PaymentResult() {
                 </Card>
 
                 {/* Order Details - Only show for successful payments */}
-                {paymentStatus?.status === 'SUCCESS' && order && (
+                {/* {paymentStatus?.status === 'SUCCESS' && order && (
                     <Card className="mb-6">
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
                                 <Package className="w-5 h-5" />
                                 {t('payment_result.order_details')}
                             </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            {/* Order Items */}
+                        </CardHeader> */}
+                {/* <CardContent className="space-y-4">
                             <div className="space-y-3">
                                 {order.items.map((item, index) => (
                                     <div
@@ -168,8 +168,6 @@ export default function PaymentResult() {
                                     </div>
                                 ))}
                             </div>
-
-                            {/* Total */}
                             <div className="flex justify-between items-center pt-4 border-t border-gray-200">
                                 <p className="text-lg font-bold">{t('payment_result.total')}:</p>
                                 <p className="text-xl font-bold text-emerald-600">
@@ -177,7 +175,6 @@ export default function PaymentResult() {
                                 </p>
                             </div>
 
-                            {/* Payment Info */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-100">
                                 <div className="flex items-center gap-2">
                                     <CreditCard className="w-4 h-4 text-gray-500" />
@@ -193,16 +190,15 @@ export default function PaymentResult() {
                                 </div>
                             </div>
 
-                            {/* Shipping Address */}
                             <div className="pt-4 border-t border-gray-100">
                                 <h4 className="font-medium mb-2">{t('payment_result.shipping_address')}:</h4>
                                 <p className="text-sm text-gray-600">
                                     {order.address.street}, {order.address.ward}, {order.address.district}, {order.address.province}
                                 </p>
                             </div>
-                        </CardContent>
-                    </Card>
-                )}
+                        </CardContent> */}
+                {/* </Card>
+                )} */}
 
                 {/* Action Buttons */}
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -275,6 +271,6 @@ export default function PaymentResult() {
                     </Card>
                 )}
             </div>
-        </div>
+        </div >
     );
 }

@@ -2,7 +2,8 @@ const { Orders } = require("../../models/product/order");
 const productBase = require("../../models/product/productBase");
 const ProductVariant = require("../../models/product/ProductVariant");
 const Users = require("../../models/user");
-const generateCOD = require('../../utils/generateCOD')
+const generateCOD = require('../../utils/generateCOD');
+const removePurchasedFromCart = require("../../utils/removeProductInCart");
 
 module.exports.userOrder = async (req, res) => {
     try {
@@ -61,6 +62,10 @@ module.exports.userOrder = async (req, res) => {
             payment: req.body.paymentMethod,
             note: req.body.note
         });
+        if (req.body.paymentMethod === "CASH") {
+            const purchasedIds = order.items.map(item => item.product);
+            await removePurchasedFromCart(order.user, purchasedIds);
+        }
         res.json({
             code: 201,
             message: "Order successfully",
