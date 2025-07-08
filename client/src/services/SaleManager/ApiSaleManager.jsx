@@ -67,24 +67,40 @@ export const assignTaskToAllStaff = (taskId, deadline, notes) => {
 
 // Discount Management APIs
 export const getAllDiscounts = () => {
-    return instance.get('/saleManager/discounts')
+    return instance.get('/saleManager/discount');
 }
 
 export const createDiscount = (discountData) => {
-    return instance.post('/saleManager/discounts', discountData)
+    return instance.post('/saleManager/discount', discountData);
 }
 
 export const updateDiscount = (discountId, discountData) => {
-    return instance.put(`/saleManager/discounts/${discountId}`, discountData)
+    return instance.put(`/saleManager/discount/${discountId}`, discountData);
 }
 
 export const deleteDiscount = (discountId) => {
-    return instance.delete(`/saleManager/discounts/${discountId}`)
+    return instance.delete(`/saleManager/discount/${discountId}`);
+}
+
+export const getDiscountById = (discountId) => {
+    return instance.get(`/saleManager/discount/${discountId}`);
+}
+
+export const toggleDiscountActive = (discountId) => {
+    return instance.patch(`/saleManager/discount/${discountId}/toggle`);
+}
+
+export const applyDiscount = (data) => {
+    return instance.post('/saleManager/discount/apply', data);
 }
 
 // Order Management APIs
 export const getAllOrders = () => {
     return instance.get('/saleManager/order/')
+}
+
+export const assignAllOrdersToStaff = () => {
+    return instance.post('/saleManager/order/assign-all');
 }
 
 export const getOrderById = (orderId) => {
@@ -163,6 +179,9 @@ export const getProfile = () => {
     return instance.get('/saleManager/profile');
 }
 
+export const getAllUsers = () => {
+    return instance.get("/saleManager/users");
+};
 
 export const getMyOrderById = (orderId) => {
     return instance.get(`/saleManager/order/${orderId}`)

@@ -1,9 +1,9 @@
-
 const mongoose = require("mongoose");
+const { generateString } = require("../../utils/generateString");
 
 const discountSchema = new mongoose.Schema(
   {
-    code: { type: String, required: true, unique: true }, 
+    code: { type: String, required: true, unique: true, default: () => generateString(10) },
     description: { type: String },
     discountType: {
       type: String,

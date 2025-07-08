@@ -36,3 +36,48 @@ module.exports.changeRole = async (req, res) => {
         res.json({ code: 500, message: "Lỗi máy chủ", error: error.message });
     }
 }
+
+module.exports.getProfile = async (req, res) => {
+    try {
+        const userLogin = req.user;
+        const user = await User.findOne({ email: userLogin.email });
+        if (!user) return res.status(404).json({ message: 'Không tìm thấy người dùng' });
+        res.status(200).json({ message: 'Lấy thông tin profile thành công', profile: user });
+    } catch (error) {
+        res.status(500).json({ message: 'Lỗi máy chủ', error: error.message });
+    }
+};
+
+module.exports.getAllUsers = async (req, res) => {
+    try {
+        const { page = 1, limit = 10, role, search } = req.query;
+        const query = {};
+        if (role) {
+            query.role = Number(role);
+        }
+        if (search) {
+            query.$or = [
+                { username: { $regex: search, $options: 'i' } },
+                { email: { $regex: search, $options: 'i' } }
+            ];
+        }
+        const skip = (Number(page) - 1) * Number(limit);
+        const total = await User.countDocuments(query);
+        const users = await User.find(query)
+            .skip(skip)
+            .limit(Number(limit));
+        res.json({
+            code: 200,
+            message: "Lấy danh sách người dùng thành công",
+            users,
+            pagination: {
+                currentPage: Number(page),
+                totalPages: Math.ceil(total / limit),
+                totalItems: total,
+                itemsPerPage: Number(limit)
+            }
+        });
+    } catch (error) {
+        res.json({ code: 500, message: "Lỗi máy chủ", error: error.message });
+    }
+};

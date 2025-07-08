@@ -42,6 +42,7 @@ import ManagerDiscount from "./pages/SaleManager/ManagerDiscount";
 import Chat from "./pages/SaleManager/components/Chat";
 import ManagerOrder from "./pages/SaleManager/ManagerOrder";
 import SaleManagerProfile from "./pages/SaleManager/Profile";
+import SaleManagerUser from "./pages/SaleManager/SaleManagerUser";
 
 //Sale Staff Pages
 import SaleStaffLayout from "./pages/SaleStaff/SaleStaffLayout";
@@ -176,6 +177,7 @@ function App() {
           <Route path="chat" element={<Chat />} />
           <Route path="order" element={<ManagerOrder />} />
           <Route path="profile" element={<SaleManagerProfile />} />
+          <Route path="users" element={<SaleManagerUser />} />
         </Route>
 
         {/* Sale Staff Routes */}

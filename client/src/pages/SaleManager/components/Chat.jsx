@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { toast } from 'sonner';
-import { getChatUsers, getChatHistory, sendMessage, updateMessage, deleteMessage } from "@/services/Chatbot/ApiChatbox";
+import { getChatUsers, getChatHistory, sendMessage, updateMessage, deleteMessage, searchAllUsersForChat } from "@/services/Chatbot/ApiChatbox";
 
 export default function Chat() {
   const [users, setUsers] = useState([]);
@@ -26,6 +26,8 @@ export default function Chat() {
   const [roleFilter, setRoleFilter] = useState('all');
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef(null);
+  const [globalSearchResults, setGlobalSearchResults] = useState([]);
+  const [showGlobalSearch, setShowGlobalSearch] = useState(false);
 
   // Fetch users on component mount
   useEffect(() => {
@@ -138,6 +140,19 @@ export default function Chat() {
     return matchesSearch && matchesRole;
   });
 
+  // Search all users for chat
+  const handleGlobalUserSearch = async () => {
+    setLoading(true);
+    try {
+      const results = await searchAllUsersForChat(searchQuery);
+      setGlobalSearchResults(results);
+      setShowGlobalSearch(true);
+    } catch {
+      toast.error('Không thể tìm kiếm người dùng');
+    }
+    setLoading(false);
+  };
+
   return (
     <div className="flex h-[calc(100vh-8rem)] border rounded-lg overflow-hidden">
       {/* User List Sidebar */}
@@ -152,7 +167,7 @@ export default function Chat() {
               <Input
                 placeholder="Tìm kiếm..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => { setSearchQuery(e.target.value); setShowGlobalSearch(false); }}
                 className="pl-8"
               />
             </div>
@@ -175,6 +190,36 @@ export default function Chat() {
               <div className="flex items-center justify-center h-24">
                 <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
               </div>
+            ) : showGlobalSearch ? (
+              globalSearchResults.length > 0 ? (
+                globalSearchResults.map((user) => (
+                  <div
+                    key={user._id}
+                    onClick={() => { setSelectedUser(user); setShowGlobalSearch(false); setGlobalSearchResults([]); }}
+                    className={cn(
+                      "flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all duration-200",
+                      selectedUser?._id === user._id
+                        ? "bg-primary/10 border-l-2 border-primary"
+                        : "hover:bg-muted"
+                    )}
+                  >
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src={user.avatar} />
+                      <AvatarFallback className="bg-gradient-to-r from-green-600 to-amber-600 text-white">
+                        <User className="h-5 w-5" />
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium truncate">{user.username || user.name}</p>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {user.role === "staff" ? "Nhân viên" : user.role === "user" ? "Khách hàng" : user.role === 2 ? "Sale Manager" : user.role === 1 ? "Admin" : "Khác"}
+                      </p>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center text-muted-foreground py-4">Không tìm thấy người dùng phù hợp</div>
+              )
             ) : filteredUsers.length > 0 ? (
               filteredUsers.map((user) => (
                 <div
@@ -196,19 +241,22 @@ export default function Chat() {
                   <div className="flex-1 min-w-0">
                     <p className="font-medium truncate">{user.username || user.name}</p>
                     <p className="text-xs text-muted-foreground truncate">
-                      {user.role === "staff" ? "Nhân viên" : "Khách hàng"}
+                      {user.role === "staff" ? "Nhân viên" : user.role === "user" ? "Khách hàng" : user.role === 2 ? "Sale Manager" : user.role === 1 ? "Admin" : "Khác"}
                     </p>
                   </div>
-                  <div className={cn(
-                    "h-2 w-2 rounded-full",
-                    user.status === "online" ? "bg-green-500" : "bg-gray-400"
-                  )} />
                 </div>
               ))
             ) : (
-              <div className="text-center text-muted-foreground py-4">
-                Không tìm thấy người dùng
-              </div>
+              <>
+                <div className="text-center text-muted-foreground py-4">Không có người dùng nào trong lịch sử chat.</div>
+                {searchQuery && (
+                  <div className="flex flex-col items-center gap-2 mt-2">
+                    <Button size="sm" variant="outline" onClick={handleGlobalUserSearch}>
+                      Tìm tất cả người dùng phù hợp để nhắn tin
+                    </Button>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </ScrollArea>

@@ -10,5 +10,6 @@ router.delete('/delete/:messageId', authenticateToken, chatController.deleteMess
 router.put('/update/:messageId', authenticateToken, chatController.updateMessage);
 router.get('/users', authenticateToken, chatController.getChatUsers);
 router.get('/receiver/:receiverId', authenticateToken, chatController.getReceiverUser);
+router.get('/all-users', authenticateToken, chatController.getAllUsersForChat);
 
 module.exports = router; 

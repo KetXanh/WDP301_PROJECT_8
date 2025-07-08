@@ -15,28 +15,41 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { getDashboardData, getRecentActivities, getAnalytics } from '@/services/SaleStaff/ApiSaleStaff';
+import { getDashboardData, getAnalytics, getTaskAssignment, updateTaskAssignment } from '@/services/SaleStaff/ApiSaleStaff';
+import DashboardStats from './Components/DashboardStats';
+import TaskProgress from './Components/TaskProgress';
+import KPIAchievement from './Components/KPIAchievement';
+import TaskTable from './Components/TaskTable';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 
 const Dashboard = () => {
-  const [stats, setStats] = useState(null);
-  const [recentTasks, setRecentTasks] = useState([]);
-  const [recentOrders, setRecentOrders] = useState([]);
+  const [stats, setStats] = useState({});
   const [timeRange, setTimeRange] = useState('month');
-  const [chartData, setChartData] = useState(null);
+  const [chartData, setChartData] = useState({});
+  const [tasks, setTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedTask, setSelectedTask] = useState(null);
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [updateForm, setUpdateForm] = useState({ status: '', progress: '', notes: '' });
+  const [filter, setFilter] = useState('all');
 
   useEffect(() => {
     fetchDashboard();
     fetchStatistics(timeRange);
+    fetchTasks();
   }, [timeRange]);
 
   const fetchDashboard = async () => {
     try {
       const res = await getDashboardData();
-      setStats(res.data.stats || {});
-      setRecentTasks(res.data.recentTasks || []);
-      setRecentOrders(res.data.recentOrders || []);
-    } catch (error) {
+      
+      setStats(res.data.data.stats || {});
+    } catch {
       toast.error('Không thể tải dữ liệu dashboard');
     }
   };
@@ -44,86 +57,43 @@ const Dashboard = () => {
   const fetchStatistics = async (period) => {
     try {
       const res = await getAnalytics(period);
-      setStats((prev) => ({ ...prev, ...res.data.stats }));
-      setChartData(res.data.chartData || {});
-    } catch (error) {
+      setChartData(res.data.data.chartData || {});
+    } catch {
       toast.error('Không thể tải dữ liệu thống kê');
     }
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'completed':
-        return 'bg-green-100 text-green-800';
-      case 'in_progress':
-        return 'bg-blue-100 text-blue-800';
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
+  const fetchTasks = async () => {
+    setLoading(true);
+    try {
+      const res = await getTaskAssignment();
+      setTasks(Array.isArray(res.data) ? res.data : []);
+    } catch {
+      toast.error('Không thể tải danh sách task');
     }
+    setLoading(false);
   };
 
-  const getPriorityColor = (priority) => {
-    switch (priority) {
-      case 'high':
-        return 'bg-red-100 text-red-800';
-      case 'medium':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'low':
-        return 'bg-green-100 text-green-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
+  const handleViewTask = (task) => { setSelectedTask(task); setShowDetailModal(true); };
+  const handleUpdateTask = (task) => {
+    setSelectedTask(task);
+    setUpdateForm({
+      status: task.status,
+      progress: (task.task?.progress || 0).toString(),
+      notes: task.notes || ''
+    });
+    setShowUpdateModal(true);
+  };
+  const handleSubmitUpdate = async () => {
+    try {
+      await updateTaskAssignment(selectedTask._id, { status: updateForm.status });
+      toast.success('Cập nhật task thành công');
+      setShowUpdateModal(false);
+      fetchTasks();
+    } catch {
+      toast.error('Không thể cập nhật task');
     }
   };
-
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case 'completed':
-        return <CheckCircle className="h-4 w-4" />;
-      case 'in_progress':
-        return <Clock className="h-4 w-4" />;
-      case 'pending':
-        return <AlertTriangle className="h-4 w-4" />;
-      default:
-        return <Clock className="h-4 w-4" />;
-    }
-  };
-
-  const StatCard = ({ title, value, change, changeType, icon: Icon }) => (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">{title}</CardTitle>
-        <Icon className="h-4 w-4 text-blue-600" />
-      </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold">{value}</div>
-        {change && (
-          <div className="flex items-center mt-2">
-            {changeType === 'increase' ? (
-              <TrendingUp className="h-4 w-4 text-green-500" />
-            ) : (
-              <TrendingDown className="h-4 w-4 text-red-500" />
-            )}
-            <span className={`text-sm ml-1 ${
-              changeType === 'increase' ? 'text-green-600' : 'text-red-600'
-            }`}>
-              {change}
-            </span>
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  );
-
-  const ProgressBar = ({ percentage, color = 'bg-blue-500' }) => (
-    <div className="w-full bg-gray-200 rounded-full h-2">
-      <div 
-        className={`${color} h-2 rounded-full transition-all duration-300`}
-        style={{ width: `${percentage}%` }}
-      ></div>
-    </div>
-  );
 
   if (!stats) {
     return <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>;
@@ -170,229 +140,129 @@ const Dashboard = () => {
       </Card>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard
-          title="Tổng Task"
-          value={stats?.tasks?.total || 0}
-          change="+12%"
-          changeType="increase"
-          icon={BarChart3}
-        />
-        <StatCard
-          title="Task hoàn thành"
-          value={stats?.tasks?.completed || 0}
-          change="+8%"
-          changeType="increase"
-          icon={TrendingUp}
-        />
-        <StatCard
-          title="Tỷ lệ hoàn thành"
-          value={`${stats?.tasks?.completionRate || 0}%`}
-          change="+5%"
-          changeType="increase"
-          icon={TrendingUp}
-        />
-        <StatCard
-          title="Doanh thu"
-          value={`${stats?.orders?.revenue?.toLocaleString('vi-VN') || 0}đ`}
-          change="+15%"
-          changeType="increase"
-          icon={DollarSign}
-        />
-      </div>
+      <DashboardStats stats={stats} chartData={chartData} />
 
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Task Progress Chart */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Tiến độ Task</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {chartData?.taskProgress?.map((item, index) => (
-                <div key={index}>
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm font-medium text-gray-700">{item.name}</span>
-                    <span className="text-sm text-gray-500">{item.value}</span>
-                  </div>
-                  <ProgressBar 
-                    percentage={(item.value / stats?.tasks?.total) * 100} 
-                    color={item.color}
-                  />
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* KPI Achievement */}
-        <Card>
-          <CardHeader>
-            <CardTitle>KPI Achievement</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <span className="text-sm font-medium text-gray-700">KPI đạt được</span>
-                <span className="text-sm text-gray-500">{stats?.kpis?.achieved}/{stats?.kpis?.active}</span>
-              </div>
-              <ProgressBar 
-                percentage={stats?.kpis?.achievementRate || 0} 
-                color="bg-purple-500"
-              />
-              <div className="text-center">
-                <p className="text-2xl font-bold text-purple-600">{stats?.kpis?.achievementRate || 0}%</p>
-                <p className="text-sm text-gray-500">Tỷ lệ đạt KPI</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <TaskProgress chartData={chartData} />
+        <KPIAchievement stats={stats} />
       </div>
 
-      {/* Order Trends */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Xu hướng đơn hàng</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
-            {chartData?.orderTrend?.map((item, index) => (
-              <div key={index} className="text-center">
-                <div className="bg-blue-50 rounded-lg p-4">
-                  <p className="text-sm font-medium text-gray-700">{item.month}</p>
-                  <p className="text-lg font-bold text-blue-600">{item.orders}</p>
-                  <p className="text-xs text-gray-500">
-                    {item.revenue.toLocaleString('vi-VN')}đ
+      {/* Task Table */}
+      <TaskTable
+        tasks={tasks}
+        loading={loading}
+        filter={filter}
+        setFilter={setFilter}
+        onView={handleViewTask}
+        onUpdate={handleUpdateTask}
+      />
+
+      {/* Task Detail Modal */}
+      <Dialog open={showDetailModal} onOpenChange={setShowDetailModal}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Chi tiết task</DialogTitle>
+          </DialogHeader>
+          {selectedTask && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-2">Thông tin task</h4>
+                  <div className="space-y-2 text-sm">
+                    <p><span className="font-medium">Tiêu đề:</span> {selectedTask.task?.title}</p>
+                    <p><span className="font-medium">Mô tả:</span> {selectedTask.task?.description}</p>
+                    <p><span className="font-medium">Trạng thái:</span>
+                      <span className="ml-2 font-semibold">{selectedTask.status}</span>
+                    </p>
+                    <p><span className="font-medium">Ưu tiên:</span>
+                      <span className="ml-2 font-semibold">{selectedTask.task?.priority || 'medium'}</span>
+                    </p>
+                  </div>
+                </div>
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-2">Thông tin khác</h4>
+                  <div className="space-y-2 text-sm">
+                    <p><span className="font-medium">Được giao bởi:</span> {selectedTask.assignedBy?.username || selectedTask.assignedBy}</p>
+                    <p><span className="font-medium">Được giao cho:</span> {selectedTask.assignedTo?.username || selectedTask.assignedTo}</p>
+                    <p><span className="font-medium">Ngày tạo task:</span> {selectedTask.task?.createdAt ? new Date(selectedTask.task.createdAt).toLocaleDateString('vi-VN') : ''}</p>
+                    <p><span className="font-medium">Ngày được giao:</span> {selectedTask.assignedAt ? new Date(selectedTask.assignedAt).toLocaleDateString('vi-VN') : ''}</p>
+                    <p><span className="font-medium">Hạn chót:</span> {selectedTask.deadline ? new Date(selectedTask.deadline).toLocaleDateString('vi-VN') : ''}</p>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <h4 className="font-medium text-gray-900 mb-2">Tiến độ</h4>
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Tiến độ hiện tại</span>
+                    <span className="text-sm font-medium">{selectedTask.task?.progress || 0}%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="bg-blue-500 h-2 rounded-full transition-all duration-300" style={{ width: `${selectedTask.task?.progress || 0}%` }}></div>
+                  </div>
+                </div>
+              </div>
+              {selectedTask.notes && (
+                <div className="p-3 bg-gray-50 rounded-md">
+                  <p className="text-sm text-gray-600">
+                    <span className="font-medium">Ghi chú:</span> {selectedTask.notes}
                   </p>
                 </div>
-              </div>
-            ))}
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Update Modal */}
+      <Dialog open={showUpdateModal} onOpenChange={setShowUpdateModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Cập nhật tiến độ task</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Trạng thái</label>
+              <Select value={updateForm.status} onValueChange={(value) => setUpdateForm({ ...updateForm, status: value })}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pending">Chờ bắt đầu</SelectItem>
+                  <SelectItem value="in-progress">Đang thực hiện</SelectItem>
+                  <SelectItem value="done">Hoàn thành</SelectItem>
+                  <SelectItem value="late">Quá hạn</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Tiến độ (%)</label>
+              <Input
+                type="number"
+                min="0"
+                max="100"
+                value={updateForm.progress}
+                onChange={(e) => setUpdateForm({ ...updateForm, progress: e.target.value })}
+                placeholder="Nhập tiến độ từ 0-100"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Ghi chú</label>
+              <Textarea
+                value={updateForm.notes}
+                onChange={(e) => setUpdateForm({ ...updateForm, notes: e.target.value })}
+                placeholder="Thêm ghi chú về tiến độ task..."
+                rows={3}
+              />
+            </div>
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Detailed Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Task Details */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Chi tiết Task</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Tổng số task</span>
-                <span className="text-sm font-medium">{stats?.tasks?.total || 0}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Đã hoàn thành</span>
-                <span className="text-sm font-medium text-green-600">{stats?.tasks?.completed || 0}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Đang thực hiện</span>
-                <span className="text-sm font-medium text-blue-600">{stats?.tasks?.inProgress || 0}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Chờ xử lý</span>
-                <span className="text-sm font-medium text-yellow-600">{stats?.tasks?.pending || 0}</span>
-              </div>
-              <hr className="my-3" />
-              <div className="flex justify-between">
-                <span className="text-sm font-medium">Tỷ lệ hoàn thành</span>
-                <span className="text-sm font-bold text-green-600">{stats?.tasks?.completionRate || 0}%</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Order Details */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Chi tiết đơn hàng</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Tổng đơn hàng</span>
-                <span className="text-sm font-medium">{stats?.orders?.total || 0}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Đã hoàn thành</span>
-                <span className="text-sm font-medium text-green-600">{stats?.orders?.completed || 0}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Chờ xử lý</span>
-                <span className="text-sm font-medium text-yellow-600">{stats?.orders?.pending || 0}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Giá trị trung bình</span>
-                <span className="text-sm font-medium">{stats?.orders?.averageOrderValue?.toLocaleString('vi-VN') || 0}đ</span>
-              </div>
-              <hr className="my-3" />
-              <div className="flex justify-between">
-                <span className="text-sm font-medium">Tổng doanh thu</span>
-                <span className="text-sm font-bold text-green-600">{stats?.orders?.revenue?.toLocaleString('vi-VN') || 0}đ</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Recent Activities */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Tasks */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Task gần đây</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {recentTasks.map((task) => (
-                <div key={task.id} className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className={`p-2 rounded-full ${getStatusColor(task.status)}`}>
-                      {getStatusIcon(task.status)}
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">{task.title}</p>
-                      <Badge variant="secondary" className={getPriorityColor(task.priority)}>
-                        {task.priority}
-                      </Badge>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Recent Orders */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Đơn hàng gần đây</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {recentOrders.map((order) => (
-                <div key={order.id} className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className={`p-2 rounded-full ${getStatusColor(order.status)}`}>
-                      {getStatusIcon(order.status)}
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">{order.customer}</p>
-                      <p className="text-sm text-gray-500">
-                        {order.amount?.toLocaleString('vi-VN')}đ
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+          <div className="flex justify-end space-x-3 mt-6">
+            <Button variant="outline" onClick={() => setShowUpdateModal(false)}>Hủy</Button>
+            <Button onClick={handleSubmitUpdate}>Cập nhật</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

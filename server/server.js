@@ -11,6 +11,8 @@ const saleManager = require("./routers/SaleManager/index");
 const chatRouter = require("./routers/chatbot/index");
 const saleStaffRouter = require("./routers/SaleStaff/index");
 require("dotenv").config();
+require('./utils/discountStatusJob');
+require('./utils/taskStatusJob');
 
 const corsOptions = {
   origin: ["http://localhost:5173", "http://localhost:5174"],

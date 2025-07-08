@@ -29,7 +29,7 @@ export default function OrderAssignmentForm({ open, onOpenChange, order, staffLi
     const fetchStaffOrderCounts = async () => {
       try {
         // TODO: Replace with actual API call
-        const mockCounts = staffList.reduce((acc, staff) => ({
+        const mockCounts = (Array.isArray(staffList) ? staffList : []).reduce((acc, staff) => ({
           ...acc,
           [staff._id]: Math.floor(Math.random() * 5) // Mock data for testing
         }), {});
@@ -93,7 +93,7 @@ export default function OrderAssignmentForm({ open, onOpenChange, order, staffLi
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {staffList.map((staff) => (
+                      {(Array.isArray(staffList) ? staffList : []).map((staff) => (
                         <SelectItem key={staff._id} value={staff._id}>
                           {staff.username} (Số order hiện tại: {staffOrderCounts[staff._id] || 0})
                         </SelectItem>

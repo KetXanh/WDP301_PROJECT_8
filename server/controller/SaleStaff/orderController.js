@@ -1,14 +1,15 @@
 const { Orders } = require("../../models/product/order");
 const Users = require("../../models/user");
 const OrderAssignment = require("../../models/sale/OrderAssignment");
-
+const ProductBase = require("../../models/product/productBase");
+const ProductVariant = require("../../models/product/ProductVariant");
 // Lấy tất cả đơn hàng của sale staff hiện tại
 exports.getMyOrders = async (req, res) => {
     try {
         const userLogin = req.user;
         const user = await Users.findOne({ email: userLogin.email });
         if (!user) return res.status(404).json({ message: "Không tìm thấy người dùng" });
-        const orders = await OrderAssignment.find({ assignedTo: user._id }).populate("orderId", "totalAmount status createdAt user items shippingAddress");
+        const orders = await OrderAssignment.find({ assignedTo: user._id }).populate("orderId", "COD totalAmount status createdAt user items shippingAddress");
         res.status(200).json({ message: "Lấy danh sách đơn hàng thành công", orders });
     } catch (error) {
         res.status(500).json({ message: "Lỗi máy chủ", error: error.message });
@@ -21,10 +22,25 @@ exports.getMyOrderById = async (req, res) => {
         const userLogin = req.user;
         const user = await Users.findOne({ email: userLogin.email });
         if (!user) return res.status(404).json({ message: "Không tìm thấy người dùng" });
-        const order = await OrderAssignment.findOne({ _id: req.params.id, assignedTo: user._id }).populate("orderId", "totalAmount status createdAt user items shippingAddress");
+        const order = await OrderAssignment.findOne({ _id: req.params.id, assignedTo: user._id }).populate("orderId", "COD totalAmount status createdAt user items shippingAddress");
         if (!order) return res.status(404).json({ message: "Không tìm thấy đơn hàng" });
-        const orderDetail = await Orders.findOne({ _id: order.orderId });
-        res.status(200).json({ message: "Lấy chi tiết đơn hàng thành công", orderDetail });
+
+        const productIds = order.orderId.items.map(item => item.product);
+        const productVariants = await ProductVariant.find({ _id: { $in: productIds } });
+        const baseProductIds = productVariants.map(variant => variant.baseProduct);
+        const baseProducts = await ProductBase.find({ _id: { $in: baseProductIds } });
+        const productDetail = productVariants.map(variant => {
+            const orderItem = order.orderId.items.find(i => i.product.toString() === variant._id.toString());
+            const baseProduct = baseProducts.find(bp => bp._id.toString() === variant.baseProduct.toString());
+            return {
+                product: baseProduct || null, 
+                variant: variant,
+                quantity: orderItem?.quantity,
+                price: orderItem?.price
+            };
+        });
+
+        res.status(200).json({ message: "Lấy chi tiết đơn hàng thành công", orderDetail: order.orderId, products: productDetail });
     } catch (error) {
         res.status(500).json({ message: "Lỗi máy chủ", error: error.message });
     }
@@ -81,7 +97,7 @@ exports.getMyAssignedOrders = async (req, res) => {
         }
 
         const assignments = await OrderAssignment.find(query)
-            .populate("orderId", "totalAmount status createdAt user items")
+            .populate("orderId", "COD totalAmount status createdAt user items")
             .sort({ assignedAt: -1 })
             .skip(skip)
             .limit(parseInt(limit));
@@ -137,8 +153,10 @@ exports.getMyAssignedOrderDetail = async (req, res) => {
             _id: assignmentId,
             assignedTo: currentUser._id
         })
-            .populate("orderId", "totalAmount status createdAt user items shippingAddress");
+            .populate("orderId", "COD totalAmount status createdAt user items shippingAddress");
 
+        const product = await ProductBase.find({ _id: { $in: assignment.orderId.items } });
+        const orderDetail = [assignment, product];
         if (!assignment) {
             return res.status(404).json({
                 success: false,
@@ -149,7 +167,7 @@ exports.getMyAssignedOrderDetail = async (req, res) => {
         res.status(200).json({
             success: true,
             message: "Lấy chi tiết đơn hàng thành công",
-            data: assignment
+            data: orderDetail
         });
     } catch (error) {
         console.error('Error in getMyAssignedOrderDetail:', error);

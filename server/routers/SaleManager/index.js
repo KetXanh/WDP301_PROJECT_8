@@ -3,6 +3,7 @@ const taskRoutes = require("./taskRoutes");
 const taskAssignmentRoutes = require("./taskAssignmentRoutes");
 const orderRoutes = require("./orderRoutes");
 const statisticsRoutes = require("./statisticsRoutes");
+const discountRoutes = require("./discountRoutes");
 
 module.exports = (app) => {
     const api = "/api";
@@ -11,4 +12,5 @@ module.exports = (app) => {
     app.use(api + "/saleManager/taskAssignment", taskAssignmentRoutes);
     app.use(api + "/saleManager/order", orderRoutes);
     app.use(api + "/saleManager/statistics", statisticsRoutes);
+    app.use(api + "/saleManager/discount", discountRoutes);
 }

@@ -37,8 +37,8 @@ export default function ManagerDiscount() {
   const fetchDiscounts = async () => {
     try {
       const res = await getAllDiscounts()
-      // Handle different possible response structures
-      const discountsData = res.data?.discounts || res.data || []
+      // Chuẩn hóa dữ liệu trả về từ backend
+      const discountsData = Array.isArray(res.data.data) ? res.data.data : []
       setDiscounts(discountsData)
     } catch {
       toast.error("Không thể tải danh sách giảm giá")
@@ -51,7 +51,17 @@ export default function ManagerDiscount() {
   }
 
   const handleEdit = (discount) => {
-    setSelectedDiscount(discount)
+    // Map lại dữ liệu cho DiscountForm
+    setSelectedDiscount({
+      ...discount,
+      name: discount.description || "",
+      type: discount.discountType,
+      value: discount.discountValue,
+      maxDiscount: discount.maxDiscount || 0,
+      startDate: discount.startDate ? discount.startDate.slice(0, 10) : "",
+      endDate: discount.endDate ? discount.endDate.slice(0, 10) : "",
+      status: discount.active ? "active" : "inactive",
+    })
     setShowForm(true)
   }
 
@@ -73,12 +83,22 @@ export default function ManagerDiscount() {
   }
 
   const handleFormSubmit = async (data) => {
+    // Map lại dữ liệu gửi lên backend
+    const payload = {
+      description: data.name,
+      discountType: data.type,
+      discountValue: Number(data.value),
+      maxDiscount: Number(data.maxDiscount),
+      startDate: data.startDate,
+      endDate: data.endDate,
+      active: data.status === "active",
+    }
     try {
-      if (selectedDiscount) {
-        await updateDiscount(selectedDiscount._id, data)
+      if (selectedDiscount && selectedDiscount._id) {
+        await updateDiscount(selectedDiscount._id, payload)
         toast.success("Cập nhật chương trình giảm giá thành công")
       } else {
-        await createDiscount(data)
+        await createDiscount(payload)
         toast.success("Thêm chương trình giảm giá thành công")
       }
       fetchDiscounts()
@@ -108,6 +128,7 @@ export default function ManagerDiscount() {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead>Mã code</TableHead>
               <TableHead>Tên chương trình</TableHead>
               <TableHead>Loại giảm giá</TableHead>
               <TableHead>Giá trị</TableHead>
@@ -119,19 +140,20 @@ export default function ManagerDiscount() {
           </TableHeader>
           <TableBody>
             {discounts.map((discount) => (
-              <TableRow key={discount.id}>
-                <TableCell>{discount.name}</TableCell>
-                <TableCell>{discount.type === 'percentage' ? 'Phần trăm' : 'Số tiền cố định'}</TableCell>
+              <TableRow key={discount._id}>
+                <TableCell>{discount.code}</TableCell>
+                <TableCell>{discount.description}</TableCell>
+                <TableCell>{discount.discountType === 'percentage' ? 'Phần trăm' : 'Số tiền cố định'}</TableCell>
                 <TableCell>
-                  {discount.type === 'percentage' ? `${discount.value}%` : `${discount.value.toLocaleString()}đ`}
+                  {discount.discountType === 'percentage' ? `${discount.discountValue}%` : `${discount.discountValue?.toLocaleString()}đ`}
                 </TableCell>
-                <TableCell>{new Date(discount.startDate).toLocaleDateString('vi-VN')}</TableCell>
-                <TableCell>{new Date(discount.endDate).toLocaleDateString('vi-VN')}</TableCell>
+                <TableCell>{discount.startDate ? new Date(discount.startDate).toLocaleDateString('vi-VN') : ''}</TableCell>
+                <TableCell>{discount.endDate ? new Date(discount.endDate).toLocaleDateString('vi-VN') : ''}</TableCell>
                 <TableCell>
                   <span className={`px-2 py-1 rounded-full text-xs ${
-                    discount.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                    discount.active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
                   }`}>
-                    {discount.status === 'active' ? 'Đang áp dụng' : 'Đã kết thúc'}
+                    {discount.active ? 'Đang áp dụng' : 'Đã kết thúc'}
                   </span>
                 </TableCell>
                 <TableCell className="text-right">

@@ -29,3 +29,8 @@ export const getReceiverUser = async (receiverId) => {
     const response = await api.get(`/chat/receiver/${receiverId}`);
     return response.data;
 }
+
+export const searchAllUsersForChat = async (search) => {
+    const response = await api.get('/chat/all-users', { params: { search } });
+    return response.data.users ? response.data.users : response.data;
+}

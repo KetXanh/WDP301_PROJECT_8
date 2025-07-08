@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  ShoppingCart, 
-  CheckCircle, 
-  Clock, 
+import {
+  ShoppingCart,
+  CheckCircle,
+  Clock,
   AlertTriangle,
   Eye,
   Edit,
@@ -30,6 +30,8 @@ const Orders = () => {
     notes: ''
   });
   const [filter, setFilter] = useState('all');
+  const [loadingDetail, setLoadingDetail] = useState(false);
+  const [products, setProducts] = useState([]);
 
   useEffect(() => {
     fetchOrders();
@@ -40,20 +42,24 @@ const Orders = () => {
     try {
       const res = await getMyOrders();
       setOrders(res.data.orders || []);
-    } catch (error) {
+      setProducts(res.data.products || []);
+    } catch {
       toast.error('Không thể tải danh sách đơn hàng');
     }
     setLoading(false);
   };
 
   const handleViewOrder = async (order) => {
+    setLoadingDetail(true);
     try {
       const res = await getMyOrderById(order._id);
-      setSelectedOrder(res.data.order);
+      setSelectedOrder(res.data.orderDetail);
+      setProducts(res.data.products || []);
       setShowDetailModal(true);
-    } catch (error) {
+    } catch {
       toast.error('Không thể lấy chi tiết đơn hàng');
     }
+    setLoadingDetail(false);
   };
 
   const handleUpdateOrder = (order) => {
@@ -71,7 +77,7 @@ const Orders = () => {
       toast.success('Cập nhật trạng thái đơn hàng thành công');
       setShowUpdateModal(false);
       fetchOrders();
-    } catch (error) {
+    } catch {
       toast.error('Không thể cập nhật trạng thái đơn hàng');
     }
   };
@@ -83,6 +89,7 @@ const Orders = () => {
         return 'bg-green-100 text-green-800';
       case 'shipped':
       case 'in_progress':
+      case 'processing':
         return 'bg-blue-100 text-blue-800';
       case 'pending':
         return 'bg-yellow-100 text-yellow-800';
@@ -100,6 +107,7 @@ const Orders = () => {
         return 'Hoàn thành';
       case 'shipped':
       case 'in_progress':
+      case 'processing':
         return 'Đang giao';
       case 'pending':
         return 'Chờ xử lý';
@@ -112,7 +120,7 @@ const Orders = () => {
 
   const filteredOrders = orders.filter(order => {
     if (filter === 'all') return true;
-    return order.status === filter;
+    return order.orderId?.status === filter;
   });
 
   if (loading) {
@@ -186,17 +194,17 @@ const Orders = () => {
             <TableBody>
               {filteredOrders.map((order) => (
                 <TableRow key={order._id}>
-                  <TableCell className="font-medium">{order.COD || order._id}</TableCell>
+                  <TableCell className="font-medium">{order.orderId?.COD || order.orderId?._id}</TableCell>
                   <TableCell className="font-medium">
-                    {order.totalAmount?.toLocaleString('vi-VN')}đ
+                    {order.orderId?.totalAmount?.toLocaleString('vi-VN')}đ
                   </TableCell>
                   <TableCell>
-                    <Badge className={getStatusColor(order.status)}>
-                      <span className="ml-1">{getStatusText(order.status)}</span>
+                    <Badge className={getStatusColor(order.orderId?.status)}>
+                      <span className="ml-1">{getStatusText(order.orderId?.status)}</span>
                     </Badge>
                   </TableCell>
                   <TableCell className="text-gray-500">
-                    {order.createdAt ? new Date(order.createdAt).toLocaleDateString('vi-VN') : ''}
+                    {order.orderId?.createdAt ? new Date(order.orderId.createdAt).toLocaleDateString('vi-VN') : ''}
                   </TableCell>
                   <TableCell>
                     <div className="flex space-x-2">
@@ -224,67 +232,87 @@ const Orders = () => {
       </Card>
 
       {/* Order Detail Modal */}
-      <Dialog open={showDetailModal} onOpenChange={setShowDetailModal}>
+      <Dialog open={showDetailModal} onOpenChange={(open) => {
+        setShowDetailModal(open);
+        if (!open) {
+          setSelectedOrder(null);
+          setProducts([]);
+        }
+      }}>
         <DialogContent className="max-w-4xl">
           <DialogHeader>
             <DialogTitle>Chi tiết đơn hàng {selectedOrder?.COD || selectedOrder?._id}</DialogTitle>
           </DialogHeader>
-          {selectedOrder && (
+          {loadingDetail ? (
+            <div className="flex items-center justify-center h-32">
+              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
+            </div>
+          ) : selectedOrder ? (
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <h4 className="font-medium text-gray-900 mb-2">Thông tin giao hàng</h4>
                   <div className="space-y-1 text-sm">
-                    <p><span className="font-medium">Tên:</span> {selectedOrder.shippingAddress?.fullName}</p>
-                    <p><span className="font-medium">SĐT:</span> {selectedOrder.shippingAddress?.phone}</p>
-                    <p><span className="font-medium">Địa chỉ:</span> {selectedOrder.shippingAddress?.street}, {selectedOrder.shippingAddress?.ward}, {selectedOrder.shippingAddress?.district}, {selectedOrder.shippingAddress?.province}</p>
+                    <p><span className="font-medium">Tên:</span> {selectedOrder?.shippingAddress?.fullName}</p>
+                    <p><span className="font-medium">SĐT:</span> {selectedOrder?.shippingAddress?.phone}</p>
+                    <p><span className="font-medium">Địa chỉ:</span> {selectedOrder?.shippingAddress?.street}, {selectedOrder?.shippingAddress?.ward}, {selectedOrder?.shippingAddress?.district}, {selectedOrder?.shippingAddress?.province}</p>
                   </div>
                 </div>
                 <div>
                   <h4 className="font-medium text-gray-900 mb-2">Thông tin đơn hàng</h4>
                   <div className="space-y-1 text-sm">
                     <p><span className="font-medium">Trạng thái:</span> 
-                      <Badge className={`ml-2 ${getStatusColor(selectedOrder.status)}`}>
-                        {getStatusText(selectedOrder.status)}
+                      <Badge className={`ml-2 ${getStatusColor(selectedOrder?.status)}`}>
+                        {getStatusText(selectedOrder?.status)}
                       </Badge>
                     </p>
-                    <p><span className="font-medium">Ngày tạo:</span> {selectedOrder.createdAt ? new Date(selectedOrder.createdAt).toLocaleDateString('vi-VN') : ''}</p>
+                    <p><span className="font-medium">Ngày tạo:</span> {selectedOrder?.createdAt ? new Date(selectedOrder.createdAt).toLocaleDateString('vi-VN') : ''}</p>
                   </div>
                 </div>
               </div>
-
               <div>
                 <h4 className="font-medium text-gray-900 mb-2">Danh sách sản phẩm</h4>
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Sản phẩm</TableHead>
+                      <TableHead>Ảnh</TableHead>
+                      <TableHead>Tên sản phẩm</TableHead>
                       <TableHead>Số lượng</TableHead>
                       <TableHead>Đơn giá</TableHead>
                       <TableHead>Thành tiền</TableHead>
                     </TableRow>
                   </TableHeader>
-                  <TableBody>
-                    {selectedOrder.items?.map((item, index) => (
-                      <TableRow key={index}>
-                        <TableCell>{item.product?.name || item.product || ''}</TableCell>
-                        <TableCell>{item.quantity}</TableCell>
-                        <TableCell>{item.price?.toLocaleString('vi-VN')}đ</TableCell>
-                        <TableCell className="font-medium">{(item.quantity * item.price)?.toLocaleString('vi-VN')}đ</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
+                  {products.length > 0 ? (
+                    <TableBody>
+                      {products.map((item, index) => (
+                        <TableRow key={index}>
+                          <TableCell>
+                            {item.product?.image?.url && (
+                              <img src={item.product.image.url} alt={item.product.name} className="w-12 h-12 object-cover rounded" />
+                            )}
+                          </TableCell>
+                          <TableCell>{item.product?.name || ''}</TableCell>
+                          <TableCell>{item.quantity}</TableCell>
+                          <TableCell>{item.price?.toLocaleString('vi-VN')}đ</TableCell>
+                          <TableCell className="font-medium">{(item.quantity * item.price)?.toLocaleString('vi-VN')}đ</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  ) : (
+                    <div className="text-center text-gray-500 py-8">Không có sản phẩm nào</div>
+                  )}
                 </Table>
               </div>
-
               <div className="flex justify-between items-center pt-4 border-t">
                 <div>
                   <p className="text-lg font-medium text-gray-900">
-                    Tổng tiền: {selectedOrder.totalAmount?.toLocaleString('vi-VN')}đ
+                    Tổng tiền: {selectedOrder?.totalAmount?.toLocaleString('vi-VN')}đ
                   </p>
                 </div>
               </div>
             </div>
+          ) : (
+            <div className="text-center text-gray-500 py-8">Không thể lấy chi tiết đơn hàng</div>
           )}
         </DialogContent>
       </Dialog>
@@ -300,7 +328,7 @@ const Orders = () => {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Trạng thái
               </label>
-              <Select value={updateForm.status} onValueChange={(value) => setUpdateForm({...updateForm, status: value})}>
+              <Select value={updateForm.status} onValueChange={(value) => setUpdateForm({ ...updateForm, status: value })}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -318,7 +346,7 @@ const Orders = () => {
               </label>
               <Textarea
                 value={updateForm.notes}
-                onChange={(e) => setUpdateForm({...updateForm, notes: e.target.value})}
+                onChange={(e) => setUpdateForm({ ...updateForm, notes: e.target.value })}
                 placeholder="Thêm ghi chú về trạng thái đơn hàng..."
                 rows={3}
                 disabled

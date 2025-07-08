@@ -20,6 +20,10 @@ router.put("/profile", authMiddleware.authenticateToken, authorizeRoles(4), sale
 router.put("/change-password", authMiddleware.authenticateToken, authorizeRoles(4), saleStaffController.changePassword);
 
 // Dashboard
+router.get("/dashboard", authMiddleware.authenticateToken, authorizeRoles(4), dashboardController.getDashboard);
 router.get("/dashboard/stats", authMiddleware.authenticateToken, authorizeRoles(4), dashboardController.getDashboardStats);
+
+// Analytics
+router.get("/analytics", authMiddleware.authenticateToken, authorizeRoles(4), dashboardController.getAnalytics);
 
 module.exports = router;

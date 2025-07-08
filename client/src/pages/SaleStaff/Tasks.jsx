@@ -34,6 +34,9 @@ const Tasks = () => {
   });
   const [filter, setFilter] = useState('all');
 
+  // Ensure tasks is always an array
+  const tasksArray = Array.isArray(tasks) ? tasks : [];
+
   useEffect(() => {
     fetchTasks();
   }, []);
@@ -42,8 +45,11 @@ const Tasks = () => {
     setLoading(true);
     try {
       const res = await getTaskAssignment();
-      setTasks(res.data.taskAssignment || []);
+      console.log('API Response:', res);
+      console.log('Tasks data:', res.data);
+      setTasks(Array.isArray(res.data) ? res.data : []);
     } catch (error) {
+      console.error('Error fetching tasks:', error);
       toast.error('Không thể tải danh sách task');
     }
     setLoading(false);
@@ -51,12 +57,14 @@ const Tasks = () => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'completed':
+      case 'done':
         return 'bg-green-100 text-green-800';
-      case 'in_progress':
+      case 'in-progress':
         return 'bg-blue-100 text-blue-800';
       case 'pending':
         return 'bg-yellow-100 text-yellow-800';
+      case 'late':
+        return 'bg-red-100 text-red-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
@@ -77,11 +85,13 @@ const Tasks = () => {
 
   const getStatusIcon = (status) => {
     switch (status) {
-      case 'completed':
+      case 'done':
         return <CheckCircle className="h-5 w-5" />;
-      case 'in_progress':
+      case 'in-progress':
         return <Clock className="h-5 w-5" />;
       case 'pending':
+        return <AlertTriangle className="h-5 w-5" />;
+      case 'late':
         return <AlertTriangle className="h-5 w-5" />;
       default:
         return <Clock className="h-5 w-5" />;
@@ -90,12 +100,14 @@ const Tasks = () => {
 
   const getStatusText = (status) => {
     switch (status) {
-      case 'completed':
+      case 'done':
         return 'Hoàn thành';
-      case 'in_progress':
+      case 'in-progress':
         return 'Đang thực hiện';
       case 'pending':
         return 'Chờ bắt đầu';
+      case 'late':
+        return 'Quá hạn';
       default:
         return 'Không xác định';
     }
@@ -114,22 +126,22 @@ const Tasks = () => {
     }
   };
 
-  const filteredTasks = tasks.filter(task => {
+  const filteredTasks = tasksArray.filter(taskAssignment => {
     if (filter === 'all') return true;
-    return task.status === filter;
+    return taskAssignment.status === filter;
   });
 
-  const handleViewTask = (task) => {
-    setSelectedTask(task);
+  const handleViewTask = (taskAssignment) => {
+    setSelectedTask(taskAssignment);
     setShowDetailModal(true);
   };
 
-  const handleUpdateTask = (task) => {
-    setSelectedTask(task);
+  const handleUpdateTask = (taskAssignment) => {
+    setSelectedTask(taskAssignment);
     setUpdateForm({
-      status: task.status,
-      progress: task.progress?.toString() || '',
-      notes: task.notes || ''
+      status: taskAssignment.status,
+      progress: (taskAssignment.task?.progress || 0).toString(),
+      notes: taskAssignment.notes || ''
     });
     setShowUpdateModal(true);
   };
@@ -141,16 +153,17 @@ const Tasks = () => {
       setShowUpdateModal(false);
       fetchTasks();
     } catch (error) {
+      console.error('Error updating task:', error);
       toast.error('Không thể cập nhật task');
     }
   };
 
   const stats = {
-    total: tasks.length,
-    completed: tasks.filter(t => t.status === 'completed').length,
-    inProgress: tasks.filter(t => t.status === 'in_progress').length,
-    pending: tasks.filter(t => t.status === 'pending').length,
-    highPriority: tasks.filter(t => t.priority === 'high').length
+    total: tasksArray.length,
+    completed: tasksArray.filter(t => t.status === 'done').length,
+    inProgress: tasksArray.filter(t => t.status === 'in-progress').length,
+    pending: tasksArray.filter(t => t.status === 'pending').length,
+    highPriority: tasksArray.filter(t => t.task?.priority === 'high').length
   };
 
   const ProgressBar = ({ percentage, color = 'bg-blue-500' }) => (
@@ -277,8 +290,9 @@ const Tasks = () => {
               <SelectContent>
                 <SelectItem value="all">Tất cả task</SelectItem>
                 <SelectItem value="pending">Chờ bắt đầu</SelectItem>
-                <SelectItem value="in_progress">Đang thực hiện</SelectItem>
-                <SelectItem value="completed">Hoàn thành</SelectItem>
+                <SelectItem value="in-progress">Đang thực hiện</SelectItem>
+                <SelectItem value="done">Hoàn thành</SelectItem>
+                <SelectItem value="late">Quá hạn</SelectItem>
               </SelectContent>
             </Select>
             <span className="text-sm text-gray-500">
@@ -306,47 +320,47 @@ const Tasks = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredTasks.map((task) => (
-                <TableRow key={task.id}>
+              {filteredTasks.map((taskAssignment) => (
+                <TableRow key={taskAssignment._id}>
                   <TableCell>
                     <div>
-                      <div className="font-medium">{task.title}</div>
-                      <div className="text-sm text-gray-500">{task.description}</div>
+                      <div className="font-medium">{taskAssignment.task?.title}</div>
+                      <div className="text-sm text-gray-500">{taskAssignment.task?.description}</div>
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge className={getStatusColor(task.status)}>
-                      {getStatusIcon(task.status)}
-                      <span className="ml-1">{getStatusText(task.status)}</span>
+                    <Badge className={getStatusColor(taskAssignment.status)}>
+                      {getStatusIcon(taskAssignment.status)}
+                      <span className="ml-1">{getStatusText(taskAssignment.status)}</span>
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <Badge className={getPriorityColor(task.priority)}>
-                      {getPriorityText(task.priority)}
+                    <Badge className={getPriorityColor(taskAssignment.task?.priority || 'medium')}>
+                      {getPriorityText(taskAssignment.task?.priority || 'medium')}
                     </Badge>
                   </TableCell>
                   <TableCell>
                     <div className="w-24">
-                      <ProgressBar percentage={task.progress} />
-                      <span className="text-sm text-gray-500">{task.progress}%</span>
+                      <ProgressBar percentage={taskAssignment.task?.progress || 0} />
+                      <span className="text-sm text-gray-500">{taskAssignment.task?.progress || 0}%</span>
                     </div>
                   </TableCell>
                   <TableCell className="text-gray-500">
-                    {new Date(task.deadline).toLocaleDateString('vi-VN')}
+                    {new Date(taskAssignment.deadline).toLocaleDateString('vi-VN')}
                   </TableCell>
                   <TableCell>
                     <div className="flex space-x-2">
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleViewTask(task)}
+                        onClick={() => handleViewTask(taskAssignment)}
                       >
                         <Eye className="h-4 w-4" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleUpdateTask(task)}
+                        onClick={() => handleUpdateTask(taskAssignment)}
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
@@ -371,16 +385,16 @@ const Tasks = () => {
                 <div>
                   <h4 className="font-medium text-gray-900 mb-2">Thông tin task</h4>
                   <div className="space-y-2 text-sm">
-                    <p><span className="font-medium">Tiêu đề:</span> {selectedTask.title}</p>
-                    <p><span className="font-medium">Mô tả:</span> {selectedTask.description}</p>
+                    <p><span className="font-medium">Tiêu đề:</span> {selectedTask.task?.title}</p>
+                    <p><span className="font-medium">Mô tả:</span> {selectedTask.task?.description}</p>
                     <p><span className="font-medium">Trạng thái:</span> 
                       <Badge className={`ml-2 ${getStatusColor(selectedTask.status)}`}>
                         {getStatusText(selectedTask.status)}
                       </Badge>
                     </p>
                     <p><span className="font-medium">Ưu tiên:</span> 
-                      <Badge className={`ml-2 ${getPriorityColor(selectedTask.priority)}`}>
-                        {getPriorityText(selectedTask.priority)}
+                      <Badge className={`ml-2 ${getPriorityColor(selectedTask.task?.priority || 'medium')}`}>
+                        {getPriorityText(selectedTask.task?.priority || 'medium')}
                       </Badge>
                     </p>
                   </div>
@@ -388,9 +402,10 @@ const Tasks = () => {
                 <div>
                   <h4 className="font-medium text-gray-900 mb-2">Thông tin khác</h4>
                   <div className="space-y-2 text-sm">
-                    <p><span className="font-medium">Được giao bởi:</span> {selectedTask.assignedBy}</p>
-                    <p><span className="font-medium">Được giao cho:</span> {selectedTask.assignedTo}</p>
-                    <p><span className="font-medium">Ngày tạo:</span> {new Date(selectedTask.createdAt).toLocaleDateString('vi-VN')}</p>
+                    <p><span className="font-medium">Được giao bởi:</span> {selectedTask.assignedBy?.username}</p>
+                    <p><span className="font-medium">Được giao cho:</span> {selectedTask.assignedTo?.username}</p>
+                    <p><span className="font-medium">Ngày tạo task:</span> {new Date(selectedTask.task?.createdAt).toLocaleDateString('vi-VN')}</p>
+                    <p><span className="font-medium">Ngày được giao:</span> {new Date(selectedTask.assignedAt).toLocaleDateString('vi-VN')}</p>
                     <p><span className="font-medium">Hạn chót:</span> {new Date(selectedTask.deadline).toLocaleDateString('vi-VN')}</p>
                   </div>
                 </div>
@@ -401,9 +416,9 @@ const Tasks = () => {
                 <div className="space-y-2">
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-gray-600">Tiến độ hiện tại</span>
-                    <span className="text-sm font-medium">{selectedTask.progress}%</span>
+                    <span className="text-sm font-medium">{selectedTask.task?.progress || 0}%</span>
                   </div>
-                  <ProgressBar percentage={selectedTask.progress} />
+                  <ProgressBar percentage={selectedTask.task?.progress || 0} />
                 </div>
               </div>
 
@@ -436,8 +451,9 @@ const Tasks = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="pending">Chờ bắt đầu</SelectItem>
-                  <SelectItem value="in_progress">Đang thực hiện</SelectItem>
-                  <SelectItem value="completed">Hoàn thành</SelectItem>
+                  <SelectItem value="in-progress">Đang thực hiện</SelectItem>
+                  <SelectItem value="done">Hoàn thành</SelectItem>
+                  <SelectItem value="late">Quá hạn</SelectItem>
                 </SelectContent>
               </Select>
             </div>

@@ -10,7 +10,10 @@ module.exports.getTaskAssignment = async (req, res) => {
         if (!userID) {
             return res.json({ code: 404, message: "Không tìm thấy người dùng" });
         }
-        const taskAssignment = await TaskAssignment.find({ assignedTo: userID._id });
+        const taskAssignment = await TaskAssignment.find({ assignedTo: userID._id })
+            .populate("task")
+            .populate("assignedTo", "username email role")
+            .populate("assignedBy", "username email role");
         res.json({ code: 200, message: "Lấy task đã gán thành công", data: taskAssignment });
     } catch (err) {
         res.json({ code: 500, message: "Lỗi máy chủ", error: err.message });
@@ -21,7 +24,10 @@ module.exports.updateTaskAssignment = async (req, res) => {
     try {
         const { taskAssignmentId } = req.params;
         const { status } = req.body;
-        const taskAssignment = await TaskAssignment.findByIdAndUpdate(taskAssignmentId, { status }, { new: true });
+        const taskAssignment = await TaskAssignment.findByIdAndUpdate(taskAssignmentId, { status }, { new: true })
+            .populate("task")
+            .populate("assignedTo", "username email role")
+            .populate("assignedBy", "username email role");
         res.json({ code: 200, message: "Cập nhật task đã gán thành công", data: taskAssignment });
     } catch (err) {
         res.json({ code: 500, message: "Lỗi máy chủ", error: err.message });

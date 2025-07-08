@@ -43,4 +43,7 @@ router.delete("/assignment/:id", saleManagerAuth, orderController.deleteOrderAss
 // Lấy assignment theo sale staff
 router.get("/assignment/staff/:staffId", orderController.getAssignmentsByStaff);
 
+// Gán tất cả đơn hàng đang chờ cho nhân viên bán hàng (chia đều)
+router.post("/assign-all", saleManagerAuth, orderController.assignAllOrdersToStaff);
+
 module.exports = router; 

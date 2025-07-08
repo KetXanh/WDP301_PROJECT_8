@@ -3,11 +3,12 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, ShoppingCart, DollarSign, Clock, CheckCircle } from "lucide-react";
+import { Users, ShoppingCart, DollarSign, Clock, CheckCircle, Eye } from "lucide-react";
 import { toast } from "sonner";
 import OrderAssignmentForm from "./components/OrderAssignmentForm";
 import { OrderFilter } from "./components/OrderFilter";
-import { getAllOrders, assignOrder, getAllSaleStaff } from "@/services/SaleManager/ApiSaleManager";
+import { getAllOrders, assignOrder, getAllSaleStaff, getOrderById, assignAllOrdersToStaff } from "@/services/SaleManager/ApiSaleManager";
+import OrderDetailModal from "./components/OrderDetailModal";
 
 export default function ManagerOrder() {
   const [orders, setOrders] = useState([]);
@@ -15,6 +16,8 @@ export default function ManagerOrder() {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showAssignmentForm, setShowAssignmentForm] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all");
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [orderDetail, setOrderDetail] = useState(null);
 
   useEffect(() => {
     fetchOrders();
@@ -90,34 +93,13 @@ export default function ManagerOrder() {
   };
 
   const handleAssignToAll = async () => {
-    // Lấy danh sách order đang chờ xử lý
-    const pendingOrders = orders.filter(order => order.status === "pending");
-    if (pendingOrders.length === 0 || saleStaff.length === 0) {
-      toast.error("Không có order hoặc nhân viên để giao việc");
-      return;
+    try {
+      await assignAllOrdersToStaff();
+      toast.success("Đã giao tất cả order cho nhân viên thành công!");
+      fetchOrders();
+    } catch {
+      toast.error("Không thể giao tất cả order!");
     }
-    // Shuffle order ngẫu nhiên
-    const shuffledOrders = [...pendingOrders].sort(() => Math.random() - 0.5);
-    // Chia đều order cho staff
-    const assignments = Array(saleStaff.length).fill().map(() => []);
-    shuffledOrders.forEach((order, idx) => {
-      assignments[idx % saleStaff.length].push(order);
-    });
-    let successCount = 0;
-    let failCount = 0;
-    for (let i = 0; i < saleStaff.length; i++) {
-      for (let order of assignments[i]) {
-        try {
-          await assignOrder(order._id, saleStaff[i]._id);
-          successCount++;
-        } catch {
-          failCount++;
-        }
-      }
-    }
-    fetchOrders();
-    if (successCount > 0) toast.success(`Đã giao thành công ${successCount} order!`);
-    if (failCount > 0) toast.error(`${failCount} order không thể giao!`);
   };
 
   const handleAssignmentComplete = async (staffId) => {
@@ -130,6 +112,16 @@ export default function ManagerOrder() {
       toast.error("Không thể giao order");
     }
     setShowAssignmentForm(false);
+  };
+
+  const handleViewOrder = async (order) => {
+    try {
+      const res = await getOrderById(order._id);
+      setOrderDetail({ orderId: res.data.order });
+      setShowDetailModal(true);
+    } catch {
+      toast.error("Không thể lấy chi tiết đơn hàng");
+    }
   };
 
   // Filter orders based on status
@@ -277,16 +269,25 @@ export default function ManagerOrder() {
                   {order.createdAt ? new Date(order.createdAt).toLocaleDateString('vi-VN') : ""}
                 </TableCell>
                 <TableCell className="text-right">
-                  {order.status === "pending" && (
+                  <div className="flex gap-2 justify-end">
                     <Button
-                      variant="outline"
+                      variant="ghost"
                       size="sm"
-                      onClick={() => handleAssignOrder(order)}
+                      onClick={() => handleViewOrder(order)}
                     >
-                      <Users className="h-4 w-4 mr-2" />
-                      Giao việc
+                      <Eye className="h-4 w-4" />
                     </Button>
-                  )}
+                    {order.status === "pending" && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleAssignOrder(order)}
+                      >
+                        <Users className="h-4 w-4 mr-2" />
+                        Giao việc
+                      </Button>
+                    )}
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
@@ -307,6 +308,12 @@ export default function ManagerOrder() {
         order={selectedOrder}
         staffList={saleStaff}
         onAssign={handleAssignmentComplete}
+      />
+
+      <OrderDetailModal
+        open={showDetailModal}
+        onClose={() => setShowDetailModal(false)}
+        order={orderDetail}
       />
     </div>
   );

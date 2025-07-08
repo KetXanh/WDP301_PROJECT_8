@@ -697,3 +697,47 @@ exports.getOrderStatistics = async (req, res) => {
         });
     }
 }; 
+
+// Gán tất cả đơn hàng đang chờ cho nhân viên bán hàng (chia đều)
+exports.assignAllOrdersToStaff = async (req, res) => {
+    try {
+        // Lấy tất cả đơn hàng đang chờ xử lý (pending) chưa được gán
+        const pendingOrders = await Orders.find({ status: "pending" });
+        if (!pendingOrders.length) {
+            return res.status(400).json({ success: false, message: "Không có đơn hàng chờ xử lý" });
+        }
+        // Lấy tất cả nhân viên bán hàng
+        const saleStaff = await Users.find({ role: 4 });
+        if (!saleStaff.length) {
+            return res.status(400).json({ success: false, message: "Không có nhân viên bán hàng" });
+        }
+        // Lấy user thực hiện
+        const user = await Users.findOne({ email: req.user.email });
+        // Chia đều đơn hàng cho nhân viên
+        let assignedCount = 0;
+        let skippedCount = 0;
+        for (let i = 0; i < pendingOrders.length; i++) {
+            const order = pendingOrders[i];
+            // Kiểm tra đã được gán chưa
+            const existingAssignment = await OrderAssignment.findOne({ orderId: order._id });
+            if (existingAssignment) {
+                skippedCount++;
+                continue;
+            }
+            const staff = saleStaff[i % saleStaff.length];
+            // Tạo assignment mới
+            await OrderAssignment.create({
+                orderId: order._id,
+                assignedTo: staff._id,
+                assignedBy: user._id,
+            });
+            // Cập nhật trạng thái đơn hàng thành processing
+            await Orders.findByIdAndUpdate(order._id, { status: "processing" });
+            assignedCount++;
+        }
+        res.status(200).json({ success: true, message: `Đã gán ${assignedCount} đơn hàng. Bỏ qua ${skippedCount} đơn đã được gán trước đó.` });
+    } catch (error) {
+        console.error('Error in assignAllOrdersToStaff:', error);
+        res.status(500).json({ success: false, message: "Lỗi máy chủ", error: error.message });
+    }
+}; 

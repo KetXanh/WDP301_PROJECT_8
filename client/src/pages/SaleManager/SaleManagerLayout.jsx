@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { Outlet, NavLink, useNavigate } from "react-router-dom";
-import { 
-  Sidebar, 
-  SidebarContent, 
+import {
+  Sidebar,
+  SidebarContent,
   SidebarMenu,
   SidebarFooter,
   SidebarMenuItem,
   SidebarMenuButton,
-  useSidebar 
+  useSidebar
 } from "../../components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useDispatch, useSelector } from "react-redux";
@@ -35,14 +35,13 @@ function NavigationItem({ title, url, icon: Icon }) {
   return (
     <SidebarMenuItem>
       <SidebarMenuButton asChild>
-        <NavLink 
-          to={url} 
-          end 
+        <NavLink
+          to={url}
+          end
           className={({ isActive }) =>
-            `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium ${
-              isActive 
-                ? "bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg transform scale-105" 
-                : "text-gray-600 hover:bg-gradient-to-r hover:from-gray-50 hover:to-emerald-50 hover:text-emerald-600 hover:shadow-md"
+            `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium ${isActive
+              ? "bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg transform scale-105"
+              : "text-gray-600 hover:bg-gradient-to-r hover:from-gray-50 hover:to-emerald-50 hover:text-emerald-600 hover:shadow-md"
             }`
           }
         >
@@ -93,6 +92,11 @@ export default function SaleManagerLayout() {
       title: "Chat",
       url: "/sale-manager/chat",
       icon: MessageSquare
+    },
+    {
+      title: "Quản lý nhân viên",
+      url: "/sale-manager/users",
+      icon: Users
     },
     {
       title: "Hồ sơ cá nhân",
@@ -189,7 +193,7 @@ export default function SaleManagerLayout() {
               </h3>
               <SidebarMenu className="space-y-2">
                 {navigationItems.map((item) => (
-                  <NavigationItem 
+                  <NavigationItem
                     key={item.url}
                     title={item.title}
                     url={item.url}
@@ -207,8 +211,8 @@ export default function SaleManagerLayout() {
             {isLoggedIn && user ? (
               <>
                 <SidebarMenuItem>
-                  <SidebarMenuButton 
-                    onClick={handleLogout} 
+                  <SidebarMenuButton
+                    onClick={handleLogout}
                     className="w-full bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600 transition-all duration-200 rounded-xl px-4 py-3 shadow-md hover:shadow-lg"
                   >
                     <LogOut className="h-5 w-5" />
