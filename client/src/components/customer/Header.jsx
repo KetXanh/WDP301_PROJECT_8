@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, LogOut, User } from "lucide-react";
+import { ShoppingCart, LogOut, User, Tag } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import {
     DropdownMenu,
@@ -191,6 +191,13 @@ const Header = () => {
                     </p>
                   </div>
                   <DropdownMenuSeparator />
+                  <DropdownMenuItem className="cursor-pointer">
+                    <Link to="/discount" className="flex items-center w-full text-pink-600 font-semibold">
+                      <Tag className="h-4 w-4 mr-2 text-pink-500" />
+                      <span>Mã giảm giá</span>
+                      <span className="ml-1 bg-pink-100 text-pink-600 text-xs rounded px-2 py-0.5 font-bold animate-pulse">HOT</span>
+                    </Link>
+                  </DropdownMenuItem>
                   <DropdownMenuItem className="cursor-pointer">
                     <User className="mr-2 h-4 w-4" />
                     <span onClick={() => navigate("/profile")}>

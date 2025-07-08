@@ -4,6 +4,7 @@ const ProductsVariant = require("../../models/product/ProductVariant");
 const ProductBase = require("../../models/product/productBase");
 const Task = require("../../models/sale/Task");
 const TaskAssignment = require("../../models/sale/TaskAssignment");
+const Rating = require("../../models/product/rating");
 
 // Lấy thống kê tổng quan
 module.exports.getStatistics = async (req, res) => {
@@ -237,6 +238,130 @@ module.exports.getProductStatistics = async (req, res) => {
             }
         ]);
 
+        // Sản phẩm được đánh giá cao nhất
+        const topRatedProducts = await Rating.aggregate([
+            {
+                $group: {
+                    _id: "$productVariant",
+                    avgStars: { $avg: "$stars" },
+                    reviewCount: { $sum: 1 }
+                }
+            },
+            { $sort: { avgStars: -1, reviewCount: -1 } },
+            { $limit: 10 },
+            {
+                $lookup: {
+                    from: "productvariants",
+                    localField: "_id",
+                    foreignField: "_id",
+                    as: "variantInfo"
+                }
+            },
+            { $unwind: "$variantInfo" },
+            {
+                $lookup: {
+                    from: "baseproduct",
+                    localField: "variantInfo.baseProduct",
+                    foreignField: "_id",
+                    as: "productInfo"
+                }
+            },
+            { $unwind: "$productInfo" }
+        ]);
+
+        // Sản phẩm được đánh giá tệ nhất
+        const worstRatedProducts = await Rating.aggregate([
+            {
+                $group: {
+                    _id: "$productVariant",
+                    avgStars: { $avg: "$stars" },
+                    reviewCount: { $sum: 1 }
+                }
+            },
+            { $sort: { avgStars: 1, reviewCount: -1 } },
+            { $limit: 10 },
+            {
+                $lookup: {
+                    from: "productvariants",
+                    localField: "_id",
+                    foreignField: "_id",
+                    as: "variantInfo"
+                }
+            },
+            { $unwind: "$variantInfo" },
+            {
+                $lookup: {
+                    from: "baseproduct",
+                    localField: "variantInfo.baseProduct",
+                    foreignField: "_id",
+                    as: "productInfo"
+                }
+            },
+            { $unwind: "$productInfo" }
+        ]);
+
+        // Sản phẩm có nhiều đánh giá tốt nhất (5 sao)
+        const mostPositiveReviewedProducts = await Rating.aggregate([
+            { $match: { stars: 5 } },
+            {
+                $group: {
+                    _id: "$productVariant",
+                    positiveCount: { $sum: 1 }
+                }
+            },
+            { $sort: { positiveCount: -1 } },
+            { $limit: 10 },
+            {
+                $lookup: {
+                    from: "productvariants",
+                    localField: "_id",
+                    foreignField: "_id",
+                    as: "variantInfo"
+                }
+            },
+            { $unwind: "$variantInfo" },
+            {
+                $lookup: {
+                    from: "baseproduct",
+                    localField: "variantInfo.baseProduct",
+                    foreignField: "_id",
+                    as: "productInfo"
+                }
+            },
+            { $unwind: "$productInfo" }
+        ]);
+
+        // Sản phẩm có nhiều đánh giá tệ nhất (1 sao)
+        const mostNegativeReviewedProducts = await Rating.aggregate([
+            { $match: { stars: 1 } },
+            {
+                $group: {
+                    _id: "$productVariant",
+                    negativeCount: { $sum: 1 }
+                }
+            },
+            { $sort: { negativeCount: -1 } },
+            { $limit: 10 },
+            {
+                $lookup: {
+                    from: "productvariants",
+                    localField: "_id",
+                    foreignField: "_id",
+                    as: "variantInfo"
+                }
+            },
+            { $unwind: "$variantInfo" },
+            {
+                $lookup: {
+                    from: "baseproduct",
+                    localField: "variantInfo.baseProduct",
+                    foreignField: "_id",
+                    as: "productInfo"
+                }
+            },
+            { $unwind: "$productInfo" }
+        ]);
+
         res.json({
             code: 200,
             message: "Lấy thống kê sản phẩm thành công",
@@ -248,7 +373,11 @@ module.exports.getProductStatistics = async (req, res) => {
                 productByYear,
                 mostPurchasedProduct,
                 leastPurchasedProduct,
-                categoryStats
+                categoryStats,
+                topRatedProducts,
+                worstRatedProducts,
+                mostPositiveReviewedProducts,
+                mostNegativeReviewedProducts
             }
         });
     } catch (error) {

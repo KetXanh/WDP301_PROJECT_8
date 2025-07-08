@@ -19,6 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { getTaskAssignment, updateTaskAssignment } from '@/services/SaleStaff/ApiSaleStaff';
+import { getKPIs, updateKPI } from '@/services/SaleStaff/ApiSaleStaff';
 import { toast } from 'sonner';
 
 const Tasks = () => {
@@ -34,11 +35,18 @@ const Tasks = () => {
   });
   const [filter, setFilter] = useState('all');
 
+  // KPI state
+  const [kpis, setKpis] = useState([]);
+  const [selectedKPI, setSelectedKPI] = useState(null);
+  const [showUpdateKPIModal, setShowUpdateKPIModal] = useState(false);
+  const [updateKPIForm, setUpdateKPIForm] = useState({ currentValue: '', notes: '' });
+
   // Ensure tasks is always an array
   const tasksArray = Array.isArray(tasks) ? tasks : [];
 
   useEffect(() => {
     fetchTasks();
+    fetchKPIs();
   }, []);
 
   const fetchTasks = async () => {
@@ -53,6 +61,15 @@ const Tasks = () => {
       toast.error('Không thể tải danh sách task');
     }
     setLoading(false);
+  };
+
+  const fetchKPIs = async () => {
+    try {
+      const res = await getKPIs();
+      setKpis(res.data.kpis || []);
+    } catch {
+      toast.error('Không thể tải danh sách KPI');
+    }
   };
 
   const getStatusColor = (status) => {
@@ -158,6 +175,26 @@ const Tasks = () => {
     }
   };
 
+  const handleUpdateKPI = (kpi) => {
+    setSelectedKPI(kpi);
+    setUpdateKPIForm({
+      currentValue: kpi.currentValue?.toString() || '',
+      notes: kpi.notes || ''
+    });
+    setShowUpdateKPIModal(true);
+  };
+
+  const handleSubmitUpdateKPI = async () => {
+    try {
+      await updateKPI(selectedKPI._id, { currentValue: updateKPIForm.currentValue });
+      toast.success('Cập nhật KPI thành công');
+      setShowUpdateKPIModal(false);
+      fetchKPIs();
+    } catch {
+      toast.error('Không thể cập nhật KPI');
+    }
+  };
+
   const stats = {
     total: tasksArray.length,
     completed: tasksArray.filter(t => t.status === 'done').length,
@@ -187,6 +224,125 @@ const Tasks = () => {
 
   return (
     <div className="space-y-6">
+      {/* KPI Section */}
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">KPI & Task của tôi</h1>
+              <p className="text-gray-600">Theo dõi, quản lý và cập nhật tiến độ KPI & Task</p>
+            </div>
+            <div className="flex items-center space-x-2">
+              <CheckCircle className="h-6 w-6 text-green-600" />
+              <span className="text-sm font-medium text-gray-700">
+                {kpis.filter(kpi => kpi.status === 'achieved').length}/{kpis.length} KPI đạt được
+              </span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+      {/* KPI Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center">
+              <div className="p-3 bg-green-100 rounded-full">
+                <CheckCircle className="h-6 w-6 text-green-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-500">Đạt được</p>
+                <p className="text-2xl font-semibold text-gray-900">
+                  {kpis.filter(kpi => kpi.status === 'achieved').length}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center">
+              <div className="p-3 bg-blue-100 rounded-full">
+                <Clock className="h-6 w-6 text-blue-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-500">Đang thực hiện</p>
+                <p className="text-2xl font-semibold text-gray-900">
+                  {kpis.filter(kpi => kpi.status === 'in_progress').length}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center">
+              <div className="p-3 bg-yellow-100 rounded-full">
+                <AlertTriangle className="h-6 w-6 text-yellow-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-500">Chờ bắt đầu</p>
+                <p className="text-2xl font-semibold text-gray-900">
+                  {kpis.filter(kpi => kpi.status === 'pending').length}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+      {/* KPI List */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Danh sách KPI</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-6">
+            {kpis.map((kpi) => (
+              <Card key={kpi._id} className="border">
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-3 mb-2">
+                        <h4 className="text-lg font-medium text-gray-900">{kpi.title}</h4>
+                        <Badge className={getStatusColor(kpi.status)}>
+                          {getStatusIcon(kpi.status)}
+                          <span className="ml-1">
+                            {kpi.status === 'achieved' ? 'Đạt được' : 
+                             kpi.status === 'in_progress' ? 'Đang thực hiện' : 'Chờ bắt đầu'}
+                          </span>
+                        </Badge>
+                      </div>
+                      <div className="mb-2 text-gray-700">{kpi.description}</div>
+                      <div className="flex items-center gap-4 mb-2">
+                        <span className="text-sm text-gray-500">Mục tiêu: <b>{kpi.targetValue}</b></span>
+                        <span className="text-sm text-gray-500">Hiện tại: <b>{kpi.currentValue}</b></span>
+                      </div>
+                      <div className="mb-2">
+                        <div className="text-xs text-gray-500 mb-1">Tiến độ</div>
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div 
+                            className={`h-2 rounded-full transition-all duration-300 ${kpi.currentValue / kpi.targetValue >= 1 ? 'bg-green-500' : kpi.currentValue / kpi.targetValue >= 0.5 ? 'bg-blue-500' : 'bg-yellow-500'}`}
+                            style={{ width: `${Math.min((kpi.currentValue / kpi.targetValue) * 100, 100)}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-end gap-2">
+                      <Button size="sm" variant="outline" onClick={() => handleUpdateKPI(kpi)}>
+                        <Edit className="h-4 w-4 mr-1" />Cập nhật
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+            {kpis.length === 0 && (
+              <div className="text-center text-muted-foreground py-8">Không có KPI nào</div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+      {/* End KPI Section */}
+
       {/* Header */}
       <Card>
         <CardContent className="p-6">
@@ -490,6 +646,50 @@ const Tasks = () => {
               Hủy
             </Button>
             <Button onClick={handleSubmitUpdate}>
+              Cập nhật
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Update KPI Modal */}
+      <Dialog open={showUpdateKPIModal} onOpenChange={setShowUpdateKPIModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Cập nhật tiến độ KPI</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Giá trị hiện tại
+              </label>
+              <Input
+                type="number"
+                value={updateKPIForm.currentValue}
+                onChange={(e) => setUpdateKPIForm({...updateKPIForm, currentValue: e.target.value})}
+                placeholder="Nhập giá trị hiện tại"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Ghi chú
+              </label>
+              <Textarea
+                value={updateKPIForm.notes}
+                onChange={(e) => setUpdateKPIForm({...updateKPIForm, notes: e.target.value})}
+                placeholder="Thêm ghi chú về KPI..."
+                rows={3}
+              />
+            </div>
+          </div>
+          <div className="flex justify-end space-x-3 mt-6">
+            <Button
+              variant="outline"
+              onClick={() => setShowUpdateKPIModal(false)}
+            >
+              Hủy
+            </Button>
+            <Button onClick={handleSubmitUpdateKPI}>
               Cập nhật
             </Button>
           </div>

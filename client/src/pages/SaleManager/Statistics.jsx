@@ -9,6 +9,7 @@ import ProductStatistics from "./components/ProductForm"
 export default function Statistics() {
   const [stats, setStats] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [productStats, setProductStats] = useState(null)
 
   useEffect(() => {
     fetchStatistics()
@@ -19,11 +20,12 @@ export default function Statistics() {
       setLoading(true)
       const overviewRes = await overview()
       const productRes = await productStatistics()
-      console.log("productRes: " + productRes.data.data)
       setStats(overviewRes.data.data || {})
+      setProductStats(productRes.data.data || {})
     } catch {
       toast.error("Không thể tải dữ liệu thống kê")
       setStats({})
+      setProductStats({})
     } finally {
       setLoading(false)
     }
@@ -43,6 +45,40 @@ export default function Statistics() {
   const users = stats?.users || {}
   const tasks = stats?.tasks || {}
   const assignments = stats?.assignments || {}
+
+  // Thêm các bảng thống kê sản phẩm nổi bật
+  const renderProductTable = (title, products, metricLabel, metricKey) => (
+    <Card className="mb-6">
+      <CardHeader>
+        <CardTitle>{title}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="overflow-x-auto">
+          <table className="min-w-full border">
+            <thead>
+              <tr>
+                <th className="border px-2 py-1">STT</th>
+                <th className="border px-2 py-1">Tên sản phẩm</th>
+                <th className="border px-2 py-1">{metricLabel}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {products?.map((item, idx) => (
+                <tr key={item._id}>
+                  <td className="border px-2 py-1 text-center">{idx + 1}</td>
+                  <td className="border px-2 py-1">{item.productInfo?.name || item.variantInfo?.name || 'N/A'}</td>
+                  <td className="border px-2 py-1 text-center">{item[metricKey]?.toFixed ? item[metricKey].toFixed(2) : item[metricKey]}</td>
+                </tr>
+              ))}
+              {(!products || products.length === 0) && (
+                <tr><td colSpan={3} className="text-center py-2 text-muted-foreground">Không có dữ liệu</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </CardContent>
+    </Card>
+  );
 
   return (
     <div className="space-y-6">
@@ -258,6 +294,16 @@ export default function Statistics() {
           </CardContent>
         </Card>
       )}
+
+      {/* Thống kê sản phẩm nổi bật */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+        {renderProductTable("Sản phẩm bán chạy nhất", productStats?.mostPurchasedProduct, "Số lượng bán", "totalQuantity")}
+        {renderProductTable("Sản phẩm bán ít nhất", productStats?.leastPurchasedProduct, "Số lượng bán", "totalQuantity")}
+        {renderProductTable("Sản phẩm được đánh giá cao nhất", productStats?.topRatedProducts, "Điểm trung bình", "avgStars")}
+        {renderProductTable("Sản phẩm bị đánh giá tệ nhất", productStats?.worstRatedProducts, "Điểm trung bình", "avgStars")}
+        {renderProductTable("Sản phẩm có nhiều đánh giá tốt nhất", productStats?.mostPositiveReviewedProducts, "Lượt đánh giá 5★", "positiveCount")}
+        {renderProductTable("Sản phẩm có nhiều đánh giá tệ nhất", productStats?.mostNegativeReviewedProducts, "Lượt đánh giá 1★", "negativeCount")}
+      </div>
 
       {/* Danh sách đơn hàng có filter theo status */}
       <OrderStatistics />

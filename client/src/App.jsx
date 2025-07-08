@@ -21,6 +21,7 @@ import Profile from "./pages/Customers/Profile";
 import ProductDetail from "./pages/Customers/ProductDetail";
 import Cart from "./pages/Customers/Cart";
 import ProtectedRoute from "./components/protectedRouter/ProtectedRoute";
+import Discount from "./pages/Customers/Discount";
 
 // Admin Pages
 import Sidebar from "./components/admin/Sidebar";
@@ -47,7 +48,6 @@ import SaleManagerUser from "./pages/SaleManager/SaleManagerUser";
 //Sale Staff Pages
 import SaleStaffLayout from "./pages/SaleStaff/SaleStaffLayout";
 import SaleStaffDashboard from "./pages/SaleStaff/Dashboard";
-import SaleStaffKPI from "./pages/SaleStaff/KPI";
 import SaleStaffOrders from "./pages/SaleStaff/Orders";
 import SaleStaffTasks from "./pages/SaleStaff/Tasks";
 import SaleStaffChat from "./pages/SaleStaff/Chat";
@@ -121,6 +121,7 @@ function App() {
 
           {/* Công khai */}
           <Route path="products" element={<Products />} />
+          <Route path="discount" element={<Discount />} />
 
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
@@ -183,7 +184,6 @@ function App() {
         {/* Sale Staff Routes */}
         <Route path="/sale-staff" element={<SaleStaffLayout />}>
           <Route index element={<SaleStaffDashboard />} />
-          <Route path="kpi" element={<SaleStaffKPI />} />
           <Route path="orders" element={<SaleStaffOrders />} />
           <Route path="tasks" element={<SaleStaffTasks />} />
           <Route path="chat" element={<SaleStaffChat />} />
