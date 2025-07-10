@@ -20,13 +20,9 @@ export const createProduct = (formData) => {
 
 // Cập nhật sản phẩm theo ID
 export const updateProduct = (id, formData) => {
-  return instance.put(
-    `/productmanager/product/updateProduct/${id}`,
-    formData,
-    {
-      headers: { "Content-Type": "multipart/form-data" },
-    }
-  );
+  return instance.put(`/productmanager/product/updateProduct/${id}`, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
 };
 
 // Xóa sản phẩm theo ID
@@ -41,10 +37,7 @@ export const activeProduct = (id) => {
 
 // Cập nhật tồn kho cho sản phẩm
 export const updateStock = (id, stockData) => {
-  return instance.put(
-    `/productmanager/product/updateStock/${id}`,
-    stockData
-  );
+  return instance.put(`/productmanager/product/updateStock/${id}`, stockData);
 };
 
 // Lấy tổng số lượng tồn kho
@@ -57,7 +50,6 @@ export const getAllCategories = () => {
   return instance.get("/productmanager/category/getAllCategories");
 };
 
-
 export const deleteCategory = (id) => {
   return instance.delete(`/productmanager/category/deleteCategory/${id}`);
 };
@@ -66,9 +58,12 @@ export const createCategory = (categoryData) => {
   return instance.post("/productmanager/category/createCategory", categoryData);
 };
 
-export const updateCategory = (id ,categoryData) => {
-  return instance.put(`/productmanager/category/updateCategory/${id}`,categoryData);
-}
+export const updateCategory = (id, categoryData) => {
+  return instance.put(
+    `/productmanager/category/updateCategory/${id}`,
+    categoryData
+  );
+};
 
 // SubCategory
 export const getAllSubCategories = () => {
@@ -76,17 +71,22 @@ export const getAllSubCategories = () => {
 };
 
 export const createSubCategory = (subCategoryData) => {
-  return instance.post("/productmanager/category/createSubCategory", subCategoryData);
+  return instance.post(
+    "/productmanager/category/createSubCategory",
+    subCategoryData
+  );
 };
 
 export const updateSubCategory = (id, subCategoryData) => {
-  return instance.put(`/productmanager/category/updateSubCategory/${id}`, subCategoryData);
+  return instance.put(
+    `/productmanager/category/updateSubCategory/${id}`,
+    subCategoryData
+  );
 };
 
 export const deleteSubCategory = (id) => {
   return instance.delete(`/productmanager/category/deleteSubCategory/${id}`);
 };
-
 
 //API cho AdminDev
 //Lấy danh sách tất cả người dùng
@@ -96,24 +96,24 @@ export const getAllUser = () => {
 
 //Biểu đồ thống kê người dùng
 export const getUserStats = () => {
-  return instance.get("/admin-dev/stats");
-}
+  return instance.get("/admin/stats");
+};
 
 // Thay đổi vai trò của người dùng
 export const changeRole = (id, roleData) => {
   return instance.put(`/admin/changeRole/${id}`, roleData);
-}
+};
 
 // Cấm người dùng
 export const banUser = (id) => {
   return instance.patch(`/admin/ban/${id}`);
-}   
+};
 // Bỏ cấm người dùng
-export const unbanUser = (id) => {  
+export const unbanUser = (id) => {
   return instance.patch(`/admin/unban/${id}`);
-}
+};
 
-//Lấy danh sách tất cả sản phẩm 
+//Lấy danh sách tất cả sản phẩm
 export const getAllProduct = () => {
   return instance.get("/admin/getAllProduct");
 };

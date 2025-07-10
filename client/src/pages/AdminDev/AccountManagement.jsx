@@ -8,13 +8,14 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FileSpreadsheet } from "lucide-react";
-import { getAllUser, banUser, unbanUser } from "../../services/Admin/AdminAPI";
+import { getAllUser, banUser, unbanUser, deleteUser } from "../../services/Admin/AdminAPI";
 
 export default function AccountManagement() {
   const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [message, setMessage] = useState("");
   const rowsPerPage = 5;
 
   const roleNames = {
@@ -57,6 +58,7 @@ export default function AccountManagement() {
       } else {
         response = await unbanUser(accountId);
       }
+      setMessage(response.data.message || "Thao tác thành công");
       setAccounts((prev) =>
         prev.map((acc) =>
           acc._id === accountId
@@ -64,11 +66,23 @@ export default function AccountManagement() {
             : acc
         )
       );
+      setTimeout(() => setMessage(""), 2000);
     } catch (err) {
       alert("Không thể thay đổi trạng thái tài khoản.");
     }
   };
 
+  const handleDeleteAccount = async (accountId) => {
+  if (!window.confirm("Bạn có chắc muốn xóa tài khoản này?")) return;
+  try {
+    await deleteUser(accountId); // Hàm này cần import từ AdminAPI
+    setAccounts((prev) => prev.filter((acc) => acc._id !== accountId));
+    setMessage("Xóa tài khoản thành công");
+    setTimeout(() => setMessage(""), 2000);
+  } catch (err) {
+    alert("Không thể xóa tài khoản.");
+  }
+};
   // Pagination logic
   const totalPages = Math.ceil(accounts.length / rowsPerPage);
   const paginatedAccounts = accounts.slice(
@@ -92,6 +106,13 @@ export default function AccountManagement() {
           Xuất Excel
         </Button>
       </div>
+
+      {/* Hiển thị thông báo nếu có */}
+      {message && (
+        <div className="mb-2 px-4 py-2 bg-green-100 text-green-800 rounded">
+          {message}
+        </div>
+      )}
 
       <Card>
         <CardHeader>
@@ -172,7 +193,9 @@ export default function AccountManagement() {
                                 : "bg-red-100 text-red-800"
                             }`}
                           >
-                            {account.status}
+                            {account.status === "active"
+                              ? "Hoạt động"
+                              : "Bị khóa"}
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -188,6 +211,13 @@ export default function AccountManagement() {
                             }
                           >
                             {account.status === "active" ? "Ban" : "Unban"}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDeleteAccount(account._id)}
+                          >
+                            Delete
                           </Button>
                         </td>
                       </tr>

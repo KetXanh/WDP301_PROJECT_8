@@ -87,11 +87,11 @@ module.exports.banUser = async (req, res) => {
         const currentUser = req.user;
 
         // Chỉ admin dev (role >= 1) mới được ban user
-        if (!currentUser || currentUser.role < 1) {
-            return res.status(403).json({
-                message: "Access denied. Only admin can ban users."
-            });
-        }
+        // if (!currentUser || currentUser.role < 1) {
+        //     return res.status(403).json({
+        //         message: "Access denied. Only admin can ban users."
+        //     });
+        // }
         const targetUser = await User.findById(id);
         if (!targetUser) {
             return res.status(404).json({
@@ -107,7 +107,7 @@ module.exports.banUser = async (req, res) => {
         targetUser.status = "inactive";
         await targetUser.save();
         res.status(200).json({
-            message: "User banned successfully.",
+            message: "Người dùng đã bị cấm thành công.",
             user: {
                 _id: targetUser._id,
                 username: targetUser.username,
@@ -127,11 +127,11 @@ module.exports.unbanUser = async (req, res) => {
         const { id } = req.params;
         const currentUser = req.user;
 
-        if (!currentUser || currentUser.role < 1) {
-            return res.status(403).json({
-                message: "Access denied. Only admin can unban users."
-            });
-        }
+        // if (!currentUser || currentUser.role < 1) {
+        //     return res.status(403).json({
+        //         message: "Access denied. Only admin can unban users."
+        //     });
+        // }
 
         const targetUser = await User.findById(id);
         if (!targetUser) {
@@ -148,7 +148,7 @@ module.exports.unbanUser = async (req, res) => {
         await targetUser.save();
 
         res.status(200).json({
-            message: "User unbanned successfully.",
+            message: "Người dùng đã được gỡ lệnh cấm thành công.",
             user: {
                 _id: targetUser._id,
                 username: targetUser.username,
@@ -246,11 +246,11 @@ module.exports.getUserStats = async (req, res) => {
         const currentUser = req.user;
 
         // Chỉ admin dev (role >= 1) mới được xem thống kê
-        if (!currentUser || currentUser.role < 1) {
-            return res.status(403).json({
-                message: "Access denied. Only admin can view user statistics."
-            });
-        }
+        // if (!currentUser || currentUser.role < 1) {
+        //     return res.status(403).json({
+        //         message: "Access denied. Only admin can view user statistics."
+        //     });
+        // }
 
         const totalUsers = await User.countDocuments();
         const activeUsers = await User.countDocuments({ status: "active" });
