@@ -100,8 +100,8 @@ export const getUserStats = () => {
 };
 
 // Thay đổi vai trò của người dùng
-export const changeRole = (id, roleData) => {
-  return instance.put(`/admin/changeRole/${id}`, roleData);
+export const changeRole = (id, data) => {
+  return instance.put(`/api/admin/changeRole/${id}`, data, { withCredentials: true });
 };
 
 // Cấm người dùng

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import axios from "axios";
 import {
   Card,
   CardContent,
@@ -8,7 +9,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FileSpreadsheet } from "lucide-react";
-import { getAllUser, banUser, unbanUser, deleteUser } from "../../services/Admin/AdminAPI";
+import { getAllUser, banUser, unbanUser, changeRole } from "../../services/Admin/AdminAPI";
 
 export default function AccountManagement() {
   const [accounts, setAccounts] = useState([]);
@@ -16,6 +17,8 @@ export default function AccountManagement() {
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [message, setMessage] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [roleLoadingId, setRoleLoadingId] = useState(null);
   const rowsPerPage = 5;
 
   const roleNames = {
@@ -32,6 +35,7 @@ export default function AccountManagement() {
         const response = await getAllUser();
         if (Array.isArray(response.data)) {
           setAccounts(response.data);
+          console(response.data);
         } else if (Array.isArray(response.data.users)) {
           setAccounts(response.data.users);
         } else {
@@ -72,23 +76,50 @@ export default function AccountManagement() {
     }
   };
 
-  const handleDeleteAccount = async (accountId) => {
-  if (!window.confirm("Bạn có chắc muốn xóa tài khoản này?")) return;
+const handleChangeRole = async (accountId, newRole) => {
+  setRoleLoadingId(accountId);
   try {
-    await deleteUser(accountId); // Hàm này cần import từ AdminAPI
-    setAccounts((prev) => prev.filter((acc) => acc._id !== accountId));
-    setMessage("Xóa tài khoản thành công");
+    // Gọi hàm changeRole đã import
+    const response = await changeRole(accountId, { role: Number(newRole) });
+    setAccounts((prev) =>
+      prev.map((acc) =>
+        acc._id === accountId ? { ...acc, role: Number(newRole) } : acc
+      )
+    );
+    setMessage("Thay đổi vai trò người dùng thành công");
     setTimeout(() => setMessage(""), 2000);
   } catch (err) {
-    alert("Không thể xóa tài khoản.");
+    alert("Không thể thay đổi vai trò.");
   }
+  setRoleLoadingId(null);
 };
-  // Pagination logic
-  const totalPages = Math.ceil(accounts.length / rowsPerPage);
-  const paginatedAccounts = accounts.slice(
-    (currentPage - 1) * rowsPerPage,
-    currentPage * rowsPerPage
-  );
+
+  const filteredAccounts = accounts.filter((account) => {
+    const fullName =
+      account.address && account.address.length > 0
+        ? account.address[0].fullName
+        : "";
+    const phone =
+      account.address && account.address.length > 0
+        ? account.address[0].phone
+        : "";
+    return (
+      fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      account.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      phone.includes(searchTerm)
+    );
+  });
+
+  // const totalPages = Math.ceil(accounts.length / rowsPerPage);
+  const totalPages = Math.ceil(filteredAccounts.length / rowsPerPage);
+  // const paginatedAccounts = accounts.slice(
+  //   (currentPage - 1) * rowsPerPage,
+  //   currentPage * rowsPerPage
+  // );
+  const paginatedAccounts = filteredAccounts.slice(
+  (currentPage - 1) * rowsPerPage,
+  currentPage * rowsPerPage
+);
 
   return (
     <div className="space-y-6">
@@ -107,6 +138,19 @@ export default function AccountManagement() {
         </Button>
       </div>
 
+      {/* Thanh tìm kiếm */}
+      <div className="flex justify-end mb-2">
+        <input
+          type="text"
+          className="border rounded px-3 py-2 w-full"
+          placeholder="Tìm kiếm theo tên, email, số điện thoại..."
+          value={searchTerm}
+          onChange={(e) => {
+            setSearchTerm(e.target.value);
+            setCurrentPage(1); // Reset về trang 1 khi tìm kiếm
+          }}
+        />
+      </div>
       {/* Hiển thị thông báo nếu có */}
       {message && (
         <div className="mb-2 px-4 py-2 bg-green-100 text-green-800 rounded">
@@ -172,9 +216,22 @@ export default function AccountManagement() {
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           {account.email}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {roleNames[account.role] || "Unknown"}
-                        </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <select
+                        className="border rounded px-2 py-1"
+                        value={account.role}
+                        disabled={roleLoadingId === account._id}
+                        onChange={e =>
+                          handleChangeRole(account._id, e.target.value)
+                        }
+                      >
+                        {Object.entries(roleNames).map(([key, value]) => (
+                          <option key={key} value={key}>
+                            {value}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           {account.address && account.address.length > 0
                             ? account.address[0].phone
@@ -211,13 +268,6 @@ export default function AccountManagement() {
                             }
                           >
                             {account.status === "active" ? "Ban" : "Unban"}
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleDeleteAccount(account._id)}
-                          >
-                            Delete
                           </Button>
                         </td>
                       </tr>

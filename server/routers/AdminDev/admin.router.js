@@ -5,7 +5,7 @@ const adminController = require("../../controller/AdminDev/adminController");
 
 router.get('/getAllUser', adminController.getAllUser);
 router.get('/getAllProduct', adminController.getAllProduct);
-router.put('/changeRole/:id', adminController.changeRole);
+router.put('/changeRole/:id',Authozation.authorizeRoles, adminController.changeRole);
 router.patch("/ban/:id", adminController.banUser);
 router.patch("/unban/:id", adminController.unbanUser);
 router.delete("/deleteUser/:id", adminController.deleteUser);

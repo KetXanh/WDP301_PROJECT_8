@@ -6,10 +6,9 @@ import { getAllProduct } from "../../services/Admin/AdminAPI";
 
 
 export default function ProductManagement() {
-  const [products, setProducts] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -30,6 +29,7 @@ export default function ProductManagement() {
     };
     fetchProducts();
   }, []);
+
 
   const handleExportExcel = () => {
     console.log("Xuất báo cáo Excel người dùng")
@@ -73,7 +73,6 @@ export default function ProductManagement() {
                       <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Danh mục</th>
                       <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Người tạo</th>
                       <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Trạng thái</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider rounded-tr-md">Thao tác</th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
@@ -84,9 +83,6 @@ export default function ProductManagement() {
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{product.subCategory?.name || "N/A"}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{product.createdBy?.username || "N/A"}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{product.status || "N/A"}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          {/* Thêm các nút thao tác nếu cần */}
-                        </td>
                       </tr>
                     ))}
                   </tbody>

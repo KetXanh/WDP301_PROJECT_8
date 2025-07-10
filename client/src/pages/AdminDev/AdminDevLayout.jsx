@@ -33,6 +33,11 @@ export default function AdminDevLayout() {
       icon: ClipboardList
     },
         {
+      title: "Quản lý blog",
+      url: "/admin-dev/blogmanagement",
+      icon: ClipboardList
+    },
+        {
       title: "Cài đặt",
       url: "/admin-dev/settings",
       icon: Settings
