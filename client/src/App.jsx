@@ -51,7 +51,7 @@ import SaleStaffProfile from "./pages/SaleStaff/Profile";
 
 import ProductDetail from "./pages/Customers/ProductDetail";
 import ProtectedRoute from "./components/protectedRouter/ProtectedRoute";
-import { Car } from "lucide-react";
+import { Car, Contact } from "lucide-react";
 import Cart from "./pages/Customers/Cart";
 //Sale Manager Pages
 import AdminDevLayout from "./pages/AdminDev/AdminDevLayout";
@@ -61,6 +61,9 @@ import AccountManagement from "./pages/AdminDev/AccountManagement";
 import ProductManagement from "./pages/AdminDev/ProductManagement";
 
 import Checkout from "./pages/Customers/Checkout";
+import About from "./components/customer/About";
+import ContactUs from "./components/customer/Contact";
+
 
 // Customer Layout
 const CustomerLayout = () => (
@@ -124,6 +127,8 @@ function App() {
           <Route path="/products" element={<Products />} />
           <Route path="/products/:slug" element={<ProductDetail />} />
           <Route path="/cart" element={<Cart />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/contact" element={<ContactUs />} />
           {accessToken &&
             <>
               <Route path="/profile" element={<ProtectedRoute element={<Profile />} />} />

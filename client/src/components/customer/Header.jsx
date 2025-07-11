@@ -104,8 +104,8 @@ const Header = () => {
                     <nav className="hidden md:flex space-x-8">
                         <Link to="/" className="text-gray-700 hover:text-green-600 font-medium">Trang Chủ</Link>
                         <Link to="/products" className="text-gray-700 hover:text-green-600 font-medium">Sản Phẩm</Link>
-                        <a href="#" className="text-gray-700 hover:text-green-600 font-medium">Về Chúng Tôi</a>
-                        <a href="#" className="text-gray-700 hover:text-green-600 font-medium">Liên Hệ</a>
+                        <a href="/about" className="text-gray-700 hover:text-green-600 font-medium">Về Chúng Tôi</a>
+                        <a href="/contact" className="text-gray-700 hover:text-green-600 font-medium">Liên Hệ</a>
                     </nav>
 
                     <div className="flex items-center space-x-4">
