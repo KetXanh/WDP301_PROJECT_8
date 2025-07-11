@@ -175,6 +175,9 @@ export default function Order() {
               <th className="px-6 py-3 text-left font-semibold text-gray-700">
                 Thanh toán
               </th>
+              <th className="px-6 py-3 text-left font-semibold text-gray-700">
+                Trạng thái thanh toán
+              </th>
               <th className="px-6 py-3 text-center font-semibold text-gray-700">
                 Hành động
               </th>
@@ -220,6 +223,7 @@ export default function Order() {
                   </DropdownMenu.Root>
                 </td>
                 <td className="px-6 py-4 text-center">{order.payment}</td>
+                <td className="px-6 py-4 text-center">{order.paymentStatus}</td>
                 <td className="px-6 py-4 text-center">
                   <button
                     onClick={() => setSelectedOrderId(order._id)}
@@ -250,7 +254,6 @@ export default function Order() {
             className="flex items-center gap-1 px-3 py-1 border rounded disabled:opacity-50"
           >
             <ChevronLeft size={16} />
-            
           </button>
           <span className="text-sm font-medium">
             Trang {currentPage} / {totalPages}
@@ -260,7 +263,6 @@ export default function Order() {
             disabled={currentPage === totalPages}
             className="flex items-center gap-1 px-3 py-1 border rounded disabled:opacity-50"
           >
-            
             <ChevronRight size={16} />
           </button>
         </div>

@@ -41,7 +41,7 @@ module.exports.login = async (req, res) => {
             email: user.email,
             role: user.role
         }
-        const accessToken = jwt.sign(dataToken, process.env.TOKEN_SECRET, { expiresIn: "15m" });
+        const accessToken = jwt.sign(dataToken, process.env.TOKEN_SECRET, { expiresIn: "7d" });
         const refreshToken = jwt.sign(dataToken, process.env.REFRESH_TOKEN_SECRET, { expiresIn: "7d" });
         await Users.findByIdAndUpdate(
             user._id,

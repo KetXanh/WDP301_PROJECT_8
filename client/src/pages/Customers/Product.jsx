@@ -14,6 +14,7 @@ import ProductFilters from "../../components/customer/ProductFilters";
 import { useNavigate } from "react-router-dom";
 import { allProducts } from "../../services/Customer/ApiProduct";
 import { MAX_PRICE } from "../../constants";
+import { useTranslation } from "react-i18next";
 
 const Product = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -24,6 +25,7 @@ const Product = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const productsPerPage = 9;
   const navigate = useNavigate();
+  const { t } = useTranslation('translation');
 
   const products = async () => {
     try {
@@ -40,12 +42,13 @@ const Product = () => {
     products();
   }, []);
 
+
   const filteredProducts = allProduct.filter((product) => {
     const matchesSearch = product.name
       .toLowerCase()
       .includes(searchTerm.toLowerCase());
     const matchesCategory =
-      selectedCategory === "all" || product.category?.name === selectedCategory;
+      selectedCategory === "all" || product.subCategory?.name === selectedCategory;
     const matchesPrice =
       product.price >= priceRange[0] && product.price <= priceRange[1];
 
@@ -96,9 +99,9 @@ const Product = () => {
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-amber-50">
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-800 mb-4">Sản Phẩm</h1>
+          <h1 className="text-4xl font-bold text-gray-800 mb-4">{t('product.title')}</h1>
           <p className="text-gray-600">
-            Khám phá bộ sưu tập hạt dinh dưỡng cao cấp của chúng tôi
+            {t('product.description')}
           </p>
         </div>
 
@@ -107,7 +110,7 @@ const Product = () => {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
             <Input
-              placeholder="Tìm kiếm sản phẩm..."
+              placeholder={t('product.searchPlaceholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -115,12 +118,12 @@ const Product = () => {
           </div>
           <Select value={sortBy} onValueChange={setSortBy}>
             <SelectTrigger className="w-full md:w-48">
-              <SelectValue placeholder="Sắp xếp theo" />
+              <SelectValue placeholder={t('product.sortPlaceholder')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="name">Tên A-Z</SelectItem>
-              <SelectItem value="price-low">Giá thấp đến cao</SelectItem>
-              <SelectItem value="price-high">Giá cao đến thấp</SelectItem>
+              <SelectItem value="name">{t('product.sortName')}</SelectItem>
+              <SelectItem value="price-low">{t('product.sortPriceLow')}</SelectItem>
+              <SelectItem value="price-high">{t('product.sortPriceHigh')}</SelectItem>
               {/* <SelectItem value="rating">Đánh giá cao nhất</SelectItem> */}
             </SelectContent>
           </Select>
@@ -141,7 +144,7 @@ const Product = () => {
           <div className="lg:col-span-3">
             <div className="mb-4 flex justify-between items-center">
               <p className="text-gray-600">
-                Hiển thị {currentProducts.length} / {allProduct.length} sản phẩm
+                {t('product.showing', { count: currentProducts.length, total: allProduct.length })}
               </p>
             </div>
 
@@ -158,7 +161,7 @@ const Product = () => {
             {currentProducts.length === 0 && (
               <div className="text-center py-12">
                 <p className="text-gray-500 text-lg">
-                  Không tìm thấy sản phẩm nào phù hợp
+                  {t('product.noResults')}
                 </p>
                 <Button
                   variant="outline"
@@ -170,7 +173,7 @@ const Product = () => {
                   }}
                   className="mt-4"
                 >
-                  Xóa bộ lọc
+                  {t('product.clearFilters')}
                 </Button>
               </div>
             )}

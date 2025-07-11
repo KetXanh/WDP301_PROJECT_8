@@ -2,7 +2,8 @@ const { Orders } = require("../../models/product/order");
 const productBase = require("../../models/product/productBase");
 const ProductVariant = require("../../models/product/ProductVariant");
 const Users = require("../../models/user");
-const generateCOD = require('../../utils/generateCOD')
+const generateCOD = require('../../utils/generateCOD');
+const removePurchasedFromCart = require("../../utils/removeProductInCart");
 
 module.exports.userOrder = async (req, res) => {
     try {
@@ -57,12 +58,19 @@ module.exports.userOrder = async (req, res) => {
             totalAmount: total,
             totalQuantity,
             shippingAddress: req.body.shippingAddress,
-            COD: cod
+            COD: cod,
+            payment: req.body.paymentMethod,
+            note: req.body.note
         });
+        if (req.body.paymentMethod === "CASH") {
+            const purchasedIds = order.items.map(item => item.product);
+            await removePurchasedFromCart(order.user, purchasedIds);
+        }
         res.json({
             code: 201,
             message: "Order successfully",
-            order
+            orderId: order._id,
+            totalAmount: order.totalAmount
         })
     } catch (error) {
         return res.status(500).json({
@@ -72,3 +80,47 @@ module.exports.userOrder = async (req, res) => {
         });
     }
 }
+
+module.exports.getOrderById = async (req, res) => {
+    try {
+        const orderId = req.params.id;
+
+        if (!orderId) {
+            return res.json({
+                code: 400,
+                message: "Invalid order ID format"
+            });
+        }
+
+        const order = await Orders.findById(orderId)
+            .populate({
+                path: "user",
+                select: "email fullName"
+            })
+            .populate({
+                path: "items.product",
+                select: "name price"
+            })
+            .lean();
+
+        if (!order) {
+            return res.status(404).json({
+                code: 404,
+                message: "Order not found"
+            });
+        }
+
+        res.json({
+            code: 200,
+            message: "Order retrieved successfully",
+            data: order
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            code: 500,
+            message: "Server Error",
+            error: error.message
+        });
+    }
+};

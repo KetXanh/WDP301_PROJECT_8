@@ -7,22 +7,24 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Mail } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { customerForgotPass } from '../../services/Customer/ApiAuth';
+import { useTranslation } from 'react-i18next';
 const ForgotPassword = () => {
     const [email, setEmail] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
+    const { t } = useTranslation(['translation']);
     const handleSubmit = async (e) => {
         e.preventDefault();
 
         if (!email) {
-            toast.error("Vui lòng nhập email",
+            toast.error(t("toast.emailEmpty_forgot"),
             );
             return;
         }
         setIsLoading(true);
         try {
             if (!email) {
-                return toast.error("Vui Lòng Nhập Email")
+                return toast.error(t("toast.emailEmpty_forgot"))
             }
             const res = await customerForgotPass(email);
             console.log(res);
@@ -30,7 +32,7 @@ const ForgotPassword = () => {
             if (res.data && res.data.code === 200) {
                 navigate(`/otp`, { state: { email } });
             } else if (res.data && res.data.code === 401) {
-                toast.error("Email Không Tồn Tại")
+                toast.error(t("emailNotExist_forgot"))
             }
             setIsLoading(false)
 
@@ -47,7 +49,7 @@ const ForgotPassword = () => {
                         className="inline-flex items-center text-gray-600 hover:text-gray-800 transition-colors"
                     >
                         <ArrowLeft className="h-4 w-4 mr-2" />
-                        Quay lại đăng nhập
+                        {t("forgot-password.backToLogin")}
                     </Link>
                 </div>
 
@@ -57,10 +59,10 @@ const ForgotPassword = () => {
                             <Mail className="h-8 w-8 text-white" />
                         </div>
                         <CardTitle className="text-2xl font-bold text-gray-800">
-                            Quên Mật Khẩu
+                            {t("forgot-password.title")}
                         </CardTitle>
                         <CardDescription className="text-gray-600">
-                            Nhập email của bạn và chúng tôi sẽ gửi link đặt lại mật khẩu
+                            {t("forgot-password.subtitle")}
                         </CardDescription>
                     </CardHeader>
 
@@ -84,18 +86,18 @@ const ForgotPassword = () => {
                                 disabled={isLoading}
                                 className="w-full bg-gradient-to-r from-green-600 to-amber-600 hover:from-green-700 hover:to-amber-700"
                             >
-                                {isLoading ? "Đang gửi..." : "Gửi Link Đặt Lại"}
+                                {isLoading ? t("forgot-password.sending") : t("forgot-password.sendLink")}
                             </Button>
                         </form>
 
                         <div className="mt-6 text-center">
                             <p className="text-sm text-gray-600">
-                                Nhớ mật khẩu?{' '}
+                                {t("forgot-password.remember")}{' '}
                                 <Link
                                     to="/login"
                                     className="text-green-600 hover:text-green-700 font-medium underline"
                                 >
-                                    Đăng nhập ngay
+                                    {t("forgot-password.loginNow")}
                                 </Link>
                             </p>
                         </div>

@@ -34,6 +34,8 @@ import Task from "./pages/admin/Task";
 import Kpi from "./pages/admin/Kpi";
 import Checkout from "./pages/Customers/Checkout";
 import Rating from "./pages/admin/Rating";
+import PaymentResult from "./pages/Customers/PaymentResult";
+// import VnpayWaiting from "./pages/Customers/VnpayWaiting";
 
 // Customer Layout
 const CustomerLayout = () => (
@@ -62,9 +64,8 @@ const AdminLayout = ({
     <div className="flex">
       <Sidebar isSidebarOpen={isSidebarOpen} />
       <main
-        className={`flex-1 p-4 pt-20 transition-all duration-300 ${
-          isSidebarOpen ? "md:ml-40" : "md:ml-0"
-        }`}
+        className={`flex-1 p-4 pt-20 transition-all duration-300 ${isSidebarOpen ? "md:ml-40" : "md:ml-0"
+          }`}
       >
         <Outlet />
       </main>
@@ -113,6 +114,8 @@ function App() {
                 element={<ProtectedRoute element={<Profile />} />}
               />
               <Route path="/checkout" element={<Checkout />} />
+              <Route path="/vnpay_return" element={<PaymentResult />} />
+              {/* <Route path="/vnpay_return" element={<VnpayWaiting />} /> */}
             </>
           )}
 

@@ -11,7 +11,7 @@ import { useTranslation } from "react-i18next";
 
 const HomePage = () => {
   const navigate = useNavigate();
-  const { t } = useTranslation("user");
+  const { t } = useTranslation('translation');
   const [featuredProducts, setFeaturedProducts] = useState([]);
 
   const benefits = [

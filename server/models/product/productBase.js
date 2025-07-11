@@ -1,5 +1,5 @@
-const mongoose = require('mongoose');
-const slugify = require('slugify');
+const mongoose = require("mongoose");
+const slugify = require("slugify");
 
 const baseProductSchema = new mongoose.Schema(
   {
@@ -24,15 +24,19 @@ const baseProductSchema = new mongoose.Schema(
 );
 
 // Pre-save middleware to generate slug
-baseProductSchema.pre('save', function(next) {
-    if (this.isModified('name')) {
-        this.slug = slugify(this.name, {
-            lower: true,
-            strict: true,
-            locale: 'vi'
-        });
-    }
-    next();
+baseProductSchema.pre("save", function (next) {
+  if (this.isModified("name")) {
+    this.slug = slugify(this.name, {
+      lower: true,
+      strict: true,
+      locale: "vi",
+    });
+  }
+  next();
 });
 
-module.exports = mongoose.model('BaseProduct', baseProductSchema, 'baseproduct');
+module.exports = mongoose.model(
+  "BaseProduct",
+  baseProductSchema,
+  "baseproduct"
+);

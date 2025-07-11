@@ -21,16 +21,22 @@ import { userOrder } from '../../services/Customer/ApiProduct';
 import { useSelector } from 'react-redux';
 import { jwtDecode } from 'jwt-decode';
 import { ROLE } from '../../constants';
+import { useTranslation } from 'react-i18next';
+import { createPaymentUrl } from '../../services/Customer/vnPay';
+import i18n from '../../i18n/i18n';
 
 
 const CheckoutDemo = () => {
     const navigate = useNavigate();
     const [orderNote, setOrderNote] = useState('');
-    const [paymentMethod, setPaymentMethod] = useState('cod');
+    const [paymentMethod, setPaymentMethod] = useState('CASH');
     const [isProcessing, setIsProcessing] = useState(false);
     const location = useLocation();
     const { selectedItems, selectedAddress } = location.state || {};
     const accessToken = useSelector((state) => state.customer.accessToken);
+
+    const { t } = useTranslation(['translation']);
+
     useEffect(() => {
         if (!selectedItems || !selectedAddress) {
             navigate('/cart');
@@ -50,10 +56,10 @@ const CheckoutDemo = () => {
         try {
             const decoded = jwtDecode(accessToken);
             if (decoded && ROLE.includes(decoded.role)) {
-                return toast.error("Bạn Không có quyền đặt hàng")
+                return toast.error(t("toast.no_permission"))
             }
             if (!accessToken) {
-                toast.error("Vui lòng đăng nhập để thực hiện đặt hàng")
+                toast.error(t("toast.please_login"))
                 navigate('/login')
                 return;
             }
@@ -73,14 +79,29 @@ const CheckoutDemo = () => {
                 province,
                 phone: selectedAddress.phone,
             }
-            const res = await userOrder(items, dataShipping);
-            if (res.data && res.data.code === 201) {
-                toast.success("Đặt hàng thành công")
-                navigate('/')
-            } else if (res.data && res.data.code === 401) {
-                toast.error("Địa chỉ giao hàng không hợp lệ")
+            const res = await userOrder(items, dataShipping, paymentMethod, orderNote);
+            if (paymentMethod === "CASH") {
+                if (res.data && res.data.code === 201) {
+                    toast.success(t("toast.order_success"))
+                    navigate('/')
+                } else if (res.data && res.data.code === 401) {
+                    toast.error(t("toast.invalid_address"))
+                }
+                return setIsProcessing(false);
+            } else {
+                const order = res.data;
+
+                const payRes = await createPaymentUrl(
+                    {
+                        orderId: order.orderId,
+                        amount: order.totalAmount,
+                        language: i18n.language === 'vi' ? 'vn' : 'en',
+                    }
+                );
+                console.log(payRes.data);
+
+                window.location.href = payRes.data;
             }
-            setIsProcessing(false)
         } catch (error) {
             console.log(error);
 
@@ -98,8 +119,8 @@ const CheckoutDemo = () => {
                             <ArrowLeft className="h-5 w-5" />
                         </Button>
                         <div>
-                            <h1 className="text-3xl font-bold text-gray-800">Thanh Toán</h1>
-                            <p className="text-gray-600 mt-1">Hoàn tất đơn hàng của bạn</p>
+                            <h1 className="text-3xl font-bold text-gray-800">{t('checkout.title')}</h1>
+                            <p className="text-gray-600 mt-1">{t('checkout.subtitle')}</p>
                         </div>
                     </div>
                 </div>
@@ -115,7 +136,7 @@ const CheckoutDemo = () => {
                             <CardHeader className="pb-4">
                                 <CardTitle className="flex items-center space-x-2">
                                     <MapPin className="h-5 w-5 text-emerald-600" />
-                                    <span>Địa Chỉ Giao Hàng</span>
+                                    <span>{t('checkout.shipping_address')}</span>
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
@@ -129,7 +150,7 @@ const CheckoutDemo = () => {
                                                 {selectedAddress.fullName}-{selectedAddress.details}
                                             </p>
                                             <p className="text-gray-600">
-                                                Số điện thoại: {selectedAddress.phone}
+                                                {t('cart.phone')}: {selectedAddress.phone}
                                             </p>
                                         </div>
                                     </div>
@@ -142,7 +163,7 @@ const CheckoutDemo = () => {
                             <CardHeader className="pb-4">
                                 <CardTitle className="flex items-center space-x-2">
                                     <CreditCard className="h-5 w-5 text-emerald-600" />
-                                    <span>Phương Thức Thanh Toán</span>
+                                    <span>{t('checkout.payment_method')}</span>
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
@@ -152,17 +173,17 @@ const CheckoutDemo = () => {
                                 >
                                     {/* COD */}
                                     <div className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-gray-50">
-                                        <RadioGroupItem value="cod" id="cod" />
+                                        <RadioGroupItem value="CASH" id="cod" />
                                         <Label htmlFor="cod" className="flex-1 cursor-pointer">
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center space-x-3">
                                                     <Truck className="h-5 w-5 text-amber-600" />
                                                     <div>
                                                         <p className="font-medium">
-                                                            Thanh toán khi nhận hàng (COD)
+                                                            {t('checkout.cod_title')}
                                                         </p>
                                                         <p className="text-sm text-gray-500">
-                                                            Bằng tiền mặt
+                                                            {t('checkout.cod_description')}
                                                         </p>
                                                     </div>
                                                 </div>
@@ -170,7 +191,7 @@ const CheckoutDemo = () => {
                                                     variant="secondary"
                                                     className="bg-amber-100 text-amber-800"
                                                 >
-                                                    Phổ biến
+                                                    {t('checkout.popular')}
                                                 </Badge>
                                             </div>
                                         </Label>
@@ -178,17 +199,17 @@ const CheckoutDemo = () => {
 
                                     {/* BANK */}
                                     <div className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-gray-50 mt-4">
-                                        <RadioGroupItem value="bank" id="bank" />
+                                        <RadioGroupItem value="BANK" id="bank" />
                                         <Label htmlFor="bank" className="flex-1 cursor-pointer">
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center space-x-3">
                                                     <CreditCard className="h-5 w-5 text-blue-600" />
                                                     <div>
                                                         <p className="font-medium">
-                                                            Chuyển khoản ngân hàng
+                                                            {t('checkout.bank_title')}
                                                         </p>
                                                         <p className="text-sm text-gray-500">
-                                                            Trả trước đơn hàng
+                                                            {t('checkout.bank_description')}
                                                         </p>
                                                     </div>
                                                 </div>
@@ -196,45 +217,24 @@ const CheckoutDemo = () => {
                                                     variant="secondary"
                                                     className="bg-blue-100 text-blue-800"
                                                 >
-                                                    An toàn
+                                                    {t('checkout.safe')}
                                                 </Badge>
                                             </div>
                                         </Label>
                                     </div>
                                 </RadioGroup>
 
-                                {paymentMethod === 'bank' && (
-                                    <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                                        <h4 className="font-medium text-blue-800 mb-2">
-                                            Thông tin chuyển khoản:
-                                        </h4>
-                                        <div className="space-y-1 text-sm text-blue-700">
-                                            <p>
-                                                <strong>Ngân hàng:</strong> Vietcombank
-                                            </p>
-                                            <p>
-                                                <strong>Số TK:</strong> 1234567890
-                                            </p>
-                                            <p>
-                                                <strong>Chủ TK:</strong> CÔNG TY TNHH ABC
-                                            </p>
-                                            <p>
-                                                <strong>Nội dung:</strong> Thanh toán đơn hàng + SĐT
-                                            </p>
-                                        </div>
-                                    </div>
-                                )}
                             </CardContent>
                         </Card>
 
                         {/* Ghi chú */}
                         <Card className="shadow-sm">
                             <CardHeader className="pb-4">
-                                <CardTitle>Ghi Chú Đơn Hàng</CardTitle>
+                                <CardTitle>{t('checkout.noteOrder')}</CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <Textarea
-                                    placeholder="Nhập ghi chú (không bắt buộc)"
+                                    placeholder={t('checkout.noteCheckout')}
                                     value={orderNote}
                                     onChange={(e) => setOrderNote(e.target.value)}
                                     className="min-h-[100px]"
@@ -251,7 +251,7 @@ const CheckoutDemo = () => {
                                 <CardTitle className="flex items-center space-x-2">
                                     <Package className="h-5 w-5 text-emerald-600" />
                                     <span>
-                                        Đơn Hàng ({selectedItems.length} sản phẩm)
+                                        {t('checkout.noteOrder', { count: selectedItems.length })}
                                     </span>
                                 </CardTitle>
                             </CardHeader>
@@ -293,22 +293,22 @@ const CheckoutDemo = () => {
                         {/* Tổng tiền */}
                         <Card className="shadow-sm sticky top-4">
                             <CardHeader className="pb-4">
-                                <CardTitle>Tổng Cộng</CardTitle>
+                                <CardTitle>{t('checkout.order_total')}:</CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <div className="space-y-3">
                                     <div className="flex justify-between text-gray-600">
-                                        <span>Tạm tính:</span>
+                                        <span>{t('checkout.subtotal')}:</span>
                                         <span>{subtotal.toLocaleString('vi-VN')}đ</span>
                                     </div>
                                     <div className="flex justify-between text-gray-600">
-                                        <span>Phí vận chuyển:</span>
+                                        <span>{t('checkout.shipping_fee')}:</span>
                                         <span>{shippingFee.toLocaleString('vi-VN')}đ</span>
                                     </div>
                                     <Separator />
                                     <div className="flex justify-between items-center">
                                         <span className="text-lg font-semibold text-gray-800">
-                                            Tổng thanh toán:
+                                            {t('checkout.total_payment')}:
                                         </span>
                                         <span className="text-2xl font-bold text-emerald-600">
                                             {total.toLocaleString('vi-VN')}đ
@@ -325,10 +325,10 @@ const CheckoutDemo = () => {
                                     {isProcessing ? (
                                         <div className="flex items-center space-x-2">
                                             <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                                            <span>Đang xử lý...</span>
+                                            <span>{t('checkout.processing')}</span>
                                         </div>
                                     ) : (
-                                        'Đặt Hàng'
+                                        t('checkout.place_order')
                                     )}
                                 </Button>
                             </CardContent>

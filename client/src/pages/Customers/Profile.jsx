@@ -26,6 +26,7 @@ import { useEffect } from "react";
 import { useSelector } from "react-redux";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Camera } from "lucide-react";
+import { useTranslation } from "react-i18next";
 const Profile = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [avatarFile, setAvatarFile] = useState(null);
@@ -49,6 +50,8 @@ const Profile = () => {
   });
   const accessToken = useSelector((state) => state.customer.accessToken);
   const [isLoading, setIsLoading] = useState(false);
+  const { t } = useTranslation(['translation']);
+
   const handleAvatarUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -108,25 +111,25 @@ const Profile = () => {
 
       const res = await updateProfile(form);
 
-            if (res.data && res.data.code === 200) {
-                toast.success("Thông tin cá nhân của bạn đã được cập nhật.");
-                setAvatarFile(null);
-            } else if (res.data.code === 401) {
-                toast.error("Email Đã Tồn Tại");
-            } else if (res.data.code === 402) {
-                toast.error("Tên Tài Khoản Đã Tồn Tại");
-            } else {
-                toast.error("Cập nhật thất bại.");
-            }
-            setIsEditing(false);
+      if (res.data && res.data.code === 200) {
+        toast.success(t("toast.profileUpdateSuccess"));
+        setAvatarFile(null);
+      } else if (res.data.code === 401) {
+        toast.error(t("toast.emailExists_profile"));
+      } else if (res.data.code === 402) {
+        toast.error(t("toast.usernameExists_profile"));
+      } else {
+        toast.error(t("toast.profileUpdateFail"));
+      }
+      setIsEditing(false);
 
-        } catch (error) {
-            console.error(error);
-            toast.error("Có lỗi xảy ra khi cập nhật.");
-        } finally {
-            setIsLoading(false);
-        }
-    };
+    } catch (error) {
+      console.error(error);
+      toast.error(t("toast.profileUpdateError"));
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleCancel = () => {
     setIsEditing(false);
@@ -138,7 +141,7 @@ const Profile = () => {
       if (res.data && res.data.code === 200) {
         setFormData(res.data.user);
       } else {
-        toast.error("Lỗi Lấy Thông Tin Cá Nhân");
+        toast.error(t("toast.profileFetchError"));
       }
     } catch (error) {
       console.log(error);
@@ -161,7 +164,7 @@ const Profile = () => {
             className="inline-flex items-center text-gray-600 hover:text-gray-800 transition-colors"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Quay lại trang chủ
+            {t("profile.backHome")}
           </Link>
         </div>
 
@@ -188,7 +191,7 @@ const Profile = () => {
                     className="absolute bottom-0 right-1/2 transform translate-x-1/2 translate-y-2"
                   >
                     <Camera className="h-4 w-4 mr-2" />
-                    Đổi ảnh
+                    {t("profile.changePhoto")}
                   </Button>
                   <input
                     id="avatar-upload"
@@ -201,7 +204,7 @@ const Profile = () => {
               )}
             </div>
             <CardTitle className="text-2xl font-bold text-gray-800 flex items-center justify-center gap-2">
-              Thông Tin Cá Nhân
+              {t("profile.title")}
               {!isEditing && (
                 <Button
                   variant="ghost"
@@ -215,8 +218,8 @@ const Profile = () => {
             </CardTitle>
             <CardDescription className="text-gray-600">
               {isEditing
-                ? "Chỉnh sửa thông tin của bạn"
-                : "Xem và quản lý thông tin cá nhân"}
+                ? t("profile.editHint")
+                : t("profile.viewHint")}
             </CardDescription>
           </CardHeader>
 
@@ -229,7 +232,7 @@ const Profile = () => {
                     htmlFor="username"
                     className="text-sm font-medium text-gray-700"
                   >
-                    Tên tài khoản
+                    {t("profile.usernameLabel")}
                   </Label>
                   {isEditing ? (
                     <Input
@@ -238,11 +241,11 @@ const Profile = () => {
                       value={formData.username || ""}
                       onChange={handleInputChange}
                       className="mt-1"
-                      placeholder="Nhập tên tài khoản"
+                      placeholder={t("profile.usernamePlaceholder")}
                     />
                   ) : (
                     <p className="mt-1 text-gray-900">
-                      {formData.username || "Hãy Cập Nhật Thông Tin Cá Nhân"}
+                      {formData.username || t("profile.updatePrompt")}
                     </p>
                   )}
                 </div>
@@ -251,7 +254,7 @@ const Profile = () => {
                     htmlFor="fullName"
                     className="text-sm font-medium text-gray-700"
                   >
-                    Họ và tên
+                    {t("profile.fullNameLabel")}
                   </Label>
                   {isEditing ? (
                     <Input
@@ -264,7 +267,7 @@ const Profile = () => {
                   ) : (
                     <p className="mt-1 text-gray-900">
                       {formData?.address[0]?.fullName ||
-                        "Hãy Cập Nhật Thông Tin Cá Nhân"}
+                        t("profile.updatePrompt")}
                     </p>
                   )}
                 </div>
@@ -290,65 +293,65 @@ const Profile = () => {
                     />
                   ) : (
                     <p className="mt-1 text-gray-900">
-                      {formData.email || "Hãy Cập Nhật Thông Tin Cá Nhân"}
+                      {formData.email || t("profile.updatePrompt")}
                     </p>
                   )}
                 </div>
               </div>
 
-                            <div className="flex items-center space-x-3">
-                                <Phone className="h-5 w-5 text-gray-500" />
-                                <div className="flex-1">
-                                    <Label htmlFor="phone" className="text-sm font-medium text-gray-700">
-                                        Số điện thoại
-                                    </Label>
-                                    {isEditing ? (
-                                        <Input
-                                            id="phone"
-                                            name="phone"
-                                            value={formData?.address[0]?.phone || ''}
-                                            onChange={handleInputChange}
-                                            className="mt-1"
-                                        />
-                                    ) : (
-                                        <p className="mt-1 text-gray-900">{formData?.address[0]?.phone || "Hãy Cập Nhật Thông Tin Cá Nhân"}</p>
-                                    )}
-                                </div>
-                            </div>
+              <div className="flex items-center space-x-3">
+                <Phone className="h-5 w-5 text-gray-500" />
+                <div className="flex-1">
+                  <Label htmlFor="phone" className="text-sm font-medium text-gray-700">
+                    {t("profile.phoneLabel")}
+                  </Label>
+                  {isEditing ? (
+                    <Input
+                      id="phone"
+                      name="phone"
+                      value={formData?.address[0]?.phone || ''}
+                      onChange={handleInputChange}
+                      className="mt-1"
+                    />
+                  ) : (
+                    <p className="mt-1 text-gray-900">{formData?.address[0]?.phone || t("profile.updatePrompt")}</p>
+                  )}
+                </div>
+              </div>
 
               <div className="flex items-start space-x-3">
                 <MapPin className="h-5 w-5 text-gray-500 mt-1" />
                 <div className="flex-1">
                   <Label className="text-sm font-medium text-gray-700">
-                    Địa chỉ
+                    {t("profile.addressLabel")}
                   </Label>
                   {isEditing ? (
                     <div className="grid grid-cols-1 gap-3 mt-1">
                       <Input
                         id="street"
                         name="street"
-                        placeholder="Số nhà, tên đường"
+                        placeholder={t("profile.streetPlaceholder")}
                         value={formData?.address[0]?.street || ""}
                         onChange={handleInputChange}
                       />
                       <Input
                         id="ward"
                         name="ward"
-                        placeholder="Phường/Xã"
+                        placeholder={t("profile.wardPlaceholder")}
                         value={formData?.address[0]?.ward || ""}
                         onChange={handleInputChange}
                       />
                       <Input
                         id="district"
                         name="district"
-                        placeholder="Quận/Huyện"
+                        placeholder={t("profile.districtPlaceholder")}
                         value={formData?.address[0]?.district || ""}
                         onChange={handleInputChange}
                       />
                       <Input
                         id="province"
                         name="province"
-                        placeholder="Tỉnh/Thành phố"
+                        placeholder={t("profile.provincePlaceholder")}
                         value={formData?.address[0]?.province || ""}
                         onChange={handleInputChange}
                       />
@@ -356,7 +359,7 @@ const Profile = () => {
                   ) : (
                     <p className="mt-1 text-gray-900">
                       {formData.address.length === 0
-                        ? "Hãy Cập Nhật Thông Tin Cá Nhân"
+                        ? t("profile.updatePrompt")
                         : `${formData.address[0].street} ${formData.address[0].ward} ${formData.address[0].district} ${formData.address[0].province}`}
                     </p>
                   )}
@@ -371,7 +374,7 @@ const Profile = () => {
                   disabled={isLoading}
                   className="flex-1 bg-gradient-to-r from-green-600 to-amber-600 hover:from-green-700 hover:to-amber-700"
                 >
-                  {isLoading ? "Đang lưu..." : "Lưu thay đổi"}
+                  {isLoading ? t("profile.saving") : t("profile.save")}
                 </Button>
                 <Button
                   variant="outline"
@@ -379,7 +382,7 @@ const Profile = () => {
                   disabled={isLoading}
                   className="flex-1"
                 >
-                  Hủy
+                  {t("profile.cancel")}
                 </Button>
               </div>
             )}
