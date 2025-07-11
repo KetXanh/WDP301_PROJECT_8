@@ -18,12 +18,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { userOrder } from '../../services/Customer/ApiProduct';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { jwtDecode } from 'jwt-decode';
 import { ROLE } from '../../constants';
 import { useTranslation } from 'react-i18next';
 import { createPaymentUrl } from '../../services/Customer/vnPay';
 import i18n from '../../i18n/i18n';
+import { removePurchasedItems } from '../../store/customer/cartSlice';
 
 
 const CheckoutDemo = () => {
@@ -34,6 +35,7 @@ const CheckoutDemo = () => {
     const location = useLocation();
     const { selectedItems, selectedAddress } = location.state || {};
     const accessToken = useSelector((state) => state.customer.accessToken);
+    const dispatch = useDispatch();
 
     const { t } = useTranslation(['translation']);
 
@@ -48,13 +50,13 @@ const CheckoutDemo = () => {
         (sum, i) => sum + i.price * i.quantity,
         0
     );
-    const shippingFee = 30_000;
-    const total = subtotal + shippingFee;
+    const total = subtotal;
 
 
     const handlePlaceOrder = async () => {
         try {
             const decoded = jwtDecode(accessToken);
+            const userId = decoded.username;
             if (decoded && ROLE.includes(decoded.role)) {
                 return toast.error(t("toast.no_permission"))
             }
@@ -83,6 +85,10 @@ const CheckoutDemo = () => {
             if (paymentMethod === "CASH") {
                 if (res.data && res.data.code === 201) {
                     toast.success(t("toast.order_success"))
+                    dispatch(removePurchasedItems({
+                        userId,
+                        purchasedIds: selectedItems.map(item => item.productId),
+                    }))
                     navigate('/')
                 } else if (res.data && res.data.code === 401) {
                     toast.error(t("toast.invalid_address"))
@@ -301,10 +307,7 @@ const CheckoutDemo = () => {
                                         <span>{t('checkout.subtotal')}:</span>
                                         <span>{subtotal.toLocaleString('vi-VN')}đ</span>
                                     </div>
-                                    <div className="flex justify-between text-gray-600">
-                                        <span>{t('checkout.shipping_fee')}:</span>
-                                        <span>{shippingFee.toLocaleString('vi-VN')}đ</span>
-                                    </div>
+
                                     <Separator />
                                     <div className="flex justify-between items-center">
                                         <span className="text-lg font-semibold text-gray-800">

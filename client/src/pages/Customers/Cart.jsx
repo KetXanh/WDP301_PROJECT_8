@@ -381,7 +381,7 @@ const Cart = () => {
                                                 checked={item.selected}
                                                 onChange={() => toggleItemSelection(item.productId)}
                                                 className="h-5 w-5 text-emerald-600 rounded border-gray-300 focus:ring-emerald-500 mt-1"
-                                                disabled={item.stock < 0} // Vô hiệu hóa checkbox nếu stock < 0
+                                                disabled={item.stock < 0}
                                             />
                                             <Link
                                                 to={`/products/${item.slug}`}
@@ -392,7 +392,9 @@ const Cart = () => {
                                                     alt={item.name}
                                                     className="w-full h-full object-cover"
                                                 />
+
                                             </Link>
+
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex justify-between items-start">
                                                     <div className="flex-1">
@@ -404,7 +406,7 @@ const Cart = () => {
                                                         <p className="text-emerald-600 font-medium mb-3">
                                                             {item.price.toLocaleString('vi-VN')}đ
                                                         </p>
-                                                        <p className="text-gray-600 mb-3">
+                                                        <p className="text-red-600 mb-3">
                                                             {item.stock < 0 &&
                                                                 t('toast.productPaused')
                                                             }

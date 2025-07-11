@@ -124,3 +124,37 @@ module.exports.getOrderById = async (req, res) => {
         });
     }
 };
+
+
+module.exports.getOrderByUser = async (req, res) => {
+    try {
+        const username = req.user.username;
+        const user = await Users.findOne({
+            username: username
+        })
+        if (!user) {
+            return res.json({
+                code: 404,
+                message: "Not found user"
+            })
+        }
+        const order = await Orders.find({ user: user._id })
+            .select("items totalAmount status payment note createdAt")
+            .sort({ createdAt: -1 })
+            .populate({ path: "user", select: "email fullName" })
+            .populate({ path: "items.product", select: "name price" })
+            .lean();
+
+        res.json({
+            code: 200,
+            message: "Order user successfully",
+            data: order
+        });
+    } catch (error) {
+        return res.status(500).json({
+            code: 500,
+            message: "Server Error",
+            error: error.message
+        });
+    }
+}

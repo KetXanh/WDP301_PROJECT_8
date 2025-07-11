@@ -34,6 +34,7 @@ import Task from "./pages/admin/Task";
 import Kpi from "./pages/admin/Kpi";
 import Checkout from "./pages/Customers/Checkout";
 import PaymentResult from "./pages/Customers/PaymentResult";
+import OrderHistory from "./pages/Customers/OrderHistory";
 // import VnpayWaiting from "./pages/Customers/VnpayWaiting";
 
 // Customer Layout
@@ -111,7 +112,8 @@ function App() {
               <Route path="/profile" element={<ProtectedRoute element={<Profile />} />} />
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/vnpay_return" element={<PaymentResult />} />
-              {/* <Route path="/vnpay_return" element={<VnpayWaiting />} /> */}
+              <Route path="/order-history" element={<OrderHistory />} />
+
             </>
           }
 

@@ -40,6 +40,14 @@ const cartSlice = createSlice({
       const { userId = GUEST_ID } = payload;
       if (state.items[userId]) state.items[userId] = [];
     },
+    removePurchasedItems(state, { payload }) {
+      const { userId = GUEST_ID, purchasedIds } = payload;
+      if (!state.items[userId]) return;
+
+      state.items[userId] = state.items[userId].filter(
+        (item) => !purchasedIds.includes(item.productId || item.product)
+      );
+    },
 
     increaseQuantity(state, { payload }) {
       const { userId = GUEST_ID, productId } = payload;
@@ -91,5 +99,6 @@ export const {
   decreaseQuantity,
   mergeGuestCart,
   setCartFromServer,
+  removePurchasedItems
 } = cartSlice.actions;
 export default cartSlice.reducer;
