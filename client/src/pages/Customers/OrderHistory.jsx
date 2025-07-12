@@ -12,6 +12,7 @@ import { getOrderByUser } from '../../services/Customer/ApiProduct';
 import OrderDetailModal from '../../components/customer/OrderDetailModal';
 import OrderFeedbackForm from '../../components/customer/OrderFeedbackForm';
 import OrderFeedbackModal from '../../components/customer/OrderFeedbackModal';
+import { useTranslation } from 'react-i18next';
 
 const OrderHistory = () => {
     const [orders, setOrders] = useState([]);
@@ -26,12 +27,14 @@ const OrderHistory = () => {
     const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
     const [feedbackOrderId, setFeedbackOrderId] = useState(null);
     const ordersPerPage = 10;
-
+    const { t } = useTranslation(['translation']);
     const orderByUser = async () => {
         try {
             const res = await getOrderByUser();
-            console.log(res.data);
-
+            if (res.status === 200) {
+                setOrders(res.data.data)
+            }
+            setIsLoading(false);
         } catch (error) {
             console.log(error);
 
@@ -43,77 +46,13 @@ const OrderHistory = () => {
         setIsModalOpen(true);
     };
 
-
-
-    // Mock data - replace with actual API call
     useEffect(() => {
-
         orderByUser()
-
-        const mockOrders = [
-            {
-                id: '1',
-                orderNumber: 'ORD-2024-001',
-                date: '2024-01-15',
-                status: 'delivered',
-                total: 590000,
-                items: [
-                    { id: '1', name: 'Áo thun nam premium', quantity: 2, price: 250000 },
-                    { id: '2', name: 'Quần jean slim fit', quantity: 1, price: 340000 }
-                ],
-                shippingAddress: '123 Nguyễn Văn Cừ, Quận 5, TP.HCM',
-                paymentMethod: 'Thẻ tín dụng'
-            },
-            {
-                id: '2',
-                orderNumber: 'ORD-2024-002',
-                date: '2024-01-18',
-                status: 'shipped',
-                total: 450000,
-                items: [
-                    { id: '3', name: 'Giày sneaker trắng', quantity: 1, price: 450000 }
-                ],
-                shippingAddress: '456 Lê Văn Sỹ, Quận 3, TP.HCM',
-                paymentMethod: 'COD'
-            },
-            {
-                id: '3',
-                orderNumber: 'ORD-2024-003',
-                date: '2024-01-20',
-                status: 'processing',
-                total: 280000,
-                items: [
-                    { id: '4', name: 'Áo khoác hoodie', quantity: 1, price: 280000 }
-                ],
-                shippingAddress: '789 Cách Mạng Tháng 8, Quận 10, TP.HCM',
-                paymentMethod: 'Chuyển khoản'
-            },
-            {
-                id: '4',
-                orderNumber: 'ORD-2024-004',
-                date: '2024-01-22',
-                status: 'cancelled',
-                total: 150000,
-                items: [
-                    { id: '5', name: 'Mũ lưỡi trai', quantity: 1, price: 150000 }
-                ],
-                shippingAddress: '321 Võ Văn Tần, Quận 1, TP.HCM',
-                paymentMethod: 'Thẻ tín dụng'
-            }
-        ];
-
-        setTimeout(() => {
-            setOrders(mockOrders);
-            setFilteredOrders(mockOrders);
-            setIsLoading(false);
-        }, 1000);
     }, []);
 
-    // Filter orders based on search term, status, and date
     useEffect(() => {
         let filtered = orders;
 
-        // Search filter
         if (searchTerm) {
             filtered = filtered.filter(order =>
                 order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -121,12 +60,10 @@ const OrderHistory = () => {
             );
         }
 
-        // Status filter
         if (statusFilter !== 'all') {
             filtered = filtered.filter(order => order.status === statusFilter);
         }
 
-        // Date filter
         if (dateFilter !== 'all') {
             const now = new Date();
             const filterDate = new Date();
@@ -153,21 +90,20 @@ const OrderHistory = () => {
     const getStatusConfig = (status) => {
         switch (status) {
             case 'delivered':
-                return { label: 'Đã giao', color: 'bg-green-100 text-green-800', icon: CheckCircle };
+                return { label: t('order_history.status_delivered'), color: 'bg-green-100 text-green-800', icon: CheckCircle };
             case 'shipped':
-                return { label: 'Đang giao', color: 'bg-blue-100 text-blue-800', icon: Package };
+                return { label: t('order_history.status_shipped'), color: 'bg-blue-100 text-blue-800', icon: Package };
             case 'processing':
-                return { label: 'Đang xử lý', color: 'bg-yellow-100 text-yellow-800', icon: Clock };
+                return { label: t('order_history.status_processing'), color: 'bg-yellow-100 text-yellow-800', icon: Clock };
             case 'pending':
-                return { label: 'Chờ xác nhận', color: 'bg-orange-100 text-orange-800', icon: AlertCircle };
+                return { label: t('order_history.status_pending'), color: 'bg-orange-100 text-orange-800', icon: AlertCircle };
             case 'cancelled':
-                return { label: 'Đã hủy', color: 'bg-red-100 text-red-800', icon: XCircle };
+                return { label: t('order_history.status_cancelled'), color: 'bg-red-100 text-red-800', icon: XCircle };
             default:
                 return { label: status, color: 'bg-gray-100 text-gray-800', icon: AlertCircle };
         }
     };
 
-    // Pagination
     const totalPages = Math.ceil(filteredOrders.length / ordersPerPage);
     const startIndex = (currentPage - 1) * ordersPerPage;
     const endIndex = startIndex + ordersPerPage;
@@ -179,7 +115,7 @@ const OrderHistory = () => {
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
                 <div className="text-center">
                     <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-600" />
-                    <p className="text-gray-600">Đang tải lịch sử đơn hàng...</p>
+                    <p className="text-gray-600">{t('order_history.loading')}</p>
                 </div>
             </div>
         );
@@ -190,8 +126,8 @@ const OrderHistory = () => {
             <div className="max-w-6xl mx-auto">
                 {/* Header */}
                 <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-gray-900 mb-2">Lịch sử đơn hàng</h1>
-                    <p className="text-gray-600">Quản lý và theo dõi tất cả đơn hàng của bạn</p>
+                    <h1 className="text-3xl font-bold text-gray-900 mb-2">{t('order_history.title')}</h1>
+                    <p className="text-gray-600">{t('order_history.subtitle')}</p>
                 </div>
 
                 {/* Filters */}
@@ -202,7 +138,7 @@ const OrderHistory = () => {
                             <div className="relative">
                                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                                 <Input
-                                    placeholder="Tìm kiếm đơn hàng..."
+                                    placeholder={t('order_history.search_placeholder')}
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                     className="pl-10"
@@ -212,15 +148,15 @@ const OrderHistory = () => {
                             {/* Status Filter */}
                             <Select value={statusFilter} onValueChange={setStatusFilter}>
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Trạng thái" />
+                                    <SelectValue placeholder={t('order_history.status_filter_placeholder')} />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="all">Tất cả trạng thái</SelectItem>
-                                    <SelectItem value="pending">Chờ xác nhận</SelectItem>
-                                    <SelectItem value="processing">Đang xử lý</SelectItem>
-                                    <SelectItem value="shipped">Đang giao</SelectItem>
-                                    <SelectItem value="delivered">Đã giao</SelectItem>
-                                    <SelectItem value="cancelled">Đã hủy</SelectItem>
+                                    <SelectItem value="all">{t('order_history.status_all')}</SelectItem>
+                                    <SelectItem value="pending">{t('order_history.status_pending')}</SelectItem>
+                                    <SelectItem value="processing">{t('order_history.status_processing')}</SelectItem>
+                                    <SelectItem value="shipped">{t('order_history.status_shipped')}</SelectItem>
+                                    <SelectItem value="delivered">{t('order_history.status_delivered')}</SelectItem>
+                                    <SelectItem value="cancelled">{t('order_history.status_cancelled')}</SelectItem>
                                 </SelectContent>
                             </Select>
 
@@ -230,10 +166,10 @@ const OrderHistory = () => {
                                     <SelectValue placeholder="Thời gian" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="all">Tất cả thời gian</SelectItem>
-                                    <SelectItem value="7days">7 ngày qua</SelectItem>
-                                    <SelectItem value="30days">30 ngày qua</SelectItem>
-                                    <SelectItem value="90days">90 ngày qua</SelectItem>
+                                    <SelectItem value="all">{t('order_history.date_all')}</SelectItem>
+                                    <SelectItem value="7days">{t('order_history.date_7days')}</SelectItem>
+                                    <SelectItem value="30days">{t('order_history.date_30days')}</SelectItem>
+                                    <SelectItem value="90days">{t('order_history.date_90days')}</SelectItem>
                                 </SelectContent>
                             </Select>
 
@@ -248,7 +184,7 @@ const OrderHistory = () => {
                                 className="flex items-center gap-2"
                             >
                                 <Filter className="w-4 h-4" />
-                                Đặt lại
+                                {t('order_history.reset_filter')}
                             </Button>
                         </div>
                     </CardContent>
@@ -258,19 +194,15 @@ const OrderHistory = () => {
                 <Card>
                     <CardHeader>
                         <CardTitle className="flex items-center justify-between">
-                            <span>Danh sách đơn hàng ({filteredOrders.length})</span>
-                            <Button variant="outline" size="sm">
-                                <Download className="w-4 h-4 mr-2" />
-                                Xuất Excel
-                            </Button>
+                            <span>{t('order_history.orders_list_title')} ({filteredOrders.length})</span>
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
                         {currentOrders.length === 0 ? (
                             <div className="text-center py-12">
                                 <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                                <h3 className="text-lg font-medium text-gray-900 mb-2">Không có đơn hàng</h3>
-                                <p className="text-gray-500">Không tìm thấy đơn hàng nào phù hợp với bộ lọc của bạn.</p>
+                                <h3 className="text-lg font-medium text-gray-900 mb-2">{t('order_history.no_orders_title')}</h3>
+                                <p className="text-gray-500">{t('order_history.no_orders_message')}</p>
                             </div>
                         ) : (
                             <>
@@ -278,12 +210,12 @@ const OrderHistory = () => {
                                     <Table>
                                         <TableHeader>
                                             <TableRow>
-                                                <TableHead>Mã đơn hàng</TableHead>
-                                                <TableHead>Ngày đặt</TableHead>
-                                                <TableHead>Sản phẩm</TableHead>
-                                                <TableHead>Trạng thái</TableHead>
-                                                <TableHead>Tổng tiền</TableHead>
-                                                <TableHead>Thao tác</TableHead>
+                                                <TableHead>{t('order_history.table_order_number')}</TableHead>
+                                                <TableHead>{t('order_history.table_date')}</TableHead>
+                                                <TableHead>{t('order_history.table_products')}</TableHead>
+                                                <TableHead>{t('order_history.table_status')}</TableHead>
+                                                <TableHead>{t('order_history.table_total')}</TableHead>
+                                                <TableHead>{t('order_history.table_actions')}</TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
@@ -311,7 +243,7 @@ const OrderHistory = () => {
                                                                 ))}
                                                                 {order.items.length > 2 && (
                                                                     <div className="text-sm text-gray-500">
-                                                                        +{order.items.length - 2} sản phẩm khác
+                                                                        +{order.items.length - 2} {t('order_history.more_products')}
                                                                     </div>
                                                                 )}
                                                             </div>
@@ -328,7 +260,7 @@ const OrderHistory = () => {
                                                         <TableCell>
                                                             <Button variant="outline" size="sm" onClick={() => handleViewDetail(order)}>
                                                                 <Eye className="w-4 h-4 mr-2" />
-                                                                Xem chi tiết
+                                                                {t('order_history.view_detail')}
                                                             </Button>
                                                             {order.status === 'delivered' && (
                                                                 <Button
@@ -340,7 +272,7 @@ const OrderHistory = () => {
                                                                         setIsFeedbackModalOpen(true);
                                                                     }}
                                                                 >
-                                                                    Gửi đánh giá
+                                                                    {t('order_history.send_feedback')}
                                                                 </Button>
                                                             )}
                                                         </TableCell>
@@ -354,8 +286,8 @@ const OrderHistory = () => {
                                 {/* Pagination */}
                                 {totalPages > 1 && (
                                     <div className="mt-6">
-                                        <Pagination>
-                                            <PaginationContent>
+                                        <Pagination className="flex flex-wrap justify-center items-center gap-2">
+                                            <PaginationContent className="flex flex-wrap gap-x-2 items-center justify-center">
                                                 <PaginationItem>
                                                     <PaginationPrevious
                                                         href="#"
@@ -393,7 +325,7 @@ const OrderHistory = () => {
                                                         page === currentPage + 2
                                                     ) {
                                                         return (
-                                                            <PaginationItem key={page}>
+                                                            <PaginationItem key={`ellipsis-${page}`}>
                                                                 <PaginationEllipsis />
                                                             </PaginationItem>
                                                         );
@@ -415,12 +347,13 @@ const OrderHistory = () => {
                                         </Pagination>
                                     </div>
                                 )}
+
                             </>
                         )}
                     </CardContent>
                 </Card>
                 <OrderDetailModal
-
+                    getStatusConfig={getStatusConfig}
                     selectedOrder={selectedOrder}
                     isModalOpen={isModalOpen}
                     setIsModalOpen={setIsModalOpen}
