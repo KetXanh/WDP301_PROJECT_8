@@ -1,39 +1,51 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import OrderFeedbackForm from './OrderFeedbackForm';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'react-toastify';
+import { userFeedback } from '../../services/Customer/ApiProduct';
 
-const OrderFeedbackModal = ({ isOpen, onClose, orderId, selectedOrder }) => {
-    const [orderFeedbacks, setOrderFeedbacks] = useState({});
-    const { t } = useTranslation(['translation'])
+const OrderFeedbackModal = ({ isOpen, onClose, product }) => {
+    const { t } = useTranslation(['translation']);
 
-    const handleFeedbackSubmit = async (orderId, feedback) => {
-        await new Promise(resolve => setTimeout(resolve, 1000));
+    const handleSubmitFeedback = async ({ rating, comment }) => {
+        try {
+            const response = await userFeedback({
+                ProductBase: product.id,
+                stars: rating,
+                comment,
+                images: [],
+            });
 
-        setOrderFeedbacks(prev => ({
-            ...prev,
-            [orderId]: feedback
-        }));
+            if (response.status === 201) {
+                toast.success(t('order_feedback.toast_feedback_success'));
+                onClose();
+            } else if (response.data.code === 405) {
+                toast.error(t('order_feedback.toast_feedback_star'))
+            } else if (response.data.code === 400) {
+                toast.info(t('order_feedback.toast_exitfeddback'))
+                onClose();
+            }
+        } catch (error) {
+            console.log(error);
 
-        console.log('Feedback submitted for order:', orderId, feedback);
+        }
     };
 
+    if (!product) return null;
 
-    const existingFeedback = selectedOrder ? orderFeedbacks[selectedOrder.id] : '';
-
-    // const [feedback, setFeedback] = useState(existingFeedback);
-
-    if (!selectedOrder) return null;
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent>
                 <DialogHeader>
-                    <DialogTitle>{t('order_feedback.title')} #{orderId}</DialogTitle>
+                    <DialogTitle>
+                        {t('order_feedback.title')} - {product.name}
+                    </DialogTitle>
                 </DialogHeader>
                 <OrderFeedbackForm
-                    orderId={selectedOrder.id}
-                    onSubmit={(feedback) => handleFeedbackSubmit(selectedOrder.id, feedback)}
-                    existingFeedback={existingFeedback}
+                    orderId={product.id}
+                    onSubmit={handleSubmitFeedback}
+                    existingFeedback={null}
                 />
             </DialogContent>
         </Dialog>

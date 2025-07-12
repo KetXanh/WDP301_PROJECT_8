@@ -1679,8 +1679,20 @@
     },
     "order_feedback": {
         "title": {
-            "en": "Submit Feedback for Order",
-            "vi": "Gửi đánh giá cho đơn hàng"
+            "en": "Submit Feedback for Product",
+            "vi": "Gửi đánh giá cho sản phẩm"
+        },
+        "toast_feedback_success": {
+            "en": "Your review has been submitted successfully",
+            "vi": "Đánh giá đã được gửi thành công"
+        },
+        "toast_feedback_star": {
+            "en": "Invalid star rating",
+            "vi": "Số sao không hợp lệ"
+        },
+        "toast_exitfeddback": {
+            "en": "You have already reviewed this product",
+            "vi": "Bạn đã đánh giá sản phẩm này"
         }
     }
 }

@@ -9,22 +9,7 @@ import { useTranslation } from 'react-i18next';
 const OrderDetailModal = ({ selectedOrder, isModalOpen, setIsModalOpen, getStatusConfig, onFeedbackClick }) => {
     const { t } = useTranslation(['translation']);
     if (!selectedOrder) return null;
-    // const getStatusConfig = (status) => {
-    //     switch (status) {
-    //         case 'delivered':
-    //             return { label: 'Đã giao', color: 'bg-green-100 text-green-800', icon: CheckCircle };
-    //         case 'shipped':
-    //             return { label: 'Đang giao', color: 'bg-blue-100 text-blue-800', icon: Package };
-    //         case 'processing':
-    //             return { label: 'Đang xử lý', color: 'bg-yellow-100 text-yellow-800', icon: Clock };
-    //         case 'pending':
-    //             return { label: 'Chờ xác nhận', color: 'bg-orange-100 text-orange-800', icon: AlertCircle };
-    //         case 'cancelled':
-    //             return { label: 'Đã hủy', color: 'bg-red-100 text-red-800', icon: XCircle };
-    //         default:
-    //             return { label: status, color: 'bg-gray-100 text-gray-800', icon: AlertCircle };
-    //     }
-    // };
+
     const getPaymentStatusConfig = (status) => {
         switch (status) {
             case 'success':
@@ -99,7 +84,7 @@ const OrderDetailModal = ({ selectedOrder, isModalOpen, setIsModalOpen, getStatu
                                             {selectedOrder.status === 'delivered' && (
                                                 <div className="mt-6 flex justify-end">
                                                     <button
-                                                        onClick={() => onFeedbackClick(selectedOrder.id)}
+                                                        onClick={() => onFeedbackClick(item)}
                                                         className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition"
                                                     >
                                                         {t('order_history.send_feedback')}

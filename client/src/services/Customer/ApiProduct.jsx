@@ -70,3 +70,7 @@ export const deleteAddress = (addressId) => {
     return instance.delete(`/user/carts/delete-address/${addressId}`)
 }
 
+export const userFeedback = (data) => {
+    return instance.post(`/user/rating/create`, data)
+}
+

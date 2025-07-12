@@ -25,7 +25,7 @@ const OrderHistory = () => {
     const [selectedOrder, setSelectedOrder] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
-    const [feedbackOrderId, setFeedbackOrderId] = useState(null);
+    const [feedbackProduct, setFeedbackProduct] = useState(null);
     const ordersPerPage = 10;
     const { t } = useTranslation(['translation']);
     const orderByUser = async () => {
@@ -345,16 +345,15 @@ const OrderHistory = () => {
                     selectedOrder={selectedOrder}
                     isModalOpen={isModalOpen}
                     setIsModalOpen={setIsModalOpen}
-                    onFeedbackClick={(orderId) => {
-                        setFeedbackOrderId(orderId);
+                    onFeedbackClick={(item) => {
+                        setFeedbackProduct(item);
                         setIsFeedbackModalOpen(true);
                     }}
                 />
                 <OrderFeedbackModal
                     isOpen={isFeedbackModalOpen}
                     onClose={() => setIsFeedbackModalOpen(false)}
-                    orderId={feedbackOrderId}
-                    selectedOrder={orders.find(order => order.id === feedbackOrderId)}
+                    product={feedbackProduct}
                 />
             </div>
         </div>
