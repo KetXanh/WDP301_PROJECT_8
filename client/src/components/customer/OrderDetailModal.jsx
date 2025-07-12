@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Separator } from '@/components/ui/separator';
 import { useTranslation } from 'react-i18next';
 
-const OrderDetailModal = ({ selectedOrder, isModalOpen, setIsModalOpen, getStatusConfig }) => {
+const OrderDetailModal = ({ selectedOrder, isModalOpen, setIsModalOpen, getStatusConfig, onFeedbackClick }) => {
     const { t } = useTranslation(['translation']);
     if (!selectedOrder) return null;
     // const getStatusConfig = (status) => {
@@ -96,9 +96,21 @@ const OrderDetailModal = ({ selectedOrder, isModalOpen, setIsModalOpen, getStatu
                                                     {item.price.toLocaleString('vi-VN')}đ
                                                 </div>
                                             </div>
+                                            {selectedOrder.status === 'delivered' && (
+                                                <div className="mt-6 flex justify-end">
+                                                    <button
+                                                        onClick={() => onFeedbackClick(selectedOrder.id)}
+                                                        className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition"
+                                                    >
+                                                        {t('order_history.send_feedback')}
+                                                    </button>
+                                                </div>
+                                            )}
                                         </div>
                                     ))}
+
                                 </div>
+
                             </CardContent>
                         </Card>
 
@@ -245,6 +257,7 @@ const OrderDetailModal = ({ selectedOrder, isModalOpen, setIsModalOpen, getStatu
                         </Card> */}
                     </div>
                 </div>
+
             </DialogContent>
         </Dialog>
     );

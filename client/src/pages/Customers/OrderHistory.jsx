@@ -262,19 +262,7 @@ const OrderHistory = () => {
                                                                 <Eye className="w-4 h-4 mr-2" />
                                                                 {t('order_history.view_detail')}
                                                             </Button>
-                                                            {order.status === 'delivered' && (
-                                                                <Button
-                                                                    variant="secondary"
-                                                                    size="sm"
-                                                                    className="ms-2 mb-2"
-                                                                    onClick={() => {
-                                                                        setFeedbackOrderId(order.id);
-                                                                        setIsFeedbackModalOpen(true);
-                                                                    }}
-                                                                >
-                                                                    {t('order_history.send_feedback')}
-                                                                </Button>
-                                                            )}
+
                                                         </TableCell>
                                                     </TableRow>
                                                 );
@@ -357,6 +345,10 @@ const OrderHistory = () => {
                     selectedOrder={selectedOrder}
                     isModalOpen={isModalOpen}
                     setIsModalOpen={setIsModalOpen}
+                    onFeedbackClick={(orderId) => {
+                        setFeedbackOrderId(orderId);
+                        setIsFeedbackModalOpen(true);
+                    }}
                 />
                 <OrderFeedbackModal
                     isOpen={isFeedbackModalOpen}
