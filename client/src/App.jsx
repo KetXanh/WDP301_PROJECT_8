@@ -35,6 +35,7 @@ import Kpi from "./pages/admin/Kpi";
 import Checkout from "./pages/Customers/Checkout";
 import Rating from "./pages/admin/Rating";
 import PaymentResult from "./pages/Customers/PaymentResult";
+import OrderHistory from "./pages/Customers/OrderHistory";
 // import VnpayWaiting from "./pages/Customers/VnpayWaiting";
 
 // Customer Layout
@@ -115,7 +116,8 @@ function App() {
               />
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/vnpay_return" element={<PaymentResult />} />
-              {/* <Route path="/vnpay_return" element={<VnpayWaiting />} /> */}
+              <Route path="/order-history" element={<OrderHistory />} />
+
             </>
           )}
 

@@ -1476,5 +1476,211 @@
             "en": "Contact our hotline at 1900-1234 if the issue persists.",
             "vi": "Liên hệ hotline 1900-1234 nếu sự cố vẫn tiếp diễn."
         }
+    },
+    "order_history": {
+        "title": {
+            "en": "Order History",
+            "vi": "Lịch Sử Đơn Hàng"
+        },
+        "subtitle": {
+            "en": "Manage and track all your orders",
+            "vi": "Quản lý và theo dõi tất cả đơn hàng của bạn"
+        },
+        "loading": {
+            "en": "Loading order history...",
+            "vi": "Đang tải lịch sử đơn hàng..."
+        },
+        "search_placeholder": {
+            "en": "Search by order number...",
+            "vi": "Tìm kiếm theo mã đơn hàng..."
+        },
+        "status_filter_placeholder": {
+            "en": "Status",
+            "vi": "Trạng thái"
+        },
+        "status_all": {
+            "en": "All Statuses",
+            "vi": "Tất cả trạng thái"
+        },
+        "status_pending": {
+            "en": "Pending",
+            "vi": "Chờ xác nhận"
+        },
+        "status_processing": {
+            "en": "Processing",
+            "vi": "Đang xử lý"
+        },
+        "status_shipped": {
+            "en": "Shipped",
+            "vi": "Đang giao"
+        },
+        "status_delivered": {
+            "en": "Delivered",
+            "vi": "Đã giao"
+        },
+        "status_cancelled": {
+            "en": "Cancelled",
+            "vi": "Đã hủy"
+        },
+        "date_filter_placeholder": {
+            "en": "Time Period",
+            "vi": "Thời gian"
+        },
+        "date_all": {
+            "en": "All Time",
+            "vi": "Tất cả thời gian"
+        },
+        "date_7days": {
+            "en": "Last 7 Days",
+            "vi": "7 ngày qua"
+        },
+        "date_30days": {
+            "en": "Last 30 Days",
+            "vi": "30 ngày qua"
+        },
+        "date_90days": {
+            "en": "Last 90 Days",
+            "vi": "90 ngày qua"
+        },
+        "reset_filter": {
+            "en": "Reset",
+            "vi": "Đặt lại"
+        },
+        "orders_list_title": {
+            "en": "Order List",
+            "vi": "Danh sách đơn hàng"
+        },
+        "no_orders_title": {
+            "en": "No Orders",
+            "vi": "Không có đơn hàng"
+        },
+        "no_orders_message": {
+            "en": "No orders found matching your filters.",
+            "vi": "Không tìm thấy đơn hàng nào phù hợp với bộ lọc của bạn."
+        },
+        "table_order_number": {
+            "en": "Order Number",
+            "vi": "Mã đơn hàng"
+        },
+        "table_date": {
+            "en": "Order Date",
+            "vi": "Ngày đặt"
+        },
+        "table_products": {
+            "en": "Products",
+            "vi": "Sản phẩm"
+        },
+        "table_status": {
+            "en": "Status",
+            "vi": "Trạng thái"
+        },
+        "table_total": {
+            "en": "Total",
+            "vi": "Tổng tiền"
+        },
+        "table_actions": {
+            "en": "Actions",
+            "vi": "Thao tác"
+        },
+        "more_products": {
+            "en": "more products",
+            "vi": "sản phẩm khác"
+        },
+        "view_detail": {
+            "en": "View Details",
+            "vi": "Xem chi tiết"
+        },
+        "send_feedback": {
+            "en": "Send Feedback",
+            "vi": "Gửi đánh giá"
+        }
+    },
+    "order_detail": {
+        "order_date": {
+            "en": "Ordered on",
+            "vi": "Đặt hàng ngày"
+        },
+        "items_title": {
+            "en": "Ordered Products",
+            "vi": "Sản phẩm đã đặt"
+        },
+        "quantity": {
+            "en": "Quantity:",
+            "vi": "Số lượng:"
+        },
+        "price_per_item": {
+            "en": "{{price}}đ",
+            "vi": "{{price}}đ"
+        },
+        "total_per_item": {
+            "en": "{{total}}đ",
+            "vi": "{{total}}đ"
+        },
+        "shipping_address_title": {
+            "en": "Shipping Address",
+            "vi": "Địa chỉ giao hàng"
+        },
+        "note_label": {
+            "en": "Note:",
+            "vi": "Ghi chú:"
+        },
+        "tracking_title": {
+            "en": "Tracking Information",
+            "vi": "Thông tin vận chuyển"
+        },
+        "tracking_number": {
+            "en": "Tracking Number:",
+            "vi": "Mã vận đơn:"
+        },
+        "estimated_delivery": {
+            "en": "Estimated Delivery:",
+            "vi": "Dự kiến giao hàng:"
+        },
+        "summary_title": {
+            "en": "Order Summary",
+            "vi": "Tổng quan đơn hàng"
+        },
+        "discount": {
+            "en": "Discount: -{{discount}}đ",
+            "vi": "Giảm giá: -{{discount}}đ"
+        },
+        "total": {
+            "en": "Total:",
+            "vi": "Tổng cộng:"
+        },
+        "payment_method_title": {
+            "en": "Payment Method",
+            "vi": "Phương thức thanh toán"
+        },
+        "payment_method_bank": {
+            "en": "Bank Transfer",
+            "vi": "Chuyển khoản"
+        },
+        "payment_method_cod": {
+            "en": "Cash on Delivery (COD)",
+            "vi": "Tiền mặt (COD)"
+        },
+        "payment_status_success": {
+            "en": "Success",
+            "vi": "Thành công"
+        },
+        "payment_status_failed": {
+            "en": "Failed",
+            "vi": "Thất Bại"
+        },
+        "payment_status_pending": {
+            "en": "Pending",
+            "vi": "Chờ xác nhận"
+        },
+        "payment_status_cancelled": {
+            "en": "Cancelled",
+            "vi": "Đã hủy"
+        }
+    },
+    "order_feedback": {
+        "title": {
+            "en": "Submit Feedback for Order",
+            "vi": "Gửi đánh giá cho đơn hàng"
+        }
     }
 }

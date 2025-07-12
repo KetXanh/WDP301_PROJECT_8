@@ -15,8 +15,13 @@ export const address = () => {
 export const userOrder = (items, shippingAddress, paymentMethod, note) => {
     return instance.post('/user/orders', { items, shippingAddress, paymentMethod, note })
 }
+
 export const getOrderById = (id) => {
     return instance.get(`/user/orders/${id}`)
+}
+
+export const getOrderByUser = () => {
+    return instance.get(`/user/orders/order-history`)
 }
 
 export const getCategories = () => {

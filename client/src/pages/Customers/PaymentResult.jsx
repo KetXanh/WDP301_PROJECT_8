@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTranslation } from 'react-i18next';
 import { returnVnpay } from '../../services/Customer/vnPay';
-import { getOrderById } from '../../services/Customer/ApiProduct';
+// import { getOrderById } from '../../services/Customer/ApiProduct';
 
 
 export default function PaymentResult() {
@@ -14,7 +14,7 @@ export default function PaymentResult() {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
     const orderId = searchParams.get('vnp_TxnRef');
-    const [order, setOrder] = useState(null);
+    // const [order, setOrder] = useState(null);
     const [paymentStatus, setPaymentStatus] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -22,29 +22,23 @@ export default function PaymentResult() {
         try {
             setIsLoading(true);
             const params = Object.fromEntries(searchParams.entries());
-
-            // Call vnpay_return API to validate payment
             const res = await returnVnpay(params);
-            console.log(res);
-
             const { status } = res.data;
-
             setPaymentStatus({ status });
-
-            if (status === 'SUCCESS') {
-                if (orderId) {
-                    const orderRes = await getOrderById(orderId);
-                    if (orderRes.data && orderRes.data.code === 200) {
-                        setOrder(orderRes.data.data);
-                    } else {
-                        toast.error(t('toast.order_fetch_failed'));
-                    }
-                }
-            } else if (status === 'FAILED') {
-                toast.error(t('toast.payment_failed'));
-            } else {
-                toast.error(t('toast.payment_error'));
-            }
+            // if (status === 'SUCCESS') {
+            //     if (orderId) {
+            //         const orderRes = await getOrderById(orderId);
+            //         if (orderRes.data && orderRes.data.code === 200) {
+            //             setOrder(orderRes.data.data);
+            //         } else {
+            //             toast.error(t('toast.order_fetch_failed'));
+            //         }
+            //     }
+            // } else if (status === 'FAILED') {
+            //     toast.error(t('toast.payment_failed'));
+            // } else {
+            //     toast.error(t('toast.payment_error'));
+            // }
         } catch (error) {
             console.error('Error fetching payment status:', error);
             setPaymentStatus({
@@ -212,7 +206,7 @@ export default function PaymentResult() {
                     </Button>
 
                     {paymentStatus?.status === 'SUCCESS' ? (
-                        <Button onClick={() => navigate('/orders')}>
+                        <Button onClick={() => navigate('/order-history')}>
                             {t('payment_result.view_orders')}
                         </Button>
                     ) : (
