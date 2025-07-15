@@ -11,12 +11,12 @@ exports.createRating = async (req, res) => {
 
     const user = await User.findOne({ email: rawUser.email });
     if (!user) {
-      return res.status(404).json({ message: "User không tồn tại" });
+      return res.status(400).json({ message: "User không tồn tại" });
     }
 
     const product = await ProductBase.findById(productBaseId);
     if (!product) {
-      return res.status(404).json({ message: "Không tìm thấy sản phẩm" });
+      return res.status(400).json({ message: "Không tìm thấy sản phẩm" });
     }
 
     if (!stars || stars < 1 || stars > 5) {
