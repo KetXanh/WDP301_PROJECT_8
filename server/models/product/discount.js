@@ -24,4 +24,4 @@ const discountSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-module.exports = mongoose.model("Discount", discountSchema, "discounts");
+module.exports = mongoose.model("Discounts", discountSchema, "discounts");

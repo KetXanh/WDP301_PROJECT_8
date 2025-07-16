@@ -12,6 +12,7 @@ import { useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Camera } from 'lucide-react';
+import { getUserDiscountsByUser } from '../../services/Customer/ApiUserDiscount';
 const Profile = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [avatarFile, setAvatarFile] = useState(null);
@@ -35,6 +36,7 @@ const Profile = () => {
     });
     const accessToken = useSelector((state) => state.customer.accessToken);
     const [isLoading, setIsLoading] = useState(false);
+    const [userDiscounts, setUserDiscounts] = useState([]);
     const handleAvatarUpload = (e) => {
         const file = e.target.files[0];
         if (file) {
@@ -128,13 +130,24 @@ const Profile = () => {
 
         }
     }
+    const fetchUserDiscounts = async (userId) => {
+        try {
+            const res = await getUserDiscountsByUser(userId);
+            setUserDiscounts(res.data);
+        } catch (error) {
+            console.error('Lỗi lấy user discounts:', error);
+        }
+    };
     const getDisplayName = () => {
         return formData.address?.[0]?.fullName || formData.username || "User";
     };
 
     useEffect(() => {
         userProfile();
-    }, [accessToken])
+        if (formData && formData._id) {
+            fetchUserDiscounts(formData._id);
+        }
+    }, [accessToken, formData._id]);
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-green-50 to-amber-50 py-8">
@@ -342,6 +355,20 @@ const Profile = () => {
                                 </Button>
                             </div>
                         )}
+                        <div className="mt-6">
+                            <h3 className="font-semibold mb-2">Danh sách mã giảm giá của bạn:</h3>
+                            <ul>
+                                {userDiscounts && userDiscounts.length > 0 ? (
+                                    userDiscounts.map((ud) => (
+                                        <li key={ud._id} className="mb-2">
+                                            <span className="font-medium">{ud.discount?.name || 'Discount'}:</span> Số lượng còn lại: {ud.quantity_available} / Tổng: {ud.quantity_total} - Trạng thái: {ud.status}
+                                        </li>
+                                    ))
+                                ) : (
+                                    <li>Bạn chưa có mã giảm giá nào.</li>
+                                )}
+                            </ul>
+                        </div>
                     </CardContent>
                 </Card>
             </div>
