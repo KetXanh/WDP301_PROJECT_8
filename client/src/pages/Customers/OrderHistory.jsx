@@ -25,7 +25,7 @@ const OrderHistory = () => {
     const [selectedOrder, setSelectedOrder] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
-    const [feedbackOrderId, setFeedbackOrderId] = useState(null);
+    const [feedbackProduct, setFeedbackProduct] = useState(null);
     const ordersPerPage = 10;
     const { t } = useTranslation(['translation']);
     const orderByUser = async () => {
@@ -262,19 +262,7 @@ const OrderHistory = () => {
                                                                 <Eye className="w-4 h-4 mr-2" />
                                                                 {t('order_history.view_detail')}
                                                             </Button>
-                                                            {order.status === 'delivered' && (
-                                                                <Button
-                                                                    variant="secondary"
-                                                                    size="sm"
-                                                                    className="ms-2 mb-2"
-                                                                    onClick={() => {
-                                                                        setFeedbackOrderId(order.id);
-                                                                        setIsFeedbackModalOpen(true);
-                                                                    }}
-                                                                >
-                                                                    {t('order_history.send_feedback')}
-                                                                </Button>
-                                                            )}
+
                                                         </TableCell>
                                                     </TableRow>
                                                 );
@@ -357,12 +345,15 @@ const OrderHistory = () => {
                     selectedOrder={selectedOrder}
                     isModalOpen={isModalOpen}
                     setIsModalOpen={setIsModalOpen}
+                    onFeedbackClick={(item) => {
+                        setFeedbackProduct(item);
+                        setIsFeedbackModalOpen(true);
+                    }}
                 />
                 <OrderFeedbackModal
                     isOpen={isFeedbackModalOpen}
                     onClose={() => setIsFeedbackModalOpen(false)}
-                    orderId={feedbackOrderId}
-                    selectedOrder={orders.find(order => order.id === feedbackOrderId)}
+                    product={feedbackProduct}
                 />
             </div>
         </div>

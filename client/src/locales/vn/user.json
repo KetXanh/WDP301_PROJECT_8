@@ -201,7 +201,8 @@
     ],
     "customerReviews": "Đánh giá khách hàng",
     "seeAllReviews": "Xem tất cả đánh giá",
-    "rating": "đánh giá"
+    "rating": "đánh giá",
+    "noRating": "Sản phẩm chưa có đánh giá nào"
   },
   "cart": {
     "title": "Giỏ Hàng",

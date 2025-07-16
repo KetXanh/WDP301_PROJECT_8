@@ -173,7 +173,7 @@ module.exports.getOrderByUser = async (req, res) => {
             status: o.status,
             total: o.totalAmount,
             items: o.items.map(i => ({
-                id: i.product._id,
+                id: i.product?.baseProduct?._id,
                 name: i.product?.baseProduct?.name,
                 price: i.product?.price,
                 image: i.product?.baseProduct?.image?.url,
