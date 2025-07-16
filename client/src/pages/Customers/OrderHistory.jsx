@@ -354,6 +354,7 @@ const OrderHistory = () => {
                     isOpen={isFeedbackModalOpen}
                     onClose={() => setIsFeedbackModalOpen(false)}
                     product={feedbackProduct}
+                    selectedOrder={selectedOrder}
                 />
             </div>
         </div>

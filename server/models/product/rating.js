@@ -28,6 +28,7 @@ const ratingSchema = new mongoose.Schema(
         public_id: String,
       },
     ],
+    order: { type: mongoose.Types.ObjectId, ref: "Orders" }
   },
   { timestamps: true }
 );
