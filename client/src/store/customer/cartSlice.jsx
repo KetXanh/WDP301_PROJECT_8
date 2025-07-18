@@ -16,27 +16,16 @@ const cartSlice = createSlice({
   reducers: {
     addToCart(state, { payload }) {
       const { userId = GUEST_ID, item } = payload;
-      if (!state.items[userId]) {
-        state.items = {
-          ...state.items,
-          [userId]: [],
-        };
-      }
+      if (!item?.productId) return;          // <‑‑ không có productId thì bỏ
+      if (!Number.isInteger(item.quantity) || item.quantity < 1) item.quantity = 1;
 
-      const existing = state.items[userId].find(
-        (i) => i.productId === item.productId
-      );
+      const list = state.items[userId] ?? [];
+      const found = list.find(i => i.productId === item.productId);
 
-      if (existing) {
-        existing.quantity = Math.min(existing.quantity + (item.quantity || 1), 10);
-      } else {
-        state.items[userId].push({
-          ...item,
-          quantity: Math.min(item.quantity || 1, 10),
-          originalPrice: item.originalPrice ?? item.price,
-          isSale: item.isSale ?? false,
-        });
-      }
+      if (found) found.quantity = Math.min(found.quantity + item.quantity, 10);
+      else list.push({ ...item });
+
+      state.items[userId] = list;
     },
 
     removeFromCart(state, { payload }) {
@@ -51,6 +40,14 @@ const cartSlice = createSlice({
       const { userId = GUEST_ID } = payload;
       if (state.items[userId]) state.items[userId] = [];
     },
+    removePurchasedItems(state, { payload }) {
+      const { userId = GUEST_ID, purchasedIds } = payload;
+      if (!state.items[userId]) return;
+
+      state.items[userId] = state.items[userId].filter(
+        (item) => !purchasedIds.includes(item.productId || item.product)
+      );
+    },
 
     increaseQuantity(state, { payload }) {
       const { userId = GUEST_ID, productId } = payload;
@@ -64,12 +61,10 @@ const cartSlice = createSlice({
       if (item && item.quantity > 1) item.quantity -= 1;
     },
     mergeGuestCart(state, { payload }) {
-      const { userId } = payload;
-      if (!userId) return;
+      const { userId, guestItems } = payload;
+      if (!userId || !guestItems) return;
 
       if (!state.items[userId]) state.items[userId] = [];
-
-      const guestItems = state.items[GUEST_ID] || [];
 
       guestItems.forEach((gItem) => {
         const existing = state.items[userId].find(
@@ -82,7 +77,7 @@ const cartSlice = createSlice({
         }
       });
 
-      state.items[GUEST_ID] = [];
+      delete state.items[GUEST_ID];
     },
     setCartFromServer(state, { payload }) {
       const { userId, items } = payload;
@@ -104,5 +99,6 @@ export const {
   decreaseQuantity,
   mergeGuestCart,
   setCartFromServer,
+  removePurchasedItems
 } = cartSlice.actions;
 export default cartSlice.reducer;

@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, LogOut, User, Tag } from "lucide-react";
+import { ShoppingCart, LogOut, User, Package } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useDispatch, useSelector } from 'react-redux';
@@ -19,96 +19,99 @@ import { GUEST_ID } from '../../store/customer/constans';
 import { useTranslation } from "react-i18next";
 import { getAllItemCart } from '../../services/Customer/ApiProduct';
 import { clearCart, setCartFromServer } from '../../store/customer/cartSlice';
+import { toast } from "react-toastify";
 
 const Header = () => {
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const { t, i18n } = useTranslation("user");
-    const [user, setUser] = useState(null);
-    const navigate = useNavigate();
-    const dispatch = useDispatch();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { t, i18n } = useTranslation(['translation']);
+  const [user, setUser] = useState(null);
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
 
-    const accessToken = useSelector((state) => state.customer.accessToken);
-    const username = React.useMemo(() => {
-        if (typeof accessToken === 'string' && accessToken.trim()) {
-            try {
-                const decoded = jwtDecode(accessToken);
-                return decoded.username || GUEST_ID;
-            } catch {
-                return GUEST_ID;
-            }
-        }
+  const accessToken = useSelector((state) => state.customer.accessToken);
+  const username = React.useMemo(() => {
+    if (typeof accessToken === 'string' && accessToken.trim()) {
+      try {
+        const decoded = jwtDecode(accessToken);
+        return decoded.username || GUEST_ID;
+      } catch {
         return GUEST_ID;
-    }, [accessToken]);
-    const cartItems = useSelector(
-        state => state.cart.items[username] ?? []
-    );
+      }
+    }
+    return GUEST_ID;
+  }, [accessToken]);
+  const cartItems = useSelector(
+    state => state.cart.items[username] ?? []
+  );
 
-    const badgeCount = cartItems.length === 0 ? 0 : cartItems.length;
+  const badgeCount = cartItems.length === 0 ? 0 : cartItems.length;
 
-    const profile = async () => {
-        try {
-            const res = await customerProfile();
-            if (res.data && res.data.code === 200) {
-                setUser(res.data.user);
-            } else if (res.data && res.data.code === 401) {
-                dispatch(logout());
-                setIsLoggedIn(false);
-                setUser(null);
-            }
-        } catch (error) {
-            console.log('Lỗi gọi profile:', error.response?.status);
-            if (error.response?.status === 403 || error.response?.status === 401) {
-                dispatch(logout());
-                setIsLoggedIn(false);
-                setUser(null);
-            }
-        }
-    };
-
-    useEffect(() => {
-        const fetchCart = async () => {
-            try {
-                const res = await getAllItemCart();
-                if (res.data && res.data.code === 200) {
-                    dispatch(setCartFromServer({
-                        items: res.data.cart.items ?? [],
-                        userId: username
-                    }));
-                } else {
-                    dispatch(clearCart({ userId: username }));
-                }
-            } catch (error) {
-                console.error("Lỗi khi lấy giỏ hàng:", error);
-                dispatch(clearCart({ userId: username }));
-            }
-        };
-        if (accessToken) {
-            try {
-                const decoded = jwtDecode(accessToken);
-                if (decoded.role === 0) {
-                    profile();
-                    setIsLoggedIn(true);
-                    fetchCart();
-                }
-            } catch (error) {
-                console.error('Invalid token:', error);
-                dispatch(logout());
-                setIsLoggedIn(false);
-                setUser(null);
-            }
-        } else {
-            setIsLoggedIn(false);
-            setUser(null);
-        }
-    }, [accessToken, dispatch]);
-
-    const handleLogout = () => {
+  const profile = async () => {
+    try {
+      const res = await customerProfile();
+      if (res.data && res.data.code === 200) {
+        setUser(res.data.user);
+      } else if (res.data && res.data.code === 401) {
+        dispatch(logout());
         setIsLoggedIn(false);
         setUser(null);
+      }
+    } catch (error) {
+      console.log('Lỗi gọi profile:', error.response?.status);
+      if (error.response?.status === 403 || error.response?.status === 401) {
         dispatch(logout());
-        navigate('/');
-        console.log('Đăng xuất thành công');
+        setIsLoggedIn(false);
+        setUser(null);
+      }
+    }
+  };
+
+  useEffect(() => {
+    const fetchCart = async () => {
+      try {
+        const res = await getAllItemCart();
+        if (res.data && res.data.code === 200) {
+          dispatch(setCartFromServer({ userId: username, items: res.data.data ?? [] }));
+        } else {
+          dispatch(clearCart({ userId: username }));
+        }
+      } catch (error) {
+        console.error("Lỗi khi lấy giỏ hàng:", error);
+        dispatch(clearCart({ userId: username }));
+      }
     };
+
+    if (accessToken) {
+      try {
+        const decoded = jwtDecode(accessToken);
+        if (decoded.role === 0) {
+          profile();
+          setIsLoggedIn(true);
+          fetchCart();
+        }
+      } catch (error) {
+        console.error('Invalid token:', error);
+        dispatch(logout());
+        setIsLoggedIn(false);
+        setUser(null);
+      }
+    } else {
+      setIsLoggedIn(false);
+      setUser(null);
+    }
+  }, [accessToken, dispatch]);
+
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    setUser(null);
+    dispatch(logout());
+    toast.success(t('toast.logout'))
+    navigate('/');
+  };
+
+  const changeLanguage = (lang) => {
+    i18n.changeLanguage(lang);
+  };
 
   return (
     <header className="bg-white/95 backdrop-blur-sm shadow-sm sticky top-0 z-50">
@@ -201,8 +204,16 @@ const Header = () => {
                   <DropdownMenuItem className="cursor-pointer">
                     <User className="mr-2 h-4 w-4" />
                     <span onClick={() => navigate("/profile")}>
-                      {t("viewProfile")}
+                      {t("home.viewProfile")}
                     </span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    className="cursor-pointer"
+                    onClick={() => navigate("/order-history")}
+                  >
+                    <Package className="mr-2 h-4 w-4" />
+                    <span>{t("home.viewOrder")}</span>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
@@ -210,8 +221,9 @@ const Header = () => {
                     onClick={handleLogout}
                   >
                     <LogOut className="mr-2 h-4 w-4" />
-                    <span>{t("logout")}</span>
+                    <span>{t("home.logout")}</span>
                   </DropdownMenuItem>
+
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
@@ -224,26 +236,30 @@ const Header = () => {
                     {t("home.register")}
                   </Button>
                 </Link>
-                <div className="flex items-center gap-2 ml-2">
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      className="sr-only peer"
-                      checked={i18n.language === "en"}
-                      onChange={() => {
-                        const newLang = i18n.language === "vi" ? "en" : "vi";
-                        i18n.changeLanguage(newLang);
-                      }}
-                    />
-                    <div className="w-11 h-6 bg-gray-300 rounded-full peer peer-checked:bg-green-500 transition-colors duration-300"></div>
-                    <div className="absolute left-0.5 top-0.5 w-5 h-5 bg-white border border-gray-300 rounded-full transition-transform duration-300 peer-checked:translate-x-full"></div>
-                  </label>
-                  <span className="text-sm text-gray-700 dark:text-gray-300 select-none">
-                    {i18n.language === "vi" ? "VN" : "EN"}
-                  </span>
-                </div>
               </>
             )}
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="flex items-center gap-2">
+                  <span>{i18n.language === "vi" ? "VN" : "EN"}</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-32">
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  onClick={() => changeLanguage("en")}
+                >
+                  English
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  onClick={() => changeLanguage("vi")}
+                >
+                  Tiếng Việt
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </div>

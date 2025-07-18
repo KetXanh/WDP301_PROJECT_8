@@ -12,8 +12,8 @@ const baseProductSchema = new mongoose.Schema(
     },
     origin: String,
     subCategory: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'SubCategories'
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'SubCategories'
     },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
@@ -24,15 +24,15 @@ const baseProductSchema = new mongoose.Schema(
 );
 
 // Pre-save middleware to generate slug
-baseProductSchema.pre('save', function(next) {
-    if (this.isModified('name')) {
-        this.slug = slugify(this.name, {
-            lower: true,
-            strict: true,
-            locale: 'vi'
-        });
-    }
-    next();
+baseProductSchema.pre('save', function (next) {
+  if (this.isModified('name')) {
+    this.slug = slugify(this.name, {
+      lower: true,
+      strict: true,
+      locale: 'vi'
+    });
+  }
+  next();
 });
 
 module.exports = mongoose.model('BaseProduct', baseProductSchema, 'baseproduct');

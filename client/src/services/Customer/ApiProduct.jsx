@@ -12,8 +12,16 @@ export const address = () => {
     return instance.get(`/user/auth/address`)
 }
 
-export const userOrder = (items, shippingAddress) => {
-    return instance.post('/user/orders', { items, shippingAddress })
+export const userOrder = (items, shippingAddress, paymentMethod, note) => {
+    return instance.post('/user/orders', { items, shippingAddress, paymentMethod, note })
+}
+
+export const getOrderById = (id) => {
+    return instance.get(`/user/orders/${id}`)
+}
+
+export const getOrderByUser = () => {
+    return instance.get(`/user/orders/order-history`)
 }
 
 export const getCategories = () => {
@@ -46,5 +54,23 @@ export const removeItemToCart = (productId) => {
 
 export const getAllItemCart = () => {
     return instance.get(`/user/carts/user-cart`)
+}
+
+export const removeMultiItemToCart = (productIds) => {
+    return instance.delete(`/user/carts/items`, {
+        data: { productIds }
+    })
+}
+
+export const addNewAddress = (addressData) => {
+    return instance.post(`/user/carts/new-address`, addressData)
+}
+
+export const deleteAddress = (addressId) => {
+    return instance.delete(`/user/carts/delete-address/${addressId}`)
+}
+
+export const userFeedback = (data) => {
+    return instance.post(`/user/rating/create`, data)
 }
 

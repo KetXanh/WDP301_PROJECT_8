@@ -7,13 +7,13 @@ import { getCategories } from '../../services/Customer/ApiProduct';
 import { useEffect } from 'react';
 import { useTranslation } from "react-i18next";
 const ProductFilters = ({
-  selectedCategory,
-  onCategoryChange,
-  priceRange,
-  onPriceRangeChange,
+    selectedCategory,
+    onCategoryChange,
+    priceRange,
+    onPriceRangeChange,
 }) => {
-  const [openParent, setOpenParent] = useState(null);
-  const { t } = useTranslation("user");
+    const [openParent, setOpenParent] = useState(null);
+    const { t } = useTranslation('translation');
 
     const [categories, setCategories] = useState([])
     const getAllCategories = async () => {
@@ -32,26 +32,26 @@ const ProductFilters = ({
         getAllCategories()
     }, [])
 
-  const toggleParent = (parentId) => {
-    setOpenParent(openParent === parentId ? null : parentId);
-  };
+    const toggleParent = (parentId) => {
+        setOpenParent(openParent === parentId ? null : parentId);
+    };
 
     return (
         <Card className="bg-white shadow-lg">
             <CardHeader>
-                <CardTitle className="text-lg font-bold text-gray-800">Bộ lọc sản phẩm</CardTitle>
+                <CardTitle className="text-lg font-bold text-gray-800">{t('product.filters')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
                 {/* Category Filter */}
                 <div>
-                    <h3 className="text-sm font-medium text-gray-700 mb-2">Danh mục</h3>
+                    <h3 className="text-sm font-medium text-gray-700 mb-2">{t('product.category')}</h3>
                     <div className="space-y-2">
                         <button
                             onClick={() => onCategoryChange('all')}
                             className={`w-full text-left px-4 py-2 rounded-lg ${selectedCategory === 'all' ? 'bg-green-100 text-green-600' : 'hover:bg-gray-100'
                                 }`}
                         >
-                            Tất cả danh mục
+                            {t('product.allCategories')}
                         </button>
                         {categories.map((parent) => (
                             <div key={parent.id}>
@@ -86,7 +86,7 @@ const ProductFilters = ({
                 </div>
                 {/* Price Range Filter */}
                 <div>
-                    <h3 className="text-sm font-medium text-gray-700 mb-2">Khoảng giá</h3>
+                    <h3 className="text-sm font-medium text-gray-700 mb-2">{t('product.priceRange')}</h3>
                     <Slider
                         value={priceRange}
                         onValueChange={onPriceRangeChange}

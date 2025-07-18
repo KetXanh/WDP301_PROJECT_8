@@ -60,6 +60,9 @@ import AdminDevLayout from "./pages/AdminDev/AdminDevLayout";
 
 
 import Checkout from "./pages/Customers/Checkout";
+import PaymentResult from "./pages/Customers/PaymentResult";
+import OrderHistory from "./pages/Customers/OrderHistory";
+// import VnpayWaiting from "./pages/Customers/VnpayWaiting";
 
 // Customer Layout
 const CustomerLayout = () => (
@@ -137,6 +140,9 @@ function App() {
             <>
               <Route path="/profile" element={<ProtectedRoute element={<Profile />} />} />
               <Route path="/checkout" element={<Checkout />} />
+              <Route path="/vnpay_return" element={<PaymentResult />} />
+              <Route path="/order-history" element={<OrderHistory />} />
+
             </>
           }
 

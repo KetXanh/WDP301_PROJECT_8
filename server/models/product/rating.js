@@ -2,9 +2,9 @@ const mongoose = require("mongoose");
 
 const ratingSchema = new mongoose.Schema(
   {
-    productVariant: {
+    productBase: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "ProductVariant",
+      ref: "BaseProduct",
       required: true,
     },
     user: {
@@ -28,6 +28,7 @@ const ratingSchema = new mongoose.Schema(
         public_id: String,
       },
     ],
+    order: { type: mongoose.Types.ObjectId, ref: "Orders" }
   },
   { timestamps: true }
 );

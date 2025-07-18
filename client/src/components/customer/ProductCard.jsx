@@ -38,6 +38,7 @@ const ProductCard = ({ product }) => {
                         {product.description}
                     </CardDescription>
                 </CardHeader>
+
             </Link>
 
             <CardContent>

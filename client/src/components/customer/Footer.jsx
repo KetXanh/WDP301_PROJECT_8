@@ -3,7 +3,7 @@ import logo from "../../assets/NutiGo.png";
 import { useTranslation } from "react-i18next";
 
 const Footer = () => {
-  const { t } = useTranslation("user");
+  const { t } = useTranslation('translation');
 
   return (
     <footer className="bg-gray-800 text-white py-12">

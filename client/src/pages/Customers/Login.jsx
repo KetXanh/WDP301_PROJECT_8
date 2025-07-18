@@ -18,7 +18,9 @@ import { Link, useNavigate } from "react-router-dom";
 import { login } from "../../store/customer/authSlice";
 import LoginGoogle from "../../components/customer/LoginGoogle";
 import { jwtDecode } from "jwt-decode";
-import { mergeGuestCart } from "../../store/customer/cartSlice";
+import { useTranslation } from "react-i18next";
+import { GUEST_ID } from "../../store/customer/constans";
+import { clearCart } from "../../store/customer/cartSlice";
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -27,7 +29,7 @@ const Login = () => {
   });
   const dispatch = useDispatch();
   const navigate = useNavigate();
-
+  const { t } = useTranslation(['translation']);
   const handleInputChange = (e) => {
     setFormData({
       ...formData,
@@ -43,10 +45,10 @@ const Login = () => {
     e.preventDefault();
     try {
       if (!formData.email || !formData.password) {
-        return toast.error("Email Hoặc Mật Khẩu Không Để Trống");
+        return toast.error(t('toast.loginEmailPasswordEmpty'));
       }
       if (!isValidEmail(formData.email)) {
-        return toast.error("Email Không Đúng Định Dạng");
+        return toast.error(t('toast.invalidEmailFormat'));
       }
       const res = await customerLogin(formData);
       if (res.data && res.data.code === 200) {
@@ -55,45 +57,38 @@ const Login = () => {
           refreshToken: res.data?.refreshToken,
         };
         const decoded = jwtDecode(dataToken.accessToken);
-        dispatch(login(dataToken));
-        dispatch(mergeGuestCart({ userId: decoded.username }));
 
-        toast.success("Đăng Nhập Thành Công");
+        dispatch(login(dataToken));
+        toast.success(t('toast.loginSuccess'));
+
+        dispatch(clearCart({ userId: GUEST_ID }));
         if (decoded?.role === 0) {
-          navigate('/')
-        }
-        else if (decoded?.role === 2) {
-          navigate('/sale-manager')
-        }
-        else if (decoded?.role === 3) {
-          navigate('/admin')
-        }
-        else if (decoded?.role === 4) {
-          navigate('/sale-staff')
+          navigate("/");
+        } else if (decoded?.role === 3) {
+          navigate("/admin");
         }
       } else if (res.data) {
         const status = res.data.code;
         switch (status) {
           case 400:
-            toast.error("Email Không Tồn Tại");
+            toast.error(t('toast.emailNotExist'));
             break;
           case 403:
-            toast.error("Mật Khẩu Không Đúng");
+            toast.error(t('toast.passwordWrong'));
             break;
           case 402:
-            toast.error("Tài Khoản Không Tồn Tại");
+            toast.error(t('toast.accountNotExist'));
             break;
           case 401:
-            toast.error("Tài Khoản Chưa Xác Thực");
-            console.log(formData.email);
+            toast.error(t('toast.accountNotVerified'));
             navigate(`/verify/${formData.email}`);
             break;
           default:
-            toast.error("Đăng Nhập Thất Bại");
+            toast.error(t('toast.loginFailed'));
             break;
         }
       } else {
-        toast.error("Không thể kết nối đến máy chủ");
+        toast.error(t('toast.serverConnectionFailed'));
       }
     } catch (error) {
       toast.error("Không thể kết nối đến máy chủ");
@@ -110,10 +105,10 @@ const Login = () => {
               <img className="" src={logo} />
             </div>
             <CardTitle className="text-2xl font-bold text-gray-800">
-              Đăng Nhập
+              {t('login.title')}
             </CardTitle>
             <CardDescription className="text-gray-600">
-              Chào mừng bạn trở lại với cửa hàng hạt dinh dưỡng
+              {t('login.subtitle')}
             </CardDescription>
           </CardHeader>
 
@@ -132,7 +127,7 @@ const Login = () => {
                     id="email"
                     name="email"
                     type="email"
-                    placeholder="Nhập địa chỉ email của bạn"
+                    placeholder={t('login.emailPlaceholder')}
                     value={formData.email}
                     onChange={handleInputChange}
                     className="pl-10 h-12 border-gray-200 focus:border-green-500 focus:ring-green-500"
@@ -145,7 +140,7 @@ const Login = () => {
                   htmlFor="password"
                   className="text-sm font-medium text-gray-700"
                 >
-                  Mật khẩu
+                  {t('login.passwordLabel')}
                 </Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
@@ -153,7 +148,7 @@ const Login = () => {
                     id="password"
                     name="password"
                     type={showPassword ? "text" : "password"}
-                    placeholder="Nhập mật khẩu của bạn"
+                    placeholder={t('login.passwordPlaceholder')}
                     value={formData.password}
                     onChange={handleInputChange}
                     className="pl-10 pr-10 h-12 border-gray-200 focus:border-green-500 focus:ring-green-500"
@@ -179,7 +174,7 @@ const Login = () => {
                   type="button"
                   className="text-sm text-green-600 hover:text-green-700 font-medium"
                 >
-                  Quên mật khẩu?
+                  {t('login.forgotPassword')}
                 </button>
               </div>
 
@@ -187,7 +182,7 @@ const Login = () => {
                 type="submit"
                 className="w-full h-12 bg-gradient-to-r from-green-600 to-amber-600 hover:from-green-700 hover:to-amber-700 text-white font-medium rounded-lg transition-all duration-200 transform hover:scale-[1.02]"
               >
-                Đăng Nhập
+                {t('login.loginButton')}
               </Button>
             </form>
 
@@ -197,7 +192,7 @@ const Login = () => {
                   <div className="w-full border-t border-gray-200" />
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white text-gray-500">Hoặc</span>
+                  <span className="px-2 bg-white text-gray-500">{t('login.divider')}</span>
                 </div>
               </div>
 
@@ -208,12 +203,12 @@ const Login = () => {
 
             <div className="mt-6 text-center">
               <p className="text-sm text-gray-600">
-                Chưa có tài khoản?
+                {t('login.noAccount')}
                 <Link
                   to="/register"
                   className="ml-1 text-green-600 hover:text-green-700 font-medium"
                 >
-                  Đăng ký ngay
+                  {t('login.registerNow')}
                 </Link>
               </p>
             </div>
@@ -222,13 +217,13 @@ const Login = () => {
 
         <div className="mt-6 text-center">
           <p className="text-xs text-gray-500">
-            Bằng việc đăng nhập, bạn đồng ý với{" "}
+            {t('login.termsPrefix')}{" "}
             <a href="#" className="text-green-600 hover:text-green-700">
-              Điều khoản sử dụng
+              {t('login.termsOfUse')}
             </a>{" "}
-            và{" "}
+            {t('login.and')}{" "}
             <a href="#" className="text-green-600 hover:text-green-700">
-              Chính sách bảo mật
+              {t('login.privacyPolicy')}{" "}
             </a>
           </p>
         </div>

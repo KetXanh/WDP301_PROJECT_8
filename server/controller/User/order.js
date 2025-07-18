@@ -2,7 +2,8 @@ const { Orders } = require("../../models/product/order");
 const productBase = require("../../models/product/productBase");
 const ProductVariant = require("../../models/product/ProductVariant");
 const Users = require("../../models/user");
-const generateCOD = require('../../utils/generateCOD')
+const generateCOD = require('../../utils/generateCOD');
+const removePurchasedFromCart = require("../../utils/removeProductInCart");
 
 module.exports.userOrder = async (req, res) => {
     try {
@@ -57,17 +58,145 @@ module.exports.userOrder = async (req, res) => {
             totalAmount: total,
             totalQuantity,
             shippingAddress: req.body.shippingAddress,
-            COD: cod
+            COD: cod,
+            payment: req.body.paymentMethod,
+            note: req.body.note
         });
+        if (req.body.paymentMethod === "CASH") {
+            const purchasedIds = order.items.map(item => item.product);
+            await removePurchasedFromCart(order.user, purchasedIds);
+        }
         res.json({
             code: 201,
             message: "Order successfully",
-            order
+            orderId: order._id,
+            totalAmount: order.totalAmount
         })
     } catch (error) {
         return res.status(500).json({
             code: 500,
             message: 'Server Error',
+            error: error.message
+        });
+    }
+}
+
+module.exports.getOrderById = async (req, res) => {
+    try {
+        const orderId = req.params.id;
+
+        if (!orderId) {
+            return res.json({
+                code: 400,
+                message: "Invalid order ID format"
+            });
+        }
+
+        const order = await Orders.findById(orderId)
+            .populate({
+                path: "user",
+                select: "email fullName"
+            })
+            .populate({
+                path: "items.product",
+                select: "name price"
+            })
+            .lean();
+
+        if (!order) {
+            return res.status(404).json({
+                code: 404,
+                message: "Order not found"
+            });
+        }
+
+        res.json({
+            code: 200,
+            message: "Order retrieved successfully",
+            data: order
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            code: 500,
+            message: "Server Error",
+            error: error.message
+        });
+    }
+};
+
+
+module.exports.getOrderByUser = async (req, res) => {
+    try {
+        const username = req.user.username;
+        const user = await Users.findOne({
+            username: username
+        })
+        if (!user) {
+            return res.json({
+                code: 404,
+                message: "Not found user"
+            })
+        }
+        const order = await Orders.find({ user: user._id })
+            .select("items totalAmount status payment note createdAt shippingAddress paymentStatus")
+            .sort({ createdAt: -1 })
+            .populate({ path: "user", select: "email fullName" })
+            .populate({
+                path: "items.product",
+                select: "price baseProduct",
+                populate: {
+                    path: "baseProduct",
+                    select: "name image"
+                }
+            })
+            .lean();
+
+
+        // {
+        //     id: '4',
+        //     orderNumber: 'ORD-2024-004',
+        //     date: '2024-01-22',
+        //     status: 'cancelled',
+        //     total: 150000,
+        //     items: [
+        //         { id: '5', name: 'Mũ lưỡi trai', quantity: 1, price: 150000 }
+        //     ],
+        //     shippingAddress: '321 Võ Văn Tần, Quận 1, TP.HCM',
+        //     paymentMethod: 'Thẻ tín dụng'
+        // }
+
+        const formatData = order.map(o => ({
+            id: o._id,
+            orderNumber: o._id,
+            date: o.createdAt,
+            status: o.status,
+            total: o.totalAmount,
+            items: o.items.map(i => ({
+                id: i.product?.baseProduct?._id,
+                name: i.product?.baseProduct?.name,
+                price: i.product?.price,
+                image: i.product?.baseProduct?.image?.url,
+                quantity: i.quantity
+            })),
+            shippingAddress: `${o?.shippingAddress?.street}, ${o?.shippingAddress?.ward}, ${o?.shippingAddress?.district}, ${o?.shippingAddress?.province}`,
+            paymentMethod: o.payment,
+            note: o.note,
+            paymentStatus: o.paymentStatus
+        }))
+
+
+
+
+        res.json({
+            code: 200,
+            message: "Order user successfully",
+            data: formatData
+        });
+    } catch (error) {
+        return res.status(500).json({
+            code: 500,
+            message: "Server Error",
             error: error.message
         });
     }

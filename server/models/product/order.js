@@ -1,15 +1,15 @@
 const mongoose = require("mongoose");
 const addressSchema = new mongoose.Schema(
-    {
-        label: { type: String, trim: true },
-        fullName: { type: String, trim: true },
-        street: { type: String, required: true },
-        ward: { type: String, required: true },
-        district: { type: String, required: true },
-        province: { type: String, required: true },
-        phone: { type: String, required: true },
-    },
-    { _id: false }
+  {
+    label: { type: String, trim: true },
+    fullName: { type: String, trim: true },
+    street: { type: String, required: true },
+    ward: { type: String, required: true },
+    district: { type: String, required: true },
+    province: { type: String, required: true },
+    phone: { type: String, required: true },
+  },
+  { _id: false }
 );
 const orderSchema = new mongoose.Schema(
   {
@@ -30,11 +30,17 @@ const orderSchema = new mongoose.Schema(
     totalAmount: Number,
     totalQuantity: Number,
     shippingAddress: addressSchema,
-    status: {
+    paymentStatus: {
       type: String,
-      enum: ["pending", "shipped", "delivered", "cancelled"],
+      enum: ["pending", "success", "cancelled", "failed"],
       default: "pending",
     },
+    status: {
+      type: String,
+      enum: ["pending", "processing", "shipped", "delivered", "cancelled", "failed"],
+      default: "pending",
+    },
+    note: String
   },
   { timestamps: true }
 );
