@@ -6,7 +6,7 @@ const commentSchema = new Schema(
   {
     author: {
       type: Schema.Types.ObjectId,
-      ref: "User", // Chuẩn hóa tên model User
+      ref: "Users", 
       required: true,
     },
     text: {
@@ -38,7 +38,7 @@ const blogSchema = new Schema(
     },
     author: {
       type: Schema.Types.ObjectId,
-      ref: "User",
+      ref: "Users",
       required: true,
       index: true,
     },

@@ -100,8 +100,13 @@ export const getUserStats = () => {
 };
 
 // Thay đổi vai trò của người dùng
-export const changeRole = (id, data) => {
-  return instance.put(`/api/admin/changeRole/${id}`, data, { withCredentials: true });
+export const changeRole = (id, data, token) => {
+  return instance.put(`/admin/changeRole/${id}`, data, {
+    withCredentials: true,
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
 };
 
 // Cấm người dùng
@@ -116,4 +121,60 @@ export const unbanUser = (id) => {
 //Lấy danh sách tất cả sản phẩm
 export const getAllProduct = () => {
   return instance.get("/admin/getAllProduct");
+};
+
+//BLOG API CHO ADMIN DEV=============================================
+// Lấy danh sách blog
+export const getAllBlogs = () => {
+  return instance.get("/blog");
+};
+
+// Lấy chi tiết blog theo ID
+export const getBlogDetail = (id) => {
+  return instance.get(`/blog/${id}`);
+};
+
+// Tạo blog mới
+export const createBlog = (blogData) => {
+  const token = localStorage.getItem("token");
+  return instance.post("/blog", blogData, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+};
+// Cập nhật blog
+export const updateBlog = (id, blogData) => {
+  const token = localStorage.getItem("accessToken");
+  return instance.put(`/blog/${id}`, blogData, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    withCredentials: true,
+  });
+};
+
+// Xóa blog
+export const deleteBlog = (id) => {
+  const token = localStorage.getItem("token");
+  return instance.delete(`/blog/${id}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+};
+
+// Thêm comment cho blog
+export const addComment = (id, commentData) => {
+  return instance.post(`/blog/${id}/comments`, commentData);
+};
+
+// Cập nhật comment
+export const updateComment = (blogId, commentId, commentData) => {
+  return instance.put(`/blog/${blogId}/comments/${commentId}`, commentData);
+};
+
+// Xóa comment khỏi blog
+export const deleteComment = (blogId, commentId) => {
+  return instance.delete(`/blog/${blogId}/comments/${commentId}`);
 };

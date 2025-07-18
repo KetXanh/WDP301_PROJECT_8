@@ -53,12 +53,13 @@ import ProductDetail from "./pages/Customers/ProductDetail";
 import ProtectedRoute from "./components/protectedRouter/ProtectedRoute";
 import { Car, Contact } from "lucide-react";
 import Cart from "./pages/Customers/Cart";
-//Sale Manager Pages
+//Admin Dev Pages
 import AdminDevLayout from "./pages/AdminDev/AdminDevLayout";
 import DashboardAdminDev from "./pages/AdminDev/Dashboard";
 import StatisticsAdminDev from "./pages/AdminDev/Statistics";
 import AccountManagement from "./pages/AdminDev/AccountManagement";
 import ProductManagement from "./pages/AdminDev/ProductManagement";
+import AdminBlog from "./pages/AdminDev/AdminBlog";
 
 import Checkout from "./pages/Customers/Checkout";
 import About from "./components/customer/About";
@@ -186,6 +187,7 @@ function App() {
           <Route path="stats" element={<StatisticsAdminDev/>}/>
           <Route path="accmanage" element={<AccountManagement/>}/>
           <Route path="productmanagement" element={<ProductManagement/>}/>
+          <Route path="blogmanagement" element={<AdminBlog />} />
         </Route>
         {/* Not Found */}
         <Route path="*" element={<NotFound />} />

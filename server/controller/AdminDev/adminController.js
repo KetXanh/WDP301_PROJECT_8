@@ -41,15 +41,8 @@ module.exports.changeRole = async (req, res) => {
         const { role } = req.body;
         const user = req.user;
 
-        // Kiểm tra phân quyền: chỉ role >= 1 (admin dev) mới được đổi vai trò
-        // if (!user || user.role < 1) {
-        //     return res.status(403).json({
-        //         message: "Access denied. Only admin can change roles."
-        //     });
-        // }
-
         // Kiểm tra role hợp lệ
-        const validRoles = [0, 1, 2, 3, 4];
+        const validRoles = [0, 2, 3, 4];
         if (!validRoles.includes(role)) {
             return res.status(400).json({
                 message: "Invalid role."
@@ -79,7 +72,10 @@ module.exports.changeRole = async (req, res) => {
             error: error.message
         });
     }
+    console.log(`User with ID ${id} role changed to ${role} by ${user.username}`);
+    
 };
+
 
 module.exports.banUser = async (req, res) => {
     try {

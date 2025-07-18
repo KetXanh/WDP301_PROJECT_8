@@ -57,6 +57,8 @@ const Login = () => {
                 if (decoded?.role === 0) {
                     navigate('/')
 
+                }else if (decoded?.role === 1) {
+                    navigate('/admin-dev')
                 }
                 else if (decoded?.role === 2) {
                     navigate('/sale-manager')

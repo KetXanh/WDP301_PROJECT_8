@@ -36,6 +36,7 @@ module.exports.login = async (req, res) => {
         }
 
         const dataToken = {
+            id: user._id,
             username: user.username,
             email: user.email,
             role: user.role
@@ -53,6 +54,8 @@ module.exports.login = async (req, res) => {
             accessToken,
             refreshToken,
         })
+        console.log(dataToken);
+        
     } catch (error) {
         res.status(500).json({ message: "Server Error", error: error.message });
     }
