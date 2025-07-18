@@ -124,16 +124,23 @@ export const getAllProduct = () => {
 };
 
 //BLOG API CHO ADMIN DEV=============================================
+
 // Lấy danh sách blog
-export const getAllBlogs = () => {
-  return instance.get("/blog");
+export const getAllBlogs = async () => {
+  try {
+    const response = await instance.get("/blog");
+    return Array.isArray(response.data?.data) ? response.data.data : [];
+  } catch (error) {
+    console.error("API Error:", error);
+    return [];
+  }
 };
 
 // Lấy chi tiết blog theo ID
 export const getBlogDetail = (id) => {
   return instance.get(`/blog/${id}`);
 };
-
+ 
 // Tạo blog mới
 export const createBlog = (blogData) => {
   const token = localStorage.getItem("token");

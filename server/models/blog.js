@@ -53,7 +53,7 @@ const blogSchema = new Schema(
       {
         type: String,
         trim: true,
-        index: true,
+        // index: true,
       },
     ],
     comments: [commentSchema],

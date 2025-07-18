@@ -105,6 +105,7 @@ const Header = () => {
                         <Link to="/" className="text-gray-700 hover:text-green-600 font-medium">Trang Chủ</Link>
                         <Link to="/products" className="text-gray-700 hover:text-green-600 font-medium">Sản Phẩm</Link>
                         <a href="/about" className="text-gray-700 hover:text-green-600 font-medium">Về Chúng Tôi</a>
+                        <Link to="/blog" className="text-gray-700 hover:text-green-600 font-medium">Blog</Link>
                         <a href="/contact" className="text-gray-700 hover:text-green-600 font-medium">Liên Hệ</a>
                     </nav>
 

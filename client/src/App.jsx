@@ -17,6 +17,7 @@ import ForgotPassword from "./pages/Customers/ForgotPassword";
 import ForgotOtp from "./pages/Customers/ForgotOtp";
 import ResetPassword from "./pages/Customers/ResetPassword";
 import Profile from "./pages/Customers/Profile";
+import Blog from "./pages/Customers/Blog";
 import { useSelector } from "react-redux";
 
 // Admin Pages
@@ -129,7 +130,8 @@ function App() {
           <Route path="/products/:slug" element={<ProductDetail />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/about" element={<About />} />
-          <Route path="/contact" element={<ContactUs />} />
+          <Route path="/contact" element={<ContactUs />} /> 
+          <Route path="/blog" element={<Blog />} />
           {accessToken &&
             <>
               <Route path="/profile" element={<ProtectedRoute element={<Profile />} />} />

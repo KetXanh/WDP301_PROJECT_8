@@ -43,30 +43,34 @@ exports.getBlogs = async (req, res) => {
 };
 
 // Lấy chi tiết blog (kèm comment)
-
 exports.getBlogDetail = async (req, res) => {
   try {
-    const blog = await Blog.findById(req.params.id).populate(
-      "author",
-      "name avatar"
-    );
-    if (!blog)
-      return res
-        .status(404)
-        .json({ code: 404, message: "Không tìm thấy blog" });
+    const blogId = req.params.id;
+    if (!mongoose.Types.ObjectId.isValid(blogId)) {
+      return res.status(400).json({ code: 400, message: "ID không hợp lệ" });
+    }
+    
+    // Lấy blog và populate author ở blog + author trong comments
+    const blog = await Blog.findById(blogId)
+      .populate("author", "name avatar")
+      .populate("comments.author", "name avatar");  // populate tác giả comment
 
-    const comments = await Comment.find({ blog: blog._id }).populate(
-      "author",
-      "name avatar"
-    );
+    if (!blog) {
+      return res.status(404).json({ code: 404, message: "Không tìm thấy blog" });
+    }
 
-    res.json({ code: 200, data: { blog, comments } });
+    // comments đã nằm trong blog.comments rồi
+    res.json({ code: 200, data: { blog, comments: blog.comments } });
   } catch (err) {
-    res
-      .status(500)
-      .json({ code: 500, message: "Lỗi server", error: err.message });
+    console.error("Lỗi khi lấy chi tiết blog:", err);
+    res.status(500).json({
+      code: 500,
+      message: "Lỗi server",
+      error: err.message,
+    });
   }
 };
+
 
 // Cập nhật blog
 exports.updateBlog = async (req, res) => {

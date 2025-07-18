@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 
 const ContactUs = () => {
   const [formData, setFormData] = useState({
-    name: '',
+    name: '', 
     email: '',
     phone: '',
     subject: '',

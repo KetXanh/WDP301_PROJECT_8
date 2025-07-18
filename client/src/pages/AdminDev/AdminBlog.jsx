@@ -35,28 +35,23 @@ const AdminBlog = () => {
     fetchBlogs();
   }, []);
 
-  const fetchBlogs = async () => {
-    try {
-      setLoading(true);
-      const response = await getAllBlogs();
-      console.log("✅ Response from getAllBlogs:", response);
-      const data = Array.isArray(response.data)
-        ? response.data
-        : response.data?.data || [];
-      console.log("✅ Processed blog list:", data);
-      setBlogs(data);
-    } catch (error) {
-      console.error("❌ Error fetching blogs:", error);
-      toast({
-        title: "Lỗi",
-        description: "Không thể tải danh sách blog",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
+const fetchBlogs = async () => {
+  try {
+    setLoading(true);
+    const blogs = await getAllBlogs(); // chính là mảng rồi
+    console.log("✅ Fetched blogs:", blogs);
+    setBlogs(blogs);
+  } catch (error) {
+    console.error("❌ Error fetching blogs:", error);
+    toast({
+      title: "Lỗi",
+      description: "Không thể tải danh sách blog",
+      variant: "destructive",
+    });
+  } finally {
+    setLoading(false);
+  }
+};
   const filteredBlogs = blogs.filter((blog) => {
     const matchesSearch =
       blog.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
