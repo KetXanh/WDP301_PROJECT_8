@@ -20,6 +20,7 @@ import { getAllBlogs, getBlogDetail } from "../../services/Admin/AdminAPI";
 
 const Blog = () => {
   const [blogs, setBlogs] = useState([]);
+  const [filteredBlogs, setFilteredBlogs] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedBlog, setSelectedBlog] = useState(null);
 
@@ -36,17 +37,33 @@ const Blog = () => {
       }));
 
       setBlogs(formattedBlogs);
+      setFilteredBlogs(formattedBlogs);
     };
 
     fetchBlogs();
   }, []);
-  
+
+  // Search logic
+  useEffect(() => {
+    if (!searchTerm.trim()) {
+      setFilteredBlogs(blogs);
+    } else {
+      const lower = searchTerm.toLowerCase();
+      setFilteredBlogs(
+        blogs.filter((blog) =>
+          blog.title.toLowerCase().includes(lower) ||
+          blog.excerpt.toLowerCase().includes(lower) ||
+          blog.author.toLowerCase().includes(lower)
+        )
+      );
+    }
+  }, [searchTerm, blogs]);
+
   const handleReadMore = async (blog) => {
     try {
       const response = await getBlogDetail(blog._id || blog.id);
       const fullBlog = response.data.data;
 
-      // Format content nếu cần
       const enrichedBlog = {
         ...fullBlog,
         author: fullBlog.author?.name || "Tác giả ẩn danh",
@@ -117,13 +134,13 @@ const Blog = () => {
         </div>
 
         {/* Featured Posts Grid */}
-        {blogs.length > 0 ? (
+        {filteredBlogs.length > 0 ? (
           <div className="mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">
               Bài viết nổi bật
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {blogs.map((blog) => (
+              {filteredBlogs.map((blog) => (
                 <Card
                   key={blog._id || blog.id}
                   className="group hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border-0 bg-white rounded-2xl overflow-hidden"
@@ -178,15 +195,15 @@ const Blog = () => {
                       <div className="flex items-center gap-4">
                         <div className="flex items-center gap-1">
                           <User className="w-4 h-4" />
-                          <span>{blog.author || "Không rõ tác giả"}</span>
+                          <span>{blog.author}</span>
                         </div>
                         <div className="flex items-center gap-1">
                           <Calendar className="w-4 h-4" />
-                          <span>{blog.date || "Không có ngày"}</span>
+                          <span>{blog.date}</span>
                         </div>
                         <div className="flex items-center gap-1">
                           <Clock className="w-4 h-4" />
-                          <span>{blog.readTime || "Không rõ"}</span>
+                          <span>{blog.readTime}</span>
                         </div>
                       </div>
                     </div>
@@ -210,10 +227,10 @@ const Blog = () => {
               <Search className="w-12 h-12 text-gray-400" />
             </div>
             <h3 className="text-2xl font-bold text-gray-900 mb-2">
-              Không có bài viết nào
+              Không tìm thấy bài viết nào
             </h3>
             <p className="text-gray-600 mb-6">
-              Hiện chưa có bài viết nào được đăng tải
+              Hãy thử từ khóa khác hoặc kiểm tra chính tả.
             </p>
           </div>
         )}

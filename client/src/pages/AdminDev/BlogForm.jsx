@@ -205,23 +205,6 @@ export const BlogForm = ({ blog, onClose, onSave, user }) => {
                     </div>
                   </div>
 
-                  <div>
-                    <Label htmlFor="status">Trạng thái</Label>
-                    <Select
-                      value={formData.status}
-                      onValueChange={(value) =>
-                        setFormData({ ...formData, status: value })
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="draft">Bản nháp</SelectItem>
-                        <SelectItem value="published">Xuất bản</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
                 </div>
               </div>
 
