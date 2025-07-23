@@ -1,4 +1,4 @@
-import { Eye, Filter, Plus } from "lucide-react";
+import { Eye, Filter, ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import {
@@ -30,7 +30,9 @@ export default function Order() {
   const [selectedOrderId, setSelectedOrderId] = useState(null);
   const [statusFilter, setStatusFilter] = useState("");
   const [paymentFilter, setPaymentFilter] = useState("");
-  const [searchTerm, setSearchTerm] = useState(""); 
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
 
   useEffect(() => {
     fetchOrders();
@@ -54,7 +56,6 @@ export default function Order() {
     }
   };
 
-  // Filter orders based on search term, status, and payment
   const filteredOrders = orders.filter(
     (order) =>
       (statusFilter ? order.status === statusFilter : true) &&
@@ -63,6 +64,19 @@ export default function Order() {
         ? order.user?.username?.toLowerCase().includes(searchTerm.toLowerCase())
         : true)
   );
+
+  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+  const paginatedOrders = filteredOrders.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const handleResetFilter = () => {
+    setStatusFilter("");
+    setPaymentFilter("");
+    setSearchTerm("");
+    setCurrentPage(1);
+  };
 
   return (
     <div className="p-6 space-y-6 mt-10">
@@ -75,7 +89,10 @@ export default function Order() {
           type="text"
           placeholder="🔍 Tìm kiếm theo tên khách hàng..."
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={(e) => {
+            setSearchTerm(e.target.value);
+            setCurrentPage(1);
+          }}
           className="flex-1 min-w-[200px] px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
         <DropdownMenu.Root>
@@ -92,7 +109,10 @@ export default function Order() {
               </label>
               <select
                 value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
+                onChange={(e) => {
+                  setStatusFilter(e.target.value);
+                  setCurrentPage(1);
+                }}
                 className="w-full px-3 py-2 border rounded"
               >
                 <option value="">Tất cả</option>
@@ -110,7 +130,10 @@ export default function Order() {
               </label>
               <select
                 value={paymentFilter}
-                onChange={(e) => setPaymentFilter(e.target.value)}
+                onChange={(e) => {
+                  setPaymentFilter(e.target.value);
+                  setCurrentPage(1);
+                }}
                 className="w-full px-3 py-2 border rounded"
               >
                 <option value="">Tất cả</option>
@@ -121,11 +144,7 @@ export default function Order() {
             </div>
 
             <button
-              onClick={() => {
-                setStatusFilter("");
-                setPaymentFilter("");
-                setSearchTerm(""); 
-              }}
+              onClick={handleResetFilter}
               className="text-sm text-red-600 hover:underline"
             >
               Xoá lọc
@@ -154,7 +173,10 @@ export default function Order() {
                 Trạng thái
               </th>
               <th className="px-6 py-3 text-left font-semibold text-gray-700">
-                Phương thức thanh toán
+                Thanh toán
+              </th>
+              <th className="px-6 py-3 text-left font-semibold text-gray-700">
+                Trạng thái thanh toán
               </th>
               <th className="px-6 py-3 text-center font-semibold text-gray-700">
                 Hành động
@@ -162,16 +184,14 @@ export default function Order() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100 bg-white">
-            {filteredOrders.map((order) => (
+            {paginatedOrders.map((order) => (
               <tr key={order._id}>
                 <td className="px-6 py-4">{order._id}</td>
                 <td className="px-6 py-4">
-                  <div className="font-semibold">
-                    {order.user?.username || "Không rõ"}
-                  </div>
+                  {order.user?.username || "Không rõ"}
                 </td>
                 <td className="px-6 py-4">
-                  {new Date(order.createdAt).toLocaleDateString()}
+                  {new Date(order.createdAt).toLocaleDateString("vi-VN")}
                 </td>
                 <td className="px-6 py-4">
                   {order.totalAmount.toLocaleString()} đ
@@ -203,6 +223,7 @@ export default function Order() {
                   </DropdownMenu.Root>
                 </td>
                 <td className="px-6 py-4 text-center">{order.payment}</td>
+                <td className="px-6 py-4 text-center">{order.paymentStatus}</td>
                 <td className="px-6 py-4 text-center">
                   <button
                     onClick={() => setSelectedOrderId(order._id)}
@@ -213,7 +234,7 @@ export default function Order() {
                 </td>
               </tr>
             ))}
-            {filteredOrders.length === 0 && (
+            {paginatedOrders.length === 0 && (
               <tr>
                 <td colSpan="7" className="text-center py-6 text-gray-500">
                   Không tìm thấy đơn hàng nào.
@@ -223,6 +244,29 @@ export default function Order() {
           </tbody>
         </table>
       </div>
+
+      {/* Pagination controls */}
+      {totalPages > 1 && (
+        <div className="flex justify-center items-center gap-4 mt-6">
+          <button
+            onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+            disabled={currentPage === 1}
+            className="flex items-center gap-1 px-3 py-1 border rounded disabled:opacity-50"
+          >
+            <ChevronLeft size={16} />
+          </button>
+          <span className="text-sm font-medium">
+            Trang {currentPage} / {totalPages}
+          </span>
+          <button
+            onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+            disabled={currentPage === totalPages}
+            className="flex items-center gap-1 px-3 py-1 border rounded disabled:opacity-50"
+          >
+            <ChevronRight size={16} />
+          </button>
+        </div>
+      )}
 
       {selectedOrderId && (
         <OrderDetail

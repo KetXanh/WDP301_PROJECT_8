@@ -20,19 +20,22 @@ import * as Dialog from "@radix-ui/react-dialog";
 import AddProduct from "./Form/AddProduct";
 import UpdateProduct from "./Form/UpdateProduct";
 import ProductDetail from "./Form/ProductDetail";
+import ProductStatusToggle from "./Form/ProductStatusToggle";
 
 export default function Product() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [priceFilter, setPriceFilter] = useState({ min: "", max: "" }); 
-  const [dateFilter, setDateFilter] = useState({ start: "", end: "" }); 
+  const [priceFilter, setPriceFilter] = useState({ min: "", max: "" });
+  const [dateFilter, setDateFilter] = useState({ start: "", end: "" });
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedDetail, setSelectedDetail] = useState(null);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const flattenProducts = (products) => {
     const flattened = [];
@@ -95,7 +98,6 @@ export default function Product() {
     setIsEditModalOpen(true);
   };
 
-
   const filteredProducts = products.filter((p) => {
     const matchesName = p.baseProduct.name
       .toLowerCase()
@@ -112,6 +114,16 @@ export default function Product() {
         new Date(p.baseProduct.createdAt) <= new Date(dateFilter.end));
     return matchesName && matchesPrice && matchesDate;
   });
+
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+  const paginatedProducts = filteredProducts.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  useEffect(() => {
+    setCurrentPage(1); // Reset page when filters change
+  }, [searchTerm, priceFilter, dateFilter]);
 
   const handleExportExcel = async () => {
     try {
@@ -164,8 +176,8 @@ export default function Product() {
                     fetchProducts();
                   } catch (err) {
                     alert(
-                      "Lỗi khi nhập sản phẩm: " + err.response?.data?.message ||
-                        err.message
+                      "Lỗi khi nhập sản phẩm: " +
+                        (err.response?.data?.message || err.message)
                     );
                   }
                 }}
@@ -205,6 +217,7 @@ export default function Product() {
         </Dialog.Root>
       </div>
 
+      {/* FILTER BAR */}
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <input
           type="text"
@@ -221,6 +234,7 @@ export default function Product() {
             </button>
           </DropdownMenu.Trigger>
           <DropdownMenu.Content className="bg-white p-4 rounded shadow w-64 space-y-4 z-50">
+            {/* Filters... */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Giá tối thiểu (VNĐ)
@@ -231,7 +245,6 @@ export default function Product() {
                 onChange={(e) =>
                   setPriceFilter({ ...priceFilter, min: e.target.value })
                 }
-                placeholder="Nhập giá tối thiểu"
                 className="w-full px-3 py-2 border rounded"
               />
             </div>
@@ -245,7 +258,6 @@ export default function Product() {
                 onChange={(e) =>
                   setPriceFilter({ ...priceFilter, max: e.target.value })
                 }
-                placeholder="Nhập giá tối đa"
                 className="w-full px-3 py-2 border rounded"
               />
             </div>
@@ -285,9 +297,9 @@ export default function Product() {
             </div>
             <button
               onClick={() => {
+                setSearchTerm("");
                 setPriceFilter({ min: "", max: "" });
                 setDateFilter({ start: "", end: "" });
-                setSearchTerm("");
               }}
               className="text-sm text-red-600 hover:underline"
             >
@@ -297,6 +309,7 @@ export default function Product() {
         </DropdownMenu.Root>
       </div>
 
+      {/* PRODUCT TABLE */}
       <div className="overflow-x-auto rounded-lg border border-gray-200 shadow">
         <table className="min-w-full divide-y divide-gray-200 text-sm">
           <thead className="bg-gray-100">
@@ -314,6 +327,9 @@ export default function Product() {
                 Tồn kho
               </th>
               <th className="px-6 py-3 text-left font-semibold text-gray-700">
+                Trạng thái
+              </th>
+              <th className="px-6 py-3 text-left font-semibold text-gray-700">
                 Ngày tạo
               </th>
               <th className="px-6 py-3 text-center font-semibold text-gray-700">
@@ -322,7 +338,7 @@ export default function Product() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100 bg-white">
-            {filteredProducts.map((product, index) => (
+            {paginatedProducts.map((product, index) => (
               <tr
                 key={
                   product.baseProduct._id + "-" + (product.variantId || index)
@@ -332,7 +348,7 @@ export default function Product() {
                 <td className="px-6 py-4">
                   <img
                     src={product.baseProduct.image?.url}
-                    alt={product.baseProduct.name}
+                    alt=""
                     className="h-12 w-12 object-cover rounded"
                   />
                 </td>
@@ -341,8 +357,12 @@ export default function Product() {
                     ? `${product.price.toLocaleString()} đ`
                     : "—"}
                 </td>
+                <td className="px-6 py-4">{product.stock ?? "—"}</td>
                 <td className="px-6 py-4">
-                  {product.stock !== null ? product.stock : "—"}
+                  <ProductStatusToggle
+                    product={product}
+                    onStatusChange={fetchProducts}
+                  />
                 </td>
                 <td className="px-6 py-4">
                   {new Date(product.baseProduct.createdAt).toLocaleDateString(
@@ -374,9 +394,9 @@ export default function Product() {
                 </td>
               </tr>
             ))}
-            {filteredProducts.length === 0 && (
+            {paginatedProducts.length === 0 && (
               <tr>
-                <td colSpan="6" className="text-center py-6 text-gray-500">
+                <td colSpan="7" className="text-center py-6 text-gray-500">
                   Không tìm thấy sản phẩm nào.
                 </td>
               </tr>
@@ -385,6 +405,38 @@ export default function Product() {
         </table>
       </div>
 
+      {/* Pagination UI */}
+      {totalPages > 1 && (
+        <div className="flex justify-center mt-4 space-x-2">
+          <button
+            className="px-3 py-1 border rounded disabled:opacity-50"
+            onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+            disabled={currentPage === 1}
+          >
+            {'<'}
+          </button>
+          {[...Array(totalPages)].map((_, i) => (
+            <button
+              key={i}
+              className={`px-3 py-1 border rounded ${
+                currentPage === i + 1 ? "bg-blue-500 text-white" : ""
+              }`}
+              onClick={() => setCurrentPage(i + 1)}
+            >
+              {i + 1}
+            </button>
+          ))}
+          <button
+            className="px-3 py-1 border rounded disabled:opacity-50"
+            onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+            disabled={currentPage === totalPages}
+          >
+            {'>'}
+          </button>
+        </div>
+      )}
+
+      {/* Edit and Detail Modals */}
       <Dialog.Root open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
         <Dialog.Portal>
           <Dialog.Overlay className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40" />
@@ -412,6 +464,7 @@ export default function Product() {
           </Dialog.Content>
         </Dialog.Portal>
       </Dialog.Root>
+
       <ProductDetail
         open={isDetailModalOpen}
         onOpenChange={setIsDetailModalOpen}

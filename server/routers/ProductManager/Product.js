@@ -21,20 +21,17 @@ router.post("/consolidateProductVariants/:id", Authozation.authenticateToken, Au
 router.post("/update-all-slugs", Authozation.authenticateToken, Authozation.authorizeRoles(3), controller.updateAllProductSlugs);
 router.post("/import-excel",uploadExcel.single("file"),controller.importProductsFromExcel);
 router.get("/export-excel", controller.exportProductsToExcel);
+
 router.get("/orders",  Authozation.authenticateToken, Authozation.authorizeRoles(3),ordersController.getAllOrders);
 router.get("/orders/total",  ordersController.getTotalOrders);
 router.get("/orders/:orderId",  Authozation.authenticateToken, Authozation.authorizeRoles(3),ordersController.getOrderDetailById);
 router.post("/orders",  Authozation.authenticateToken, Authozation.authorizeRoles(3),ordersController.createOrder);
 router.put("/order/status/:orderId", Authozation.authenticateToken, Authozation.authorizeRoles(3), ordersController.updateOrderStatus);
-router.get("/ratings/:productId", ratingController.getRatingsByProduct);
-router.post("/ratings", Authozation.authenticateToken, Authozation.authorizeRoles(3), ratingController.createRating);
-router.delete("/ratings/:ratingId",Authozation.authenticateToken,Authozation.authorizeRoles(3),ratingController.deleteRating);
-router.get("/ratings/:productId/stats",Authozation.authenticateToken,Authozation.authorizeRoles(1, 2),ratingController.getRatingStats);
 
-router.post("/discount",Authozation.authenticateToken, Authozation.authorizeRoles(3), discountController.createDiscount);
-router.get("/discount",Authozation.authenticateToken, Authozation.authorizeRoles(3), discountController.getAllDiscounts);
-router.get("/discount/:id",Authozation.authenticateToken, Authozation.authorizeRoles(3), discountController.getDiscountById);
-router.put("/discount/:id", Authozation.authenticateToken, Authozation.authorizeRoles(3),discountController.updateDiscount);
-router.delete("/discount/:id", Authozation.authenticateToken, Authozation.authorizeRoles(3),discountController.deleteDiscount);
+// router.post("/discount",Authozation.authenticateToken, Authozation.authorizeRoles(3), discountController.createDiscount);
+// router.get("/discount",Authozation.authenticateToken, Authozation.authorizeRoles(3), discountController.getAllDiscounts);
+// router.get("/discount/:id",Authozation.authenticateToken, Authozation.authorizeRoles(3), discountController.getDiscountById);
+// router.put("/discount/:id", Authozation.authenticateToken, Authozation.authorizeRoles(3),discountController.updateDiscount);
+// router.delete("/discount/:id", Authozation.authenticateToken, Authozation.authorizeRoles(3),discountController.deleteDiscount);
 
 module.exports = router;

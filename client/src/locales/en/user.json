@@ -201,7 +201,8 @@
     ],
     "customerReviews": "Customer Reviews",
     "seeAllReviews": "See all reviews",
-    "rating": "{{rating}} reviews"
+    "rating": "{{rating}} reviews",
+    "noRating":"The product has no reviews yet"
   },
   "cart": {
     "title": "Shopping Cart",

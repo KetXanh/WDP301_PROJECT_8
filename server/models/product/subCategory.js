@@ -26,7 +26,7 @@ const SubCategorySchema = new mongoose.Schema({
     },
     createdBy: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "users",
+        ref: "Users",
     },
 }, {
     timestamps: true

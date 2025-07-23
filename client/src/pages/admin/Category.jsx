@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
-import * as DropdownMenu from "@radix-ui/react-dropdown-menu"; 
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import {
   getAllCategories,
   deleteCategory,
@@ -12,12 +12,15 @@ import { Trash2, Filter, Plus, Edit, X } from "lucide-react";
 export default function Category() {
   const [categories, setCategories] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState(""); 
+  const [statusFilter, setStatusFilter] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [openAdd, setOpenAdd] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
   const [editCategory, setEditCategory] = useState(null);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
 
   const fetchCategories = async () => {
     setIsLoading(true);
@@ -41,6 +44,10 @@ export default function Category() {
   useEffect(() => {
     fetchCategories();
   }, []);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter]);
 
   const handleDelete = async (id) => {
     if (!window.confirm("Bạn có chắc chắn muốn xoá danh mục này không?"))
@@ -67,6 +74,12 @@ export default function Category() {
         : category.status === (statusFilter === "true"))
   );
 
+  const totalPages = Math.ceil(filteredCategories.length / itemsPerPage);
+  const paginatedCategories = filteredCategories.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
   return (
     <div className="p-6 space-y-6 mt-10">
       <div className="flex items-center justify-between">
@@ -82,10 +95,7 @@ export default function Category() {
 
           <Dialog.Portal>
             <Dialog.Overlay className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40" />
-            <Dialog.Content
-              className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 
-              bg-white p-6 rounded-xl shadow-2xl z-50 w-[90vw] max-w-md"
-            >
+            <Dialog.Content className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-xl shadow-2xl z-50 w-[90vw] max-w-md">
               <Dialog.Title className="text-xl font-bold">
                 Thêm danh mục
               </Dialog.Title>
@@ -135,7 +145,6 @@ export default function Category() {
                 <option value="false">Chưa kích hoạt</option>
               </select>
             </div>
-           
           </DropdownMenu.Content>
         </DropdownMenu.Root>
       </div>
@@ -144,79 +153,114 @@ export default function Category() {
       {error && <div className="text-center py-6 text-red-500">{error}</div>}
 
       {!isLoading && !error && (
-        <div className="overflow-x-auto rounded-lg border border-gray-200 shadow">
-          <table className="min-w-full divide-y divide-gray-200 text-sm">
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="px-6 py-3 text-left font-semibold text-gray-700">
-                  Mã danh mục
-                </th>
-                <th className="px-6 py-3 text-left font-semibold text-gray-700">
-                  Tên danh mục
-                </th>
-                <th className="px-6 py-3 text-left font-semibold text-gray-700">
-                  Mô tả
-                </th>
-                <th className="px-6 py-3 text-center font-semibold text-gray-700">
-                  Trạng thái
-                </th>
-                <th className="px-6 py-3 text-left font-semibold text-gray-700">
-                  Ngày tạo
-                </th>
-                <th className="px-6 py-3 text-center font-semibold text-gray-700">
-                  Hành động
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100 bg-white">
-              {filteredCategories.map((category) => (
-                <tr key={category._id}>
-                  <td className="px-6 py-4">{category._id}</td>
-                  <td className="px-6 py-4">{category.name || "N/A"}</td>
-                  <td className="px-6 py-4">{category.description || "N/A"}</td>
-                  <td className="px-4 py-4 text-center">
-                    {category.status ? "✅" : "❌"}
-                  </td>
-                  <td className="px-6 py-4">
-                    {category.createdAt
-                      ? new Date(category.createdAt).toLocaleDateString("vi-VN")
-                      : "N/A"}
-                  </td>
-                  <td className="px-6 py-4 text-center flex justify-center gap-2">
-                    <button
-                      className="text-blue-600 hover:text-blue-800"
-                      onClick={() => handleEditClick(category)}
-                    >
-                      <Edit size={18} />
-                    </button>
-                    <button
-                      className="text-red-600 hover:text-red-800"
-                      onClick={() => handleDelete(category._id)}
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-              {filteredCategories.length === 0 && (
+        <>
+          <div className="overflow-x-auto rounded-lg border border-gray-200 shadow">
+            <table className="min-w-full divide-y divide-gray-200 text-sm">
+              <thead className="bg-gray-100">
                 <tr>
-                  <td colSpan="6" className="text-center py-6 text-gray-500">
-                    Không tìm thấy danh mục nào. 
-                  </td>
+                  <th className="px-6 py-3 text-left font-semibold text-gray-700">
+                    Mã danh mục
+                  </th>
+                  <th className="px-6 py-3 text-left font-semibold text-gray-700">
+                    Tên danh mục
+                  </th>
+                  <th className="px-6 py-3 text-left font-semibold text-gray-700">
+                    Mô tả
+                  </th>
+                  <th className="px-6 py-3 text-center font-semibold text-gray-700">
+                    Trạng thái
+                  </th>
+                  <th className="px-6 py-3 text-left font-semibold text-gray-700">
+                    Ngày tạo
+                  </th>
+                  <th className="px-6 py-3 text-center font-semibold text-gray-700">
+                    Hành động
+                  </th>
                 </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-gray-100 bg-white">
+                {paginatedCategories.map((category) => (
+                  <tr key={category._id}>
+                    <td className="px-6 py-4">{category._id}</td>
+                    <td className="px-6 py-4">{category.name || "N/A"}</td>
+                    <td className="px-6 py-4">
+                      {category.description || "N/A"}
+                    </td>
+                    <td className="px-4 py-4 text-center">
+                      {category.status ? "✅" : "❌"}
+                    </td>
+                    <td className="px-6 py-4">
+                      {category.createdAt
+                        ? new Date(category.createdAt).toLocaleDateString(
+                            "vi-VN"
+                          )
+                        : "N/A"}
+                    </td>
+                    <td className="px-6 py-4 text-center flex justify-center gap-2">
+                      <button
+                        className="text-blue-600 hover:text-blue-800"
+                        onClick={() => handleEditClick(category)}
+                      >
+                        <Edit size={18} />
+                      </button>
+                      <button
+                        className="text-red-600 hover:text-red-800"
+                        onClick={() => handleDelete(category._id)}
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+                {filteredCategories.length === 0 && (
+                  <tr>
+                    <td colSpan="6" className="text-center py-6 text-gray-500">
+                      Không tìm thấy danh mục nào.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {totalPages > 1 && (
+            <div className="flex justify-center items-center gap-2 mt-4">
+              <button
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                className="px-3 py-1 border rounded hover:bg-gray-100 disabled:opacity-50"
+              >
+                {'<'}
+              </button>
+              {[...Array(totalPages)].map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentPage(index + 1)}
+                  className={`px-3 py-1 border rounded hover:bg-gray-100 ${
+                    currentPage === index + 1 ? "bg-blue-500 text-white" : ""
+                  }`}
+                >
+                  {index + 1}
+                </button>
+              ))}
+              <button
+                disabled={currentPage === totalPages}
+                onClick={() =>
+                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                }
+                className="px-3 py-1 border rounded hover:bg-gray-100 disabled:opacity-50"
+              >
+                {">"}
+              </button>
+            </div>
+          )}
+        </>
       )}
 
       <Dialog.Root open={openEdit} onOpenChange={setOpenEdit}>
         <Dialog.Portal>
           <Dialog.Overlay className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40" />
-          <Dialog.Content
-            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 
-            bg-white p-6 rounded-xl shadow-2xl z-50 w-[90vw] max-w-md"
-          >
+          <Dialog.Content className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-xl shadow-2xl z-50 w-[90vw] max-w-md">
             <Dialog.Title className="text-xl font-bold">
               Cập nhật danh mục
             </Dialog.Title>

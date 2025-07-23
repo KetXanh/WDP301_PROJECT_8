@@ -21,12 +21,14 @@ export default function SubCategory() {
   const [openEdit, setOpenEdit] = useState(false);
   const [editSubCategory, setEditSubCategory] = useState(null);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+
   const fetchSubCategories = async () => {
     setIsLoading(true);
     setError(null);
     try {
       const res = await getAllSubCategories();
-      console.log("Dữ liệu subCategories:", res.data); 
       if (Array.isArray(res.data.subCategories)) {
         setSubCategories(res.data.subCategories);
       } else {
@@ -57,6 +59,10 @@ export default function SubCategory() {
     fetchCategories();
   }, []);
 
+  useEffect(() => {
+    setCurrentPage(1); // reset về trang đầu khi search/filter thay đổi
+  }, [searchTerm, statusFilter]);
+
   const handleDelete = async (id) => {
     if (!window.confirm("Bạn có chắc chắn muốn xóa danh mục con này không?"))
       return;
@@ -73,7 +79,6 @@ export default function SubCategory() {
     setOpenEdit(true);
   };
 
-  // Updated filter logic to include status filter
   const filteredSubCategories = subCategories.filter(
     (subCategory) =>
       (subCategory.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -81,6 +86,12 @@ export default function SubCategory() {
       (statusFilter === ""
         ? true
         : subCategory.status === (statusFilter === "true"))
+  );
+
+  const totalPages = Math.ceil(filteredSubCategories.length / itemsPerPage);
+  const paginatedSubCategories = filteredSubCategories.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
   );
 
   const getCategoryName = (categoryId) => {
@@ -100,13 +111,9 @@ export default function SubCategory() {
               {openAdd ? "Đóng form" : "Thêm danh mục con"}
             </button>
           </Dialog.Trigger>
-
           <Dialog.Portal>
             <Dialog.Overlay className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40" />
-            <Dialog.Content
-              className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 
-              bg-white p-6 rounded-xl shadow-2xl z-50 w-[90vw] max-w-md"
-            >
+            <Dialog.Content className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-xl shadow-2xl z-50 w-[90vw] max-w-md">
               <Dialog.Title className="text-xl font-bold">
                 Thêm danh mục con
               </Dialog.Title>
@@ -167,89 +174,120 @@ export default function SubCategory() {
       {error && <div className="text-center py-6 text-red-500">{error}</div>}
 
       {!isLoading && !error && (
-        <div className="overflow-x-auto rounded-lg border border-gray-200 shadow">
-          <table className="min-w-full divide-y divide-gray-200 text-sm">
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="px-6 py-3 text-left font-semibold text-gray-700">
-                  Mã danh mục con
-                </th>
-                <th className="px-6 py-3 text-left font-semibold text-gray-700">
-                  Tên danh mục con
-                </th>
-                <th className="px-6 py-3 text-left font-semibold text-gray-700">
-                  Mô tả
-                </th>
-                <th className="px-6 py-3 text-left font-semibold text-gray-700">
-                  Danh mục cha
-                </th>
-                <th className="px-6 py-3 text-center font-semibold text-gray-700">
-                  Trạng thái
-                </th>
-                <th className="px-6 py-3 text-left font-semibold text-gray-700">
-                  Ngày tạo
-                </th>
-                <th className="px-6 py-3 text-center font-semibold text-gray-700">
-                  Hành động
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100 bg-white">
-              {filteredSubCategories.map((subCategory) => (
-                <tr key={subCategory._id}>
-                  <td className="px-6 py-4">{subCategory._id}</td>
-                  <td className="px-6 py-4">{subCategory.name || "N/A"}</td>
-                  <td className="px-6 py-4">
-                    {subCategory.description || "N/A"}
-                  </td>
-                  <td className="px-6 py-4">
-                    {getCategoryName(subCategory.category)}
-                  </td>
-                  <td className="px-4 py-4 text-center">
-                    {subCategory.status ? "✅" : "❌"}
-                  </td>
-                  <td className="px-6 py-4">
-                    {subCategory.createdAt
-                      ? new Date(subCategory.createdAt).toLocaleDateString(
-                          "vi-VN"
-                        )
-                      : "N/A"}
-                  </td>
-                  <td className="px-6 py-4 text-center flex justify-center gap-2">
-                    <button
-                      className="text-blue-600 hover:text-blue-800"
-                      onClick={() => handleEditClick(subCategory)}
-                    >
-                      <Edit size={18} />
-                    </button>
-                    <button
-                      className="text-red-600 hover:text-red-800"
-                      onClick={() => handleDelete(subCategory._id)}
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-              {filteredSubCategories.length === 0 && (
+        <>
+          <div className="overflow-x-auto rounded-lg border border-gray-200 shadow">
+            <table className="min-w-full divide-y divide-gray-200 text-sm">
+              <thead className="bg-gray-100">
                 <tr>
-                  <td colSpan="7" className="text-center py-6 text-gray-500">
-                    Không tìm thấy danh mục con nào.
-                  </td>
+                  <th className="px-6 py-3 text-left font-semibold text-gray-700">
+                    Mã danh mục con
+                  </th>
+                  <th className="px-6 py-3 text-left font-semibold text-gray-700">
+                    Tên
+                  </th>
+                  <th className="px-6 py-3 text-left font-semibold text-gray-700">
+                    Mô tả
+                  </th>
+                  <th className="px-6 py-3 text-left font-semibold text-gray-700">
+                    Danh mục cha
+                  </th>
+                  <th className="px-6 py-3 text-center font-semibold text-gray-700">
+                    Trạng thái
+                  </th>
+                  <th className="px-6 py-3 text-left font-semibold text-gray-700">
+                    Ngày tạo
+                  </th>
+                  <th className="px-6 py-3 text-center font-semibold text-gray-700">
+                    Hành động
+                  </th>
                 </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-gray-100 bg-white">
+                {paginatedSubCategories.map((subCategory) => (
+                  <tr key={subCategory._id}>
+                    <td className="px-6 py-4">{subCategory._id}</td>
+                    <td className="px-6 py-4">{subCategory.name || "N/A"}</td>
+                    <td className="px-6 py-4">
+                      {subCategory.description || "N/A"}
+                    </td>
+                    <td className="px-6 py-4">
+                      {getCategoryName(subCategory.category)}
+                    </td>
+                    <td className="px-4 py-4 text-center">
+                      {subCategory.status ? "✅" : "❌"}
+                    </td>
+                    <td className="px-6 py-4">
+                      {subCategory.createdAt
+                        ? new Date(subCategory.createdAt).toLocaleDateString(
+                            "vi-VN"
+                          )
+                        : "N/A"}
+                    </td>
+                    <td className="px-6 py-4 text-center flex justify-center gap-2">
+                      <button
+                        className="text-blue-600 hover:text-blue-800"
+                        onClick={() => handleEditClick(subCategory)}
+                      >
+                        <Edit size={18} />
+                      </button>
+                      <button
+                        className="text-red-600 hover:text-red-800"
+                        onClick={() => handleDelete(subCategory._id)}
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+                {filteredSubCategories.length === 0 && (
+                  <tr>
+                    <td colSpan="7" className="text-center py-6 text-gray-500">
+                      Không tìm thấy danh mục con nào.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {totalPages > 1 && (
+            <div className="flex justify-center items-center gap-2 mt-4">
+              <button
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                className="px-3 py-1 border rounded hover:bg-gray-100 disabled:opacity-50"
+              >
+                {"<"}
+              </button>
+              {[...Array(totalPages)].map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentPage(index + 1)}
+                  className={`px-3 py-1 border rounded hover:bg-gray-100 ${
+                    currentPage === index + 1 ? "bg-blue-500 text-white" : ""
+                  }`}
+                >
+                  {index + 1}
+                </button>
+              ))}
+              <button
+                disabled={currentPage === totalPages}
+                onClick={() =>
+                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                }
+                className="px-3 py-1 border rounded hover:bg-gray-100 disabled:opacity-50"
+              >
+                {">"}
+              </button>
+            </div>
+          )}
+        </>
       )}
 
       <Dialog.Root open={openEdit} onOpenChange={setOpenEdit}>
         <Dialog.Portal>
           <Dialog.Overlay className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40" />
-          <Dialog.Content
-            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 
-            bg-white p-6 rounded-xl shadow-2xl z-50 w-[90vw] max-w-md"
-          >
+          <Dialog.Content className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-xl shadow-2xl z-50 w-[90vw] max-w-md">
             <Dialog.Title className="text-xl font-bold">
               Cập nhật danh mục con
             </Dialog.Title>

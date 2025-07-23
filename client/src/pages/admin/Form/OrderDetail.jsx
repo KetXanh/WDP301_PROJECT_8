@@ -88,6 +88,9 @@ export default function OrderDetail({ orderId, onClose }) {
               <strong>Trạng thái:</strong> {order.status}
             </p>
             <p>
+              <strong>Ghi chú:</strong> {order.note || ' '} 
+            </p>
+            <p>
               <strong>Phương thức thanh toán:</strong>{" "}
               {order.payment || "Không rõ"}
             </p>

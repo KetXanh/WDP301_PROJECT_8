@@ -60,6 +60,7 @@ import AdminDevLayout from "./pages/AdminDev/AdminDevLayout";
 
 
 import Checkout from "./pages/Customers/Checkout";
+import Rating from "./pages/admin/Rating";
 import PaymentResult from "./pages/Customers/PaymentResult";
 import OrderHistory from "./pages/Customers/OrderHistory";
 // import VnpayWaiting from "./pages/Customers/VnpayWaiting";
@@ -136,15 +137,18 @@ function App() {
           <Route path="/products" element={<Products />} />
           <Route path="/products/:slug" element={<ProductDetail />} />
           <Route path="/cart" element={<Cart />} />
-          {accessToken &&
+          {accessToken && (
             <>
-              <Route path="/profile" element={<ProtectedRoute element={<Profile />} />} />
+              <Route
+                path="/profile"
+                element={<ProtectedRoute element={<Profile />} />}
+              />
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/vnpay_return" element={<PaymentResult />} />
               <Route path="/order-history" element={<OrderHistory />} />
 
             </>
-          }
+          )}
 
           {/* Cần đăng nhập */}
           <Route
@@ -173,6 +177,7 @@ function App() {
           <Route path="category" element={<Category />} />
           <Route path="task" element={<Task />} />
           <Route path="kpi" element={<Kpi />} />
+          <Route path="rating" element={<Rating/>} />
         </Route>
 
         {/* Sale Manager Routes */}

@@ -35,11 +35,12 @@ export const deleteProduct = (id) => {
 };
 
 // Kích hoạt / vô hiệu hóa sản phẩm
-export const activeProduct = (id) => {
-  return instance.put(`/productmanager/product/activeProduct/${id}`);
+export const activeProduct = (id, status) => {
+  return instance.put(`/productmanager/product/activeProduct/${id}`, {
+    status,
+  });
 };
 
-// Cập nhật tồn kho cho sản phẩm
 export const updateStock = (id, stockData) => {
   return instance.put(
     `/productmanager/product/updateStock/${id}`,
@@ -124,6 +125,33 @@ export const getOrderDetailByID = (orderId) => {
 
 export const getTotalOrders = async () => {
     return instance.get("productmanager/product/orders/total"); 
+};
+
+// Lấy tất cả đánh giá (dành cho admin hoặc product manager)
+export const getAllRatings = (params) => {
+  return instance.get("/productmanager/rating/ratings", { params });
+};
+
+
+export const addRating = (data) => {
+  return instance.post("/productmanager/rating/add", data);
+};
+
+
+export const deleteRating = (ratingId) => {
+  return instance.delete(`/productmanager/rating/ratings/${ratingId}`);
+};
+
+
+export const getRatingStats = (productId) => {
+  return instance.get(`/productmanager/rating/ratings/${productId}/stats`);
+};
+
+
+export const getRatingsByBaseProduct = (baseProductId, params) => {
+  return instance.get(`/productmanager/rating/ratings/${baseProductId}`, {
+    params,
+  });
 };
 
 
