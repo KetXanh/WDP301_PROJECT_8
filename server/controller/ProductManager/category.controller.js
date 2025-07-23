@@ -50,7 +50,7 @@ module.exports.getCategoryBySlug = async (req, res) => {
     }
 }
 
-module.exports.getSubCategoryBySlug = async (req, res) => {
+module.exports. getSubCategoryBySlug = async (req, res) => {
     try {
         const { slug } = req.params;
         let subCategory = await SubCategory.findOne({ slug });

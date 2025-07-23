@@ -18,7 +18,7 @@ router.delete(
   ratingController.deleteRating
 );
 router.get("/ratings/:productId/stats", ratingController.getRatingStats);
-// router.get("/ratings/by-base-product/:baseProductId", ratingController.getRatingsByBaseProduct);
+
 router.get(
   "/ratings/:baseProductId",
   ratingController.getRatingsByBaseProduct

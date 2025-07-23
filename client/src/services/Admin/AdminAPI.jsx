@@ -40,7 +40,7 @@ export const activeProduct = (id, status) => {
     status,
   });
 };
-// Cập nhật tồn kho cho sản phẩm
+
 export const updateStock = (id, stockData) => {
   return instance.put(
     `/productmanager/product/updateStock/${id}`,
