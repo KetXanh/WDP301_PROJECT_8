@@ -22,8 +22,18 @@ exports.getMyOrderById = async (req, res) => {
         const userLogin = req.user;
         const user = await Users.findOne({ email: userLogin.email });
         if (!user) return res.status(404).json({ message: "Không tìm thấy người dùng" });
-        const order = await OrderAssignment.findOne({ _id: req.params.id, assignedTo: user._id }).populate("orderId", "COD totalAmount status createdAt user items shippingAddress");
+        const order = await OrderAssignment.findOne({ _id: req.params.id, assignedTo: user._id }).populate("orderId", "COD totalAmount status createdAt user items shippingAddress payment paymentStatus note");
         if (!order) return res.status(404).json({ message: "Không tìm thấy đơn hàng" });
+
+        // Lấy thêm dữ liệu từ bảng Orders
+        const orderDoc = await Orders.findById(order.orderId._id).lean();
+        // Merge các trường cần thiết
+        const orderDetailFull = {
+            ...order.orderId.toObject(),
+            payment: order.orderId.payment || orderDoc?.payment,
+            paymentStatus: order.orderId.paymentStatus || orderDoc?.paymentStatus,
+            note: order.orderId.note || orderDoc?.note
+        };
 
         const productIds = order.orderId.items.map(item => item.product);
         const productVariants = await ProductVariant.find({ _id: { $in: productIds } });
@@ -40,7 +50,15 @@ exports.getMyOrderById = async (req, res) => {
             };
         });
 
-        res.status(200).json({ message: "Lấy chi tiết đơn hàng thành công", orderDetail: order.orderId, products: productDetail });
+        // Loại bỏ trường orderId khỏi orderAssignment
+        const { orderId, ...orderAssignmentData } = order._doc;
+
+        res.status(200).json({
+            message: "Lấy chi tiết đơn hàng thành công",
+            orderAssignment: orderAssignmentData,
+            orderDetail: orderDetailFull,
+            products: productDetail
+        });
     } catch (error) {
         res.status(500).json({ message: "Lỗi máy chủ", error: error.message });
     }

@@ -20,8 +20,9 @@ module.exports.changeRole = async (req, res) => {
         if (!user) {
             return res.json({ code: 404, message: "Không tìm thấy người dùng" });
         }
-        if (user.role < req.user.role) {
-            return res.json({ code: 403, message: "Bạn không thể thay đổi vai trò của người dùng có quyền cao hơn" });
+        // Sửa điều kiện: chỉ chặn khi user.role >= req.user.role
+        if (user.role >= req.user.role) {
+            return res.json({ code: 403, message: "Bạn không thể thay đổi vai trò của người dùng có quyền cao hơn hoặc ngang bằng" });
         }
         const updatedUser = await User.findByIdAndUpdate(
             id,
@@ -64,6 +65,7 @@ module.exports.getAllUsers = async (req, res) => {
         const skip = (Number(page) - 1) * Number(limit);
         const total = await User.countDocuments(query);
         const users = await User.find(query)
+            .sort({ createdAt: -1 })
             .skip(skip)
             .limit(Number(limit));
         res.json({

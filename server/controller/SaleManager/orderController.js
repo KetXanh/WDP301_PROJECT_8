@@ -104,7 +104,17 @@ exports.getOrderById = async (req, res) => {
         }
 
         const order = await Orders.findById(id)
-            .populate('user', 'username email phone address');
+            .populate({
+                path: 'user',
+                select: 'username email phone address'
+            })
+            .populate({
+                path: 'items.product',
+                populate: {
+                    path: 'baseProduct',
+                    model: 'BaseProduct'
+                }
+            });
 
         if (!order) {
             return res.json({ code: 404, message: "Không tìm thấy đơn hàng" });

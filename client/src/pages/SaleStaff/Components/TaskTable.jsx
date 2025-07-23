@@ -116,7 +116,7 @@ const TaskTable = ({ tasks, loading, filter, setFilter, onView, onUpdate }) => {
                   </div>
                 </TableCell>
                 <TableCell className="text-gray-500">
-                  {new Date(task.deadline).toLocaleDateString('vi-VN')}
+                  {task.deadline ? new Date(task.deadline).toLocaleDateString('vi-VN') : ''}
                 </TableCell>
                 <TableCell>
                   <div className="flex space-x-2">

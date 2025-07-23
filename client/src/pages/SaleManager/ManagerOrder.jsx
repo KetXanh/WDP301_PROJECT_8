@@ -3,12 +3,14 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, ShoppingCart, DollarSign, Clock, CheckCircle, Eye } from "lucide-react";
+import { Users, ShoppingCart, DollarSign, Clock, CheckCircle, Eye, MessageSquare } from "lucide-react";
 import { toast } from "sonner";
 import OrderAssignmentForm from "./components/OrderAssignmentForm";
 import { OrderFilter } from "./components/OrderFilter";
 import { getAllOrders, assignOrder, getAllSaleStaff, getOrderById, assignAllOrdersToStaff } from "@/services/SaleManager/ApiSaleManager";
 import OrderDetailModal from "./components/OrderDetailModal";
+import Chat from "./components/Chat";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 export default function ManagerOrder() {
   const [orders, setOrders] = useState([]);
@@ -18,6 +20,9 @@ export default function ManagerOrder() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [orderDetail, setOrderDetail] = useState(null);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [chatUser, setChatUser] = useState(null);
+  const [showChatModal, setShowChatModal] = useState(false);
 
   useEffect(() => {
     fetchOrders();
@@ -27,11 +32,18 @@ export default function ManagerOrder() {
   const fetchOrders = async () => {
     try {
       const res = await getAllOrders();
+      if (res.data && res.data.success === false) {
+        setOrders([]);
+        setErrorMessage(res.data.message || "Có lỗi xảy ra khi tải đơn hàng");
+        return;
+      }
       // Sử dụng cấu trúc API response thực tế mới
       const ordersData = res.data?.data?.orders || [];
       setOrders(ordersData);
+      setErrorMessage("");
     } catch {
-      toast.error("Không thể tải danh sách order");
+      setErrorMessage("Không thể tải danh sách order");
+      setOrders([]);
     }
   };
 
@@ -94,7 +106,11 @@ export default function ManagerOrder() {
 
   const handleAssignToAll = async () => {
     try {
-      await assignAllOrdersToStaff();
+      const res = await assignAllOrdersToStaff();
+      if (res.data && res.data.success === false) {
+        toast.error(res.data.message || "Không thể giao tất cả order!");
+        return;
+      }
       toast.success("Đã giao tất cả order cho nhân viên thành công!");
       fetchOrders();
     } catch {
@@ -117,11 +133,17 @@ export default function ManagerOrder() {
   const handleViewOrder = async (order) => {
     try {
       const res = await getOrderById(order._id);
-      setOrderDetail({ orderId: res.data.order });
+      // Sửa: truyền thẳng object đơn hàng vào setOrderDetail
+      setOrderDetail(res.data.data);
       setShowDetailModal(true);
     } catch {
       toast.error("Không thể lấy chi tiết đơn hàng");
     }
+  };
+
+  const handleChatWithUser = (user) => {
+    setChatUser(user);
+    setShowChatModal(true);
   };
 
   // Filter orders based on status
@@ -214,6 +236,13 @@ export default function ManagerOrder() {
         </Button>
       </div>
 
+      {/* Thông báo lỗi nếu có */}
+      {errorMessage && (
+        <div className="text-center text-red-500 font-semibold my-4">
+          {errorMessage}
+        </div>
+      )}
+
       <div className="border rounded-lg">
         <Table>
           <TableHeader>
@@ -277,6 +306,13 @@ export default function ManagerOrder() {
                     >
                       <Eye className="h-4 w-4" />
                     </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleChatWithUser(order.user)}
+                    >
+                      <MessageSquare className="h-4 w-4" />
+                    </Button>
                     {order.status === "pending" && (
                       <Button
                         variant="outline"
@@ -315,6 +351,13 @@ export default function ManagerOrder() {
         onClose={() => setShowDetailModal(false)}
         order={orderDetail}
       />
+
+      {/* Modal chat với khách hàng */}
+      <Dialog open={showChatModal} onOpenChange={setShowChatModal}>
+        <DialogContent className="max-w-2xl p-0">
+          {chatUser && <Chat initialUser={chatUser} />}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 } 

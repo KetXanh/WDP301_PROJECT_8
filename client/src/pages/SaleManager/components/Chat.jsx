@@ -13,6 +13,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { cn } from "@/lib/utils";
 import { toast } from 'sonner';
 import { getChatUsers, getChatHistory, sendMessage, updateMessage, deleteMessage, searchAllUsersForChat } from "@/services/Chatbot/ApiChatbox";
+import { getAllChatUsers } from "@/services/SaleManager/ApiSaleManager";
+import { useSelector } from "react-redux";
 
 export default function Chat() {
   const [users, setUsers] = useState([]);
@@ -28,16 +30,37 @@ export default function Chat() {
   const messagesEndRef = useRef(null);
   const [globalSearchResults, setGlobalSearchResults] = useState([]);
   const [showGlobalSearch, setShowGlobalSearch] = useState(false);
+  const inputRef = useRef(null);
+  const currentUser = useSelector(state => state.customer.user); // hoặc state.customer nếu lưu user ở đây
 
   // Fetch users on component mount
   useEffect(() => {
     setLoading(true);
     getChatUsers()
-      .then(users => {
-        setUsers(users || []);
+      .then(res => {
+        // Nếu trả về { users: [...] }
+        if (res && res.users) {
+          setUsers(res.users || []);
+        } else if (Array.isArray(res)) {
+          setUsers(res);
+        } else {
+          setUsers([]);
+        }
       })
-      .catch(() => {
-        toast.error('Không thể tải danh sách người dùng');
+      .catch(async (err) => {
+        // Nếu lỗi liên quan đến ChatMessage.find hoặc lỗi server, fallback sang getAllChatUsers
+        if (err?.response?.data?.error?.includes('ChatMessage.find') || err?.response?.data?.message?.includes('Error getting chat users')) {
+          try {
+            const allRes = await getAllChatUsers();
+            setUsers(allRes.data?.users || []);
+          } catch {
+            toast.error('Không thể tải danh sách người dùng');
+            setUsers([]);
+          }
+        } else {
+          toast.error('Không thể tải danh sách người dùng');
+          setUsers([]);
+        }
       })
       .finally(() => setLoading(false));
   }, []);
@@ -48,21 +71,50 @@ export default function Chat() {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+    if (selectedUser && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [messages, selectedUser]);
 
   useEffect(() => {
     if (selectedUser) {
       setLoading(true);
-      getChatHistory(selectedUser._id)
-        .then(res => {
-          setMessages(res.data.messages || []);
-        })
-        .catch(() => {
+      const fetchMessages = async () => {
+        try {
+          const res = await getChatHistory(selectedUser._id);
+          let msgs = [];
+          if (Array.isArray(res.data)) {
+            msgs = res.data;
+          } else if (res.data && Array.isArray(res.data.messages)) {
+            msgs = res.data.messages;
+          }
+          // Map lại để đảm bảo mỗi message có id, content, timestamp (Date), isCurrentUser, senderId là string
+          const mapped = msgs.map(msg => {
+            const senderId = typeof msg.senderId === 'object' && msg.senderId?._id ? msg.senderId._id : msg.senderId;
+            const receiverId = typeof msg.receiverId === 'object' && msg.receiverId?._id ? msg.receiverId._id : msg.receiverId;
+            return {
+              id: msg.id || msg._id,
+              content: msg.content,
+              timestamp: msg.timestamp ? new Date(msg.timestamp) : new Date(),
+              isCurrentUser: msg.isCurrentUser !== undefined
+                ? msg.isCurrentUser
+                : (currentUser && (senderId === currentUser._id || senderId === currentUser?.id)),
+              ...msg,
+              senderId,
+              receiverId
+            };
+          });
+          setMessages(mapped);
+        } catch {
           toast.error('Không thể tải lịch sử chat');
-        })
-        .finally(() => setLoading(false));
+          setMessages([]);
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchMessages();
     }
-  }, [selectedUser]);
+  }, [selectedUser, currentUser]);
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
@@ -156,9 +208,9 @@ export default function Chat() {
   return (
     <div className="flex h-[calc(100vh-8rem)] border rounded-lg overflow-hidden">
       {/* User List Sidebar */}
-      <div className="w-64 border-r flex flex-col bg-muted/50">
+      <div className="w-72 border-r flex flex-col bg-muted/50">
         <div className="p-4 border-b bg-gradient-to-r from-green-600/10 to-amber-600/10">
-          <h3 className="font-semibold mb-4">Danh sách chat</h3>
+          <h3 className="font-semibold mb-4 text-lg">Tất cả người dùng</h3>
 
           {/* Search and Filter */}
           <div className="space-y-2">
@@ -197,20 +249,21 @@ export default function Chat() {
                     key={user._id}
                     onClick={() => { setSelectedUser(user); setShowGlobalSearch(false); setGlobalSearchResults([]); }}
                     className={cn(
-                      "flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all duration-200",
+                      "flex items-center gap-4 p-3 rounded-lg cursor-pointer transition-all duration-200",
                       selectedUser?._id === user._id
-                        ? "bg-primary/10 border-l-2 border-primary"
+                        ? "bg-primary/20 border-l-4 border-primary shadow"
                         : "hover:bg-muted"
                     )}
                   >
-                    <Avatar className="h-10 w-10">
+                    <Avatar className="h-14 w-14">
                       <AvatarImage src={user.avatar} />
-                      <AvatarFallback className="bg-gradient-to-r from-green-600 to-amber-600 text-white">
-                        <User className="h-5 w-5" />
+                      <AvatarFallback className="bg-gradient-to-r from-green-600 to-amber-600 text-white text-xl font-bold">
+                        {user.username?.[0]?.toUpperCase() || user.name?.[0]?.toUpperCase() || <User className="h-7 w-7" />}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium truncate">{user.username || user.name}</p>
+                      <p className="font-semibold truncate text-base">{user.username || user.name}</p>
+                      <p className="text-xs text-muted-foreground truncate">{user.email}</p>
                       <p className="text-xs text-muted-foreground truncate">
                         {user.role === "staff" ? "Nhân viên" : user.role === "user" ? "Khách hàng" : user.role === 2 ? "Sale Manager" : user.role === 1 ? "Admin" : "Khác"}
                       </p>
@@ -226,20 +279,21 @@ export default function Chat() {
                   key={user._id}
                   onClick={() => setSelectedUser(user)}
                   className={cn(
-                    "flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all duration-200",
+                    "flex items-center gap-4 p-3 rounded-lg cursor-pointer transition-all duration-200",
                     selectedUser?._id === user._id
-                      ? "bg-primary/10 border-l-2 border-primary"
+                      ? "bg-primary/20 border-l-4 border-primary shadow"
                       : "hover:bg-muted"
                   )}
                 >
-                  <Avatar className="h-10 w-10">
+                  <Avatar className="h-14 w-14">
                     <AvatarImage src={user.avatar} />
-                    <AvatarFallback className="bg-gradient-to-r from-green-600 to-amber-600 text-white">
-                      <User className="h-5 w-5" />
+                    <AvatarFallback className="bg-gradient-to-r from-green-600 to-amber-600 text-white text-xl font-bold">
+                      {user.username?.[0]?.toUpperCase() || user.name?.[0]?.toUpperCase() || <User className="h-7 w-7" />}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium truncate">{user.username || user.name}</p>
+                    <p className="font-semibold truncate text-base">{user.username || user.name}</p>
+                    <p className="text-xs text-muted-foreground truncate">{user.email}</p>
                     <p className="text-xs text-muted-foreground truncate">
                       {user.role === "staff" ? "Nhân viên" : user.role === "user" ? "Khách hàng" : user.role === 2 ? "Sale Manager" : user.role === 1 ? "Admin" : "Khác"}
                     </p>
@@ -320,6 +374,7 @@ export default function Chat() {
             {/* Message Input */}
             <form onSubmit={handleSendMessage} className="p-4 border-t bg-white flex gap-2">
               <Textarea
+                ref={inputRef}
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
                 placeholder="Nhập tin nhắn..."

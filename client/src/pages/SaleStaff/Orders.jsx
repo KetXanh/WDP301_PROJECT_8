@@ -118,10 +118,27 @@ const Orders = () => {
     }
   };
 
-  const filteredOrders = orders.filter(order => {
-    if (filter === 'all') return true;
-    return order.orderId?.status === filter;
+  // Sort orders by createdAt (orderId?.createdAt or createdAt), newest first
+  const sortedOrders = [...orders].sort((a, b) => {
+    const dateA = a.orderId?.createdAt ? new Date(a.orderId.createdAt) : new Date(a.createdAt);
+    const dateB = b.orderId?.createdAt ? new Date(b.orderId.createdAt) : new Date(b.createdAt);
+    return dateB - dateA;
   });
+
+  const filteredOrders = sortedOrders.filter(order => {
+    if (filter === 'all') return true;
+    return order.status === filter;
+  });
+
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
+  const totalPages = Math.ceil(filteredOrders.length / pageSize);
+  const paginatedOrders = filteredOrders.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
+  const handlePageChange = (page) => {
+    if (page >= 1 && page <= totalPages) setCurrentPage(page);
+  };
 
   if (loading) {
     return (
@@ -192,15 +209,15 @@ const Orders = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredOrders.map((order) => (
+              {paginatedOrders.map((order) => (
                 <TableRow key={order._id}>
-                  <TableCell className="font-medium">{order.orderId?.COD || order.orderId?._id}</TableCell>
+                  <TableCell className="font-medium">{order.orderId?.COD || order.orderId?._id || 'Chưa có thông tin'}</TableCell>
                   <TableCell className="font-medium">
-                    {order.orderId?.totalAmount?.toLocaleString('vi-VN')}đ
+                    {order.orderId?.totalAmount?.toLocaleString('vi-VN') || '-'}đ
                   </TableCell>
                   <TableCell>
-                    <Badge className={getStatusColor(order.orderId?.status)}>
-                      <span className="ml-1">{getStatusText(order.orderId?.status)}</span>
+                    <Badge className={getStatusColor(order.status)}>
+                      <span className="ml-1">{getStatusText(order.status)}</span>
                     </Badge>
                   </TableCell>
                   <TableCell className="text-gray-500">
@@ -212,6 +229,7 @@ const Orders = () => {
                         variant="ghost"
                         size="sm"
                         onClick={() => handleViewOrder(order)}
+                        disabled={!order.orderId}
                       >
                         <Eye className="h-4 w-4" />
                       </Button>
@@ -229,6 +247,23 @@ const Orders = () => {
             </TableBody>
           </Table>
         </CardContent>
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="flex justify-center items-center gap-2 mt-4">
+            <Button size="sm" variant="outline" onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>Trước</Button>
+            {Array.from({ length: totalPages }, (_, i) => (
+              <Button
+                key={i + 1}
+                size="sm"
+                variant={currentPage === i + 1 ? 'default' : 'outline'}
+                onClick={() => handlePageChange(i + 1)}
+              >
+                {i + 1}
+              </Button>
+            ))}
+            <Button size="sm" variant="outline" onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>Sau</Button>
+          </div>
+        )}
       </Card>
 
       {/* Order Detail Modal */}
@@ -241,7 +276,7 @@ const Orders = () => {
       }}>
         <DialogContent className="max-w-4xl">
           <DialogHeader>
-            <DialogTitle>Chi tiết đơn hàng {selectedOrder?.COD || selectedOrder?._id}</DialogTitle>
+            <DialogTitle>Chi tiết đơn hàng {selectedOrder?.COD || selectedOrder?._id || 'Chưa có thông tin'}</DialogTitle>
           </DialogHeader>
           {loadingDetail ? (
             <div className="flex items-center justify-center h-32">
@@ -260,13 +295,26 @@ const Orders = () => {
                 </div>
                 <div>
                   <h4 className="font-medium text-gray-900 mb-2">Thông tin đơn hàng</h4>
-                  <div className="space-y-1 text-sm">
-                    <p><span className="font-medium">Trạng thái:</span> 
-                      <Badge className={`ml-2 ${getStatusColor(selectedOrder?.status)}`}>
-                        {getStatusText(selectedOrder?.status)}
-                      </Badge>
-                    </p>
-                    <p><span className="font-medium">Ngày tạo:</span> {selectedOrder?.createdAt ? new Date(selectedOrder.createdAt).toLocaleDateString('vi-VN') : ''}</p>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex flex-wrap gap-4 items-center">
+                      <span className="font-medium">Trạng thái:</span>
+                      <Badge className={`ml-2 ${getStatusColor(selectedOrder.status)}`}>{getStatusText(selectedOrder.status)}</Badge>
+                      <span className="font-medium">Ngày tạo:</span>
+                      <span>{selectedOrder?.createdAt ? new Date(selectedOrder.createdAt).toLocaleDateString('vi-VN') : '-'}</span>
+                    </div>
+                    <div className="flex flex-wrap gap-4 items-center">
+                      <span className="font-medium">Phương thức thanh toán:</span>
+                      <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded-lg font-semibold">{selectedOrder?.payment || '-'}</span>
+                    </div>
+                    <div className="flex flex-wrap gap-4 items-center mt-2">
+                      <span className="font-medium">Trạng thái thanh toán:</span>
+                      <span className="bg-green-50 text-green-700 px-2 py-1 rounded-lg font-semibold">{selectedOrder?.paymentStatus || '-'}</span>
+                    </div>
+                  </div>
+                  {/* Note section: always show */}
+                  <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-xl text-base text-yellow-900 shadow-inner">
+                    <span className="font-bold block mb-1">Ghi chú:</span>
+                    <span>{selectedOrder?.note && selectedOrder.note.trim() !== '' ? selectedOrder.note : 'Không có ghi chú'}</span>
                   </div>
                 </div>
               </div>
@@ -277,6 +325,8 @@ const Orders = () => {
                     <TableRow>
                       <TableHead>Ảnh</TableHead>
                       <TableHead>Tên sản phẩm</TableHead>
+                      <TableHead>Mô tả</TableHead>
+                      <TableHead>Trọng lượng</TableHead>
                       <TableHead>Số lượng</TableHead>
                       <TableHead>Đơn giá</TableHead>
                       <TableHead>Thành tiền</TableHead>
@@ -292,6 +342,8 @@ const Orders = () => {
                             )}
                           </TableCell>
                           <TableCell>{item.product?.name || ''}</TableCell>
+                          <TableCell className="max-w-[180px] truncate">{item.product?.description || ''}</TableCell>
+                          <TableCell>{item.variant?.weight ? `${item.variant.weight}g` : '-'}</TableCell>
                           <TableCell>{item.quantity}</TableCell>
                           <TableCell>{item.price?.toLocaleString('vi-VN')}đ</TableCell>
                           <TableCell className="font-medium">{(item.quantity * item.price)?.toLocaleString('vi-VN')}đ</TableCell>
@@ -306,7 +358,7 @@ const Orders = () => {
               <div className="flex justify-between items-center pt-4 border-t">
                 <div>
                   <p className="text-lg font-medium text-gray-900">
-                    Tổng tiền: {selectedOrder?.totalAmount?.toLocaleString('vi-VN')}đ
+                    Tổng tiền: {selectedOrder?.totalAmount?.toLocaleString('vi-VN') || '-'}đ
                   </p>
                 </div>
               </div>

@@ -53,9 +53,7 @@ const Tasks = () => {
     setLoading(true);
     try {
       const res = await getTaskAssignment();
-      console.log('API Response:', res);
-      console.log('Tasks data:', res.data);
-      setTasks(Array.isArray(res.data) ? res.data : []);
+      setTasks(Array.isArray(res.data.data) ? res.data.data : []);
     } catch (error) {
       console.error('Error fetching tasks:', error);
       toast.error('Không thể tải danh sách task');
@@ -224,125 +222,6 @@ const Tasks = () => {
 
   return (
     <div className="space-y-6">
-      {/* KPI Section */}
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">KPI & Task của tôi</h1>
-              <p className="text-gray-600">Theo dõi, quản lý và cập nhật tiến độ KPI & Task</p>
-            </div>
-            <div className="flex items-center space-x-2">
-              <CheckCircle className="h-6 w-6 text-green-600" />
-              <span className="text-sm font-medium text-gray-700">
-                {kpis.filter(kpi => kpi.status === 'achieved').length}/{kpis.length} KPI đạt được
-              </span>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-      {/* KPI Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <div className="p-3 bg-green-100 rounded-full">
-                <CheckCircle className="h-6 w-6 text-green-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Đạt được</p>
-                <p className="text-2xl font-semibold text-gray-900">
-                  {kpis.filter(kpi => kpi.status === 'achieved').length}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <div className="p-3 bg-blue-100 rounded-full">
-                <Clock className="h-6 w-6 text-blue-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Đang thực hiện</p>
-                <p className="text-2xl font-semibold text-gray-900">
-                  {kpis.filter(kpi => kpi.status === 'in_progress').length}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <div className="p-3 bg-yellow-100 rounded-full">
-                <AlertTriangle className="h-6 w-6 text-yellow-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Chờ bắt đầu</p>
-                <p className="text-2xl font-semibold text-gray-900">
-                  {kpis.filter(kpi => kpi.status === 'pending').length}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-      {/* KPI List */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Danh sách KPI</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-6">
-            {kpis.map((kpi) => (
-              <Card key={kpi._id} className="border">
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-3 mb-2">
-                        <h4 className="text-lg font-medium text-gray-900">{kpi.title}</h4>
-                        <Badge className={getStatusColor(kpi.status)}>
-                          {getStatusIcon(kpi.status)}
-                          <span className="ml-1">
-                            {kpi.status === 'achieved' ? 'Đạt được' : 
-                             kpi.status === 'in_progress' ? 'Đang thực hiện' : 'Chờ bắt đầu'}
-                          </span>
-                        </Badge>
-                      </div>
-                      <div className="mb-2 text-gray-700">{kpi.description}</div>
-                      <div className="flex items-center gap-4 mb-2">
-                        <span className="text-sm text-gray-500">Mục tiêu: <b>{kpi.targetValue}</b></span>
-                        <span className="text-sm text-gray-500">Hiện tại: <b>{kpi.currentValue}</b></span>
-                      </div>
-                      <div className="mb-2">
-                        <div className="text-xs text-gray-500 mb-1">Tiến độ</div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div 
-                            className={`h-2 rounded-full transition-all duration-300 ${kpi.currentValue / kpi.targetValue >= 1 ? 'bg-green-500' : kpi.currentValue / kpi.targetValue >= 0.5 ? 'bg-blue-500' : 'bg-yellow-500'}`}
-                            style={{ width: `${Math.min((kpi.currentValue / kpi.targetValue) * 100, 100)}%` }}
-                          ></div>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex flex-col items-end gap-2">
-                      <Button size="sm" variant="outline" onClick={() => handleUpdateKPI(kpi)}>
-                        <Edit className="h-4 w-4 mr-1" />Cập nhật
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-            {kpis.length === 0 && (
-              <div className="text-center text-muted-foreground py-8">Không có KPI nào</div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-      {/* End KPI Section */}
-
       {/* Header */}
       <Card>
         <CardContent className="p-6">
@@ -502,7 +381,7 @@ const Tasks = () => {
                     </div>
                   </TableCell>
                   <TableCell className="text-gray-500">
-                    {new Date(taskAssignment.deadline).toLocaleDateString('vi-VN')}
+                    {taskAssignment.deadline ? new Date(taskAssignment.deadline).toLocaleDateString('vi-VN') : ''}
                   </TableCell>
                   <TableCell>
                     <div className="flex space-x-2">
@@ -549,7 +428,7 @@ const Tasks = () => {
                       </Badge>
                     </p>
                     <p><span className="font-medium">Ưu tiên:</span> 
-                      <Badge className={`ml-2 ${getPriorityColor(selectedTask.task?.priority || 'medium')}`}>
+                      <Badge className={`ml-2 ${getPriorityColor(selectedTask.task?.priority || 'medium')}`}> 
                         {getPriorityText(selectedTask.task?.priority || 'medium')}
                       </Badge>
                     </p>
@@ -558,11 +437,11 @@ const Tasks = () => {
                 <div>
                   <h4 className="font-medium text-gray-900 mb-2">Thông tin khác</h4>
                   <div className="space-y-2 text-sm">
-                    <p><span className="font-medium">Được giao bởi:</span> {selectedTask.assignedBy?.username}</p>
-                    <p><span className="font-medium">Được giao cho:</span> {selectedTask.assignedTo?.username}</p>
-                    <p><span className="font-medium">Ngày tạo task:</span> {new Date(selectedTask.task?.createdAt).toLocaleDateString('vi-VN')}</p>
-                    <p><span className="font-medium">Ngày được giao:</span> {new Date(selectedTask.assignedAt).toLocaleDateString('vi-VN')}</p>
-                    <p><span className="font-medium">Hạn chót:</span> {new Date(selectedTask.deadline).toLocaleDateString('vi-VN')}</p>
+                    <p><span className="font-medium">Được giao bởi:</span> {selectedTask.assignedBy?.username || selectedTask.assignedBy}</p>
+                    <p><span className="font-medium">Được giao cho:</span> {selectedTask.assignedTo?.username || selectedTask.assignedTo}</p>
+                    <p><span className="font-medium">Ngày tạo task:</span> {selectedTask.task?.createdAt ? new Date(selectedTask.task.createdAt).toLocaleDateString('vi-VN') : ''}</p>
+                    <p><span className="font-medium">Ngày được giao:</span> {selectedTask.assignedAt ? new Date(selectedTask.assignedAt).toLocaleDateString('vi-VN') : ''}</p>
+                    <p><span className="font-medium">Hạn chót:</span> {selectedTask.deadline ? new Date(selectedTask.deadline).toLocaleDateString('vi-VN') : ''}</p>
                   </div>
                 </div>
               </div>
@@ -578,10 +457,10 @@ const Tasks = () => {
                 </div>
               </div>
 
-              {selectedTask.notes && (
+              {selectedTask.notes !== undefined && (
                 <div className="p-3 bg-gray-50 rounded-md">
                   <p className="text-sm text-gray-600">
-                    <span className="font-medium">Ghi chú:</span> {selectedTask.notes}
+                    <span className="font-medium">Ghi chú:</span> {selectedTask.notes || 'Không có ghi chú'}
                   </p>
                 </div>
               )}

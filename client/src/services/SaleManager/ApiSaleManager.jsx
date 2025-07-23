@@ -145,6 +145,11 @@ export const customersStatistics = () => {
     return instance.get('/saleManager/statistics/customers')
 }
 
+// Export statistics to Excel
+export const exportStatisticsExcel = () => {
+    return instance.get('/saleManager/statistics/export-excel', { responseType: 'blob' });
+}
+
 // Chat APIs
 export const getChatMessages = (receiverId) => {
     return instance.get(`/chat/history/${receiverId}`)
@@ -160,6 +165,11 @@ export const updateChatMessage = (messageId, content) => {
 
 export const deleteChatMessage = (messageId) => {
     return instance.delete(`/chat/delete/${messageId}`)
+}
+
+// Lấy toàn bộ user cho chat
+export const getAllChatUsers = () => {
+    return instance.get('/chat/users/all');
 }
 
 // Staff Management APIs

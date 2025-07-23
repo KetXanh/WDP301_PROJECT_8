@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { FileSpreadsheet, DollarSign, ShoppingCart, Users, ClipboardList, UserCheck, TrendingUp } from "lucide-react"
-import { overview , productStatistics } from "@/services/SaleManager/ApiSaleManager"
+import { FileSpreadsheet, DollarSign, ShoppingCart, Users, ClipboardList, UserCheck, TrendingUp, AlertCircle } from "lucide-react"
+import { overview , productStatistics, exportStatisticsExcel } from "@/services/SaleManager/ApiSaleManager"
 import { toast } from "sonner"
 import OrderStatistics from "./components/OrderForm"
 import ProductStatistics from "./components/ProductForm"
@@ -20,6 +20,7 @@ export default function Statistics() {
       setLoading(true)
       const overviewRes = await overview()
       const productRes = await productStatistics()
+      console.log("productStats API response:", productRes.data)
       setStats(overviewRes.data.data || {})
       setProductStats(productRes.data.data || {})
     } catch {
@@ -31,9 +32,21 @@ export default function Statistics() {
     }
   }
 
-  const handleExportExcel = () => {
-    console.log("Xuất báo cáo Excel")
-    // Logic xuất Excel sẽ được implement sau
+  const handleExportExcel = async () => {
+    try {
+      const res = await exportStatisticsExcel();
+      const blob = res.data;
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'statistics.xlsx';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch {
+      toast.error('Xuất file Excel thất bại!');
+    }
   }
 
   if (loading) {
@@ -47,34 +60,39 @@ export default function Statistics() {
   const assignments = stats?.assignments || {}
 
   // Thêm các bảng thống kê sản phẩm nổi bật
-  const renderProductTable = (title, products, metricLabel, metricKey) => (
+  const renderProductTable = (title, products, metricLabel, metricKey, description) => (
     <Card className="mb-6">
       <CardHeader>
         <CardTitle>{title}</CardTitle>
+        {description && <CardDescription>{description}</CardDescription>}
       </CardHeader>
       <CardContent>
         <div className="overflow-x-auto">
-          <table className="min-w-full border">
-            <thead>
-              <tr>
-                <th className="border px-2 py-1">STT</th>
-                <th className="border px-2 py-1">Tên sản phẩm</th>
-                <th className="border px-2 py-1">{metricLabel}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {products?.map((item, idx) => (
-                <tr key={item._id}>
-                  <td className="border px-2 py-1 text-center">{idx + 1}</td>
-                  <td className="border px-2 py-1">{item.productInfo?.name || item.variantInfo?.name || 'N/A'}</td>
-                  <td className="border px-2 py-1 text-center">{item[metricKey]?.toFixed ? item[metricKey].toFixed(2) : item[metricKey]}</td>
+          {products && products.length > 0 ? (
+            <table className="min-w-full border">
+              <thead>
+                <tr>
+                  <th className="border px-2 py-1">STT</th>
+                  <th className="border px-2 py-1">Tên sản phẩm</th>
+                  <th className="border px-2 py-1">{metricLabel}</th>
                 </tr>
-              ))}
-              {(!products || products.length === 0) && (
-                <tr><td colSpan={3} className="text-center py-2 text-muted-foreground">Không có dữ liệu</td></tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {products.map((item, idx) => (
+                  <tr key={item._id}>
+                    <td className="border px-2 py-1 text-center">{idx + 1}</td>
+                    <td className="border px-2 py-1">{item.productInfo?.name || item.variantInfo?.name || 'N/A'}</td>
+                    <td className="border px-2 py-1 text-center">{item[metricKey]?.toFixed ? item[metricKey].toFixed(2) : item[metricKey]}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-6 text-muted-foreground">
+              <AlertCircle className="w-8 h-8 mb-2 text-gray-400" />
+              <span>Không có dữ liệu thống kê cho mục này</span>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>
@@ -297,12 +315,48 @@ export default function Statistics() {
 
       {/* Thống kê sản phẩm nổi bật */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-        {renderProductTable("Sản phẩm bán chạy nhất", productStats?.mostPurchasedProduct, "Số lượng bán", "totalQuantity")}
-        {renderProductTable("Sản phẩm bán ít nhất", productStats?.leastPurchasedProduct, "Số lượng bán", "totalQuantity")}
-        {renderProductTable("Sản phẩm được đánh giá cao nhất", productStats?.topRatedProducts, "Điểm trung bình", "avgStars")}
-        {renderProductTable("Sản phẩm bị đánh giá tệ nhất", productStats?.worstRatedProducts, "Điểm trung bình", "avgStars")}
-        {renderProductTable("Sản phẩm có nhiều đánh giá tốt nhất", productStats?.mostPositiveReviewedProducts, "Lượt đánh giá 5★", "positiveCount")}
-        {renderProductTable("Sản phẩm có nhiều đánh giá tệ nhất", productStats?.mostNegativeReviewedProducts, "Lượt đánh giá 1★", "negativeCount")}
+        {renderProductTable(
+          "Sản phẩm bán chạy nhất",
+          productStats?.mostPurchasedProduct,
+          "Số lượng bán",
+          "totalQuantity",
+          "Top sản phẩm có số lượng bán ra nhiều nhất trong hệ thống."
+        )}
+        {renderProductTable(
+          "Sản phẩm bán ít nhất",
+          productStats?.leastPurchasedProduct,
+          "Số lượng bán",
+          "totalQuantity",
+          "Top sản phẩm có số lượng bán ra ít nhất trong hệ thống."
+        )}
+        {renderProductTable(
+          "Sản phẩm được đánh giá cao nhất",
+          productStats?.topRatedProducts,
+          "Điểm trung bình",
+          "avgStars",
+          "Top sản phẩm có điểm đánh giá trung bình cao nhất từ người dùng."
+        )}
+        {renderProductTable(
+          "Sản phẩm bị đánh giá tệ nhất",
+          productStats?.worstRatedProducts,
+          "Điểm trung bình",
+          "avgStars",
+          "Top sản phẩm có điểm đánh giá trung bình thấp nhất từ người dùng."
+        )}
+        {renderProductTable(
+          "Sản phẩm có nhiều đánh giá tốt nhất",
+          productStats?.mostPositiveReviewedProducts,
+          "Lượt đánh giá 5★",
+          "positiveCount",
+          "Top sản phẩm nhận được nhiều đánh giá 5 sao nhất."
+        )}
+        {renderProductTable(
+          "Sản phẩm có nhiều đánh giá tệ nhất",
+          productStats?.mostNegativeReviewedProducts,
+          "Lượt đánh giá 1★",
+          "negativeCount",
+          "Top sản phẩm nhận được nhiều đánh giá 1 sao nhất."
+        )}
       </div>
 
       {/* Danh sách đơn hàng có filter theo status */}

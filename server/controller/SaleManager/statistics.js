@@ -5,6 +5,7 @@ const ProductBase = require("../../models/product/productBase");
 const Task = require("../../models/sale/Task");
 const TaskAssignment = require("../../models/sale/TaskAssignment");
 const Rating = require("../../models/product/rating");
+const ExcelJS = require("exceljs");
 
 // Lấy thống kê tổng quan
 module.exports.getStatistics = async (req, res) => {
@@ -242,7 +243,7 @@ module.exports.getProductStatistics = async (req, res) => {
         const topRatedProducts = await Rating.aggregate([
             {
                 $group: {
-                    _id: "$productVariant",
+                    _id: "$productBase", // group theo baseProduct
                     avgStars: { $avg: "$stars" },
                     reviewCount: { $sum: 1 }
                 }
@@ -251,17 +252,8 @@ module.exports.getProductStatistics = async (req, res) => {
             { $limit: 10 },
             {
                 $lookup: {
-                    from: "productvariants",
-                    localField: "_id",
-                    foreignField: "_id",
-                    as: "variantInfo"
-                }
-            },
-            { $unwind: "$variantInfo" },
-            {
-                $lookup: {
                     from: "baseproduct",
-                    localField: "variantInfo.baseProduct",
+                    localField: "_id",
                     foreignField: "_id",
                     as: "productInfo"
                 }
@@ -273,7 +265,7 @@ module.exports.getProductStatistics = async (req, res) => {
         const worstRatedProducts = await Rating.aggregate([
             {
                 $group: {
-                    _id: "$productVariant",
+                    _id: "$productBase",
                     avgStars: { $avg: "$stars" },
                     reviewCount: { $sum: 1 }
                 }
@@ -282,17 +274,8 @@ module.exports.getProductStatistics = async (req, res) => {
             { $limit: 10 },
             {
                 $lookup: {
-                    from: "productvariants",
-                    localField: "_id",
-                    foreignField: "_id",
-                    as: "variantInfo"
-                }
-            },
-            { $unwind: "$variantInfo" },
-            {
-                $lookup: {
                     from: "baseproduct",
-                    localField: "variantInfo.baseProduct",
+                    localField: "_id",
                     foreignField: "_id",
                     as: "productInfo"
                 }
@@ -305,7 +288,7 @@ module.exports.getProductStatistics = async (req, res) => {
             { $match: { stars: 5 } },
             {
                 $group: {
-                    _id: "$productVariant",
+                    _id: "$productBase",
                     positiveCount: { $sum: 1 }
                 }
             },
@@ -313,17 +296,8 @@ module.exports.getProductStatistics = async (req, res) => {
             { $limit: 10 },
             {
                 $lookup: {
-                    from: "productvariants",
-                    localField: "_id",
-                    foreignField: "_id",
-                    as: "variantInfo"
-                }
-            },
-            { $unwind: "$variantInfo" },
-            {
-                $lookup: {
                     from: "baseproduct",
-                    localField: "variantInfo.baseProduct",
+                    localField: "_id",
                     foreignField: "_id",
                     as: "productInfo"
                 }
@@ -336,7 +310,7 @@ module.exports.getProductStatistics = async (req, res) => {
             { $match: { stars: 1 } },
             {
                 $group: {
-                    _id: "$productVariant",
+                    _id: "$productBase",
                     negativeCount: { $sum: 1 }
                 }
             },
@@ -344,17 +318,8 @@ module.exports.getProductStatistics = async (req, res) => {
             { $limit: 10 },
             {
                 $lookup: {
-                    from: "productvariants",
-                    localField: "_id",
-                    foreignField: "_id",
-                    as: "variantInfo"
-                }
-            },
-            { $unwind: "$variantInfo" },
-            {
-                $lookup: {
                     from: "baseproduct",
-                    localField: "variantInfo.baseProduct",
+                    localField: "_id",
                     foreignField: "_id",
                     as: "productInfo"
                 }
@@ -753,4 +718,109 @@ module.exports.getKPIStatistics = async (req, res) => {
         console.error('Error in getKPIStatistics:', error);
         res.json({ code: 500, message: "Lỗi máy chủ", error: error.message });
     }
+};
+
+// Export statistics to Excel
+module.exports.exportStatisticsToExcel = async (req, res) => {
+  try {
+    // Lấy dữ liệu tổng quan
+    const { startDate, endDate } = req.query;
+    const query = {};
+    if (startDate || endDate) {
+      query.createdAt = {};
+      if (startDate) query.createdAt.$gte = new Date(startDate);
+      if (endDate) query.createdAt.$lte = new Date(endDate);
+    }
+    // Đơn hàng
+    const orders = await Orders.find(query);
+    // Người dùng
+    const users = await Users.find();
+    // Tasks
+    const tasks = await Task.find();
+    // Assignments
+    const assignments = await TaskAssignment.find();
+
+    const workbook = new ExcelJS.Workbook();
+    // Sheet 1: Orders
+    const orderSheet = workbook.addWorksheet("Orders");
+    orderSheet.columns = [
+      { header: "Mã đơn", key: "_id", width: 24 },
+      { header: "Khách hàng", key: "user", width: 24 },
+      { header: "Tổng tiền", key: "totalAmount", width: 15 },
+      { header: "Trạng thái", key: "status", width: 15 },
+      { header: "Ngày tạo", key: "createdAt", width: 20 },
+    ];
+    orders.forEach(o => {
+      orderSheet.addRow({
+        _id: o._id.toString(),
+        user: o.user?.toString() || "",
+        totalAmount: o.totalAmount,
+        status: o.status,
+        createdAt: o.createdAt ? o.createdAt.toLocaleString() : ""
+      });
+    });
+    // Sheet 2: Users
+    const userSheet = workbook.addWorksheet("Users");
+    userSheet.columns = [
+      { header: "ID", key: "_id", width: 24 },
+      { header: "Tên", key: "username", width: 20 },
+      { header: "Email", key: "email", width: 30 },
+      { header: "Vai trò", key: "role", width: 15 },
+      { header: "Ngày tạo", key: "createdAt", width: 20 },
+    ];
+    users.forEach(u => {
+      userSheet.addRow({
+        _id: u._id.toString(),
+        username: u.username,
+        email: u.email,
+        role: u.role,
+        createdAt: u.createdAt ? u.createdAt.toLocaleString() : ""
+      });
+    });
+    // Sheet 3: Tasks
+    const taskSheet = workbook.addWorksheet("Tasks");
+    taskSheet.columns = [
+      { header: "ID", key: "_id", width: 24 },
+      { header: "Tiêu đề", key: "title", width: 30 },
+      { header: "Trạng thái", key: "status", width: 15 },
+      { header: "Ngày tạo", key: "createdAt", width: 20 },
+    ];
+    tasks.forEach(t => {
+      taskSheet.addRow({
+        _id: t._id.toString(),
+        title: t.title,
+        status: t.status,
+        createdAt: t.createdAt ? t.createdAt.toLocaleString() : ""
+      });
+    });
+    // Sheet 4: Assignments
+    const assignSheet = workbook.addWorksheet("Assignments");
+    assignSheet.columns = [
+      { header: "ID", key: "_id", width: 24 },
+      { header: "Task", key: "task", width: 24 },
+      { header: "Assigned To", key: "assignedTo", width: 24 },
+      { header: "Status", key: "status", width: 15 },
+      { header: "Ngày tạo", key: "createdAt", width: 20 },
+    ];
+    assignments.forEach(a => {
+      assignSheet.addRow({
+        _id: a._id.toString(),
+        task: a.task?.toString() || "",
+        assignedTo: a.assignedTo?.toString() || "",
+        status: a.status,
+        createdAt: a.createdAt ? a.createdAt.toLocaleString() : ""
+      });
+    });
+    // Xuất file
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+    res.setHeader("Content-Disposition", "attachment; filename=statistics.xlsx");
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (error) {
+    console.error("Export statistics error:", error);
+    res.status(500).json({ message: "Export failed" });
+  }
 };

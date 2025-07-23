@@ -5,10 +5,20 @@ import { Button } from "@/components/ui/button";
 
 const ROLE_OPTIONS = [
   { value: "", label: "Tất cả" },
+  { value: 0, label: "Khách hàng" },
   { value: 1, label: "Admin" },
   { value: 2, label: "Sale Manager" },
+  { value: 3, label: "Product Manager" },
   { value: 4, label: "Sale Staff" },
 ];
+
+const ROLE_LABELS = {
+  0: "Khách hàng",
+  1: "Admin",
+  2: "Sale Manager",
+  3: "Product Manager",
+  4: "Sale Staff",
+};
 
 export default function SaleManagerUser() {
   const [users, setUsers] = useState([]);
@@ -19,15 +29,16 @@ export default function SaleManagerUser() {
   const [limit] = useState(10);
   const [pagination, setPagination] = useState({ currentPage: 1, totalPages: 1, totalItems: 0 });
 
-  const fetchUsers = useCallback(async (params = {}) => {
+  // Tối ưu fetchUsers: chỉ fetch theo page, role, search
+  const fetchUsers = useCallback(async (pageParam = page, roleParam = role, searchParam = search) => {
     setLoading(true);
     try {
       const res = await getAllUsers({
         params: {
-          page: params.page || page,
+          page: pageParam,
           limit,
-          role: params.role !== undefined ? params.role : role || undefined,
-          search: params.search !== undefined ? params.search : search || undefined,
+          role: roleParam !== "" ? roleParam : undefined,
+          search: searchParam !== "" ? searchParam : undefined,
         },
       });
       setUsers(res.data?.users || []);
@@ -38,15 +49,16 @@ export default function SaleManagerUser() {
     setLoading(false);
   }, [page, role, search, limit]);
 
+  // Gọi fetchUsers khi page, role, search thay đổi
   useEffect(() => {
-    fetchUsers();
-  }, [page, role, fetchUsers]);
+    fetchUsers(page, role, search);
+  }, [page, role, search, fetchUsers]);
 
   const handleChangeRole = async (userId) => {
     try {
       await updateStaffRole(userId, 2); // 2 = Sale Manager
       toast.success("Cấp quyền Sale Manager thành công!");
-      fetchUsers();
+      fetchUsers(page, role, search);
     } catch {
       toast.error("Cấp quyền thất bại!");
     }
@@ -55,18 +67,18 @@ export default function SaleManagerUser() {
   const handleSearch = (e) => {
     e.preventDefault();
     setPage(1);
-    fetchUsers({ page: 1, search });
+    // fetchUsers(1, role, search); // Không gọi trực tiếp, useEffect sẽ tự gọi
   };
 
   const handleRoleChange = (e) => {
     setRole(e.target.value);
     setPage(1);
-    fetchUsers({ page: 1, role: e.target.value });
+    // fetchUsers(1, e.target.value, search); // Không gọi trực tiếp, useEffect sẽ tự gọi
   };
 
   const handlePageChange = (newPage) => {
     setPage(newPage);
-    fetchUsers({ page: newPage });
+    // fetchUsers(newPage, role, search); // Không gọi trực tiếp, useEffect sẽ tự gọi
   };
 
   return (
@@ -96,6 +108,7 @@ export default function SaleManagerUser() {
           <thead>
             <tr>
               <th className="border px-4 py-2">STT</th>
+              <th className="border px-4 py-2">Avatar</th>
               <th className="border px-4 py-2">Tên</th>
               <th className="border px-4 py-2">Email</th>
               <th className="border px-4 py-2">Vai trò</th>
@@ -106,9 +119,16 @@ export default function SaleManagerUser() {
             {users.map((user, idx) => (
               <tr key={user._id}>
                 <td className="border px-4 py-2 text-center">{(pagination.currentPage - 1) * limit + idx + 1}</td>
+                <td className="border px-4 py-2 text-center">
+                  {user.avatar?.url ? (
+                    <img src={user.avatar.url} alt={user.username} className="w-10 h-10 rounded-full object-cover inline-block" />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-400">-</div>
+                  )}
+                </td>
                 <td className="border px-4 py-2">{user.username}</td>
                 <td className="border px-4 py-2">{user.email}</td>
-                <td className="border px-4 py-2">{user.role === 2 ? "Sale Manager" : user.role === 4 ? "Sale Staff" : user.role === 1 ? "Admin" : "Khác"}</td>
+                <td className="border px-4 py-2">{ROLE_LABELS[user.role] || "Khác"}</td>
                 <td className="border px-4 py-2 text-center">
                   {user.role !== 2 && (
                     <Button size="sm" onClick={() => handleChangeRole(user._id)}>
@@ -120,7 +140,7 @@ export default function SaleManagerUser() {
             ))}
             {users.length === 0 && (
               <tr>
-                <td colSpan={5} className="text-center py-4 text-muted-foreground">
+                <td colSpan={6} className="text-center py-4 text-muted-foreground">
                   {loading ? "Đang tải..." : "Không có người dùng nào"}
                 </td>
               </tr>

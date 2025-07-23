@@ -11,5 +11,6 @@ router.get("/orders", statisticsController.getOrderStatistics);
 router.get("/customers", statisticsController.getCustomerStatistics);
 router.get("/loyal-customers", statisticsController.getLoyalCustomer);
 router.get("/kpi", statisticsController.getKPIStatistics);
+router.get("/export-excel", statisticsController.exportStatisticsToExcel);
 
 module.exports = router; 

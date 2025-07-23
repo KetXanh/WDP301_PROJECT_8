@@ -10,7 +10,9 @@ import {
   TrendingUp,
   TrendingDown,
   Calendar,
-  DollarSign
+  DollarSign,
+  UserCheck,
+  UserX
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -37,6 +39,8 @@ const Dashboard = () => {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [updateForm, setUpdateForm] = useState({ status: '', progress: '', notes: '' });
   const [filter, setFilter] = useState('all');
+  const [recentTasks, setRecentTasks] = useState([]);
+  const [recentOrders, setRecentOrders] = useState([]);
 
   useEffect(() => {
     fetchDashboard();
@@ -49,6 +53,8 @@ const Dashboard = () => {
       const res = await getDashboardData();
       
       setStats(res.data.data.stats || {});
+      setRecentTasks(res.data.data.recentTasks || []);
+      setRecentOrders(res.data.data.recentOrders || []);
     } catch {
       toast.error('Không thể tải dữ liệu dashboard');
     }
@@ -95,6 +101,8 @@ const Dashboard = () => {
     }
   };
 
+  const completedTasks = tasks.filter(item => item.status === 'done');
+
   if (!stats) {
     return <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>;
   }
@@ -113,39 +121,163 @@ const Dashboard = () => {
         </CardContent>
       </Card>
 
-      {/* Thống kê & Bộ lọc thời gian */}
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between">
+      {/* Stats Cards */}
+      <div className="flex flex-col items-center justify-center w-full my-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 w-full max-w-2xl">
+          <Card className="flex items-center gap-6 p-8 rounded-3xl shadow-2xl bg-gradient-to-tr from-blue-100 to-blue-50 border-0 w-full">
+            <div className="bg-blue-200 p-6 rounded-full shadow-lg">
+              <ShoppingCart className="text-blue-600 w-14 h-14" />
+            </div>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Thống kê</h1>
-              <p className="text-gray-600">Tổng quan hiệu suất làm việc</p>
+              <div className="text-4xl font-extrabold text-blue-700">{stats.orderCount ?? 0}</div>
+              <div className="text-lg text-gray-500 font-semibold mt-2">Đơn hàng</div>
             </div>
-            <div className="flex items-center space-x-2">
-              <Calendar className="h-5 w-5 text-gray-400" />
-              <Select value={timeRange} onValueChange={setTimeRange}>
-                <SelectTrigger className="w-32">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="week">Tuần này</SelectItem>
-                  <SelectItem value="month">Tháng này</SelectItem>
-                  <SelectItem value="quarter">Quý này</SelectItem>
-                  <SelectItem value="year">Năm nay</SelectItem>
-                </SelectContent>
-              </Select>
+          </Card>
+          <Card className="flex items-center gap-6 p-8 rounded-3xl shadow-2xl bg-gradient-to-tr from-green-100 to-green-50 border-0 w-full">
+            <div className="bg-green-200 p-6 rounded-full shadow-lg">
+              <ClipboardList className="text-green-600 w-14 h-14" />
             </div>
+            <div>
+              <div className="text-4xl font-extrabold text-green-700">{stats.taskCount ?? 0}</div>
+              <div className="text-lg text-gray-500 font-semibold mt-2">Task</div>
+            </div>
+          </Card>
+        </div>
+      </div>
+
+      {/* Thống kê & Bộ lọc thời gian */}
+      <Card className="rounded-2xl shadow bg-white border-0 mt-6">
+        <CardContent className="p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Thống kê</h1>
+            <p className="text-gray-600">Tổng quan hiệu suất làm việc</p>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Calendar className="h-6 w-6 text-gray-400" />
+            <Select value={timeRange} onValueChange={setTimeRange}>
+              <SelectTrigger className="w-36 h-10 text-base">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="week">Tuần này</SelectItem>
+                <SelectItem value="month">Tháng này</SelectItem>
+                <SelectItem value="quarter">Quý này</SelectItem>
+                <SelectItem value="year">Năm nay</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </CardContent>
       </Card>
 
-      {/* Stats Cards */}
-      <DashboardStats stats={stats} chartData={chartData} />
-
       {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-2">
         <TaskProgress chartData={chartData} />
-        <KPIAchievement stats={stats} />
+      </div>
+
+      {/* Recent Tasks & Orders */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-2">
+        {/* Recent Tasks */}
+        <Card className="rounded-2xl shadow-xl border-0 p-0">
+          <CardHeader className="p-6 pb-2">
+            <CardTitle className="text-xl font-bold">Task gần đây</CardTitle>
+          </CardHeader>
+          <CardContent className="p-6 pt-2">
+            {recentTasks.length === 0 ? (
+              <div className="text-gray-500">Không có task gần đây</div>
+            ) : (
+              <ul className="space-y-6">
+                {recentTasks.map((item) => (
+                  <li key={item._id} className="p-4 bg-gray-50 rounded-xl shadow flex flex-col gap-2 hover:bg-blue-50 transition">
+                    <div className="flex items-center gap-3">
+                      <ClipboardList className="w-7 h-7 text-blue-500" />
+                      <span className="font-semibold text-lg text-blue-900">{item.task?.title}</span>
+                      <Badge variant={item.status === 'done' ? 'success' : item.status === 'pending' ? 'secondary' : item.status === 'late' ? 'destructive' : 'outline'} className="text-xs px-2 py-1">
+                        {item.status === 'done' ? 'Hoàn thành' : item.status === 'pending' ? 'Chờ bắt đầu' : item.status === 'late' ? 'Quá hạn' : 'Đang thực hiện'}
+                      </Badge>
+                      <Button size="sm" className="ml-auto" onClick={() => handleUpdateTask(item)}>Cập nhật</Button>
+                    </div>
+                    <div className="text-sm text-gray-600 pl-10">{item.task?.description}</div>
+                    <div className="flex flex-wrap gap-4 text-xs text-gray-500 pl-10 items-center">
+                      <div className="flex items-center gap-1"><Clock className="w-4 h-4" />Deadline: <span className="font-medium">{item.deadline ? new Date(item.deadline).toLocaleDateString('vi-VN') : ''}</span></div>
+                      <div className="flex items-center gap-1"><TrendingUp className="w-4 h-4" />Tiến độ: <span className="font-medium">{item.task?.progress || 0}%</span></div>
+                      <div className="flex items-center gap-1"><UserCheck className="w-4 h-4" />Giao bởi: <span className="font-medium">{item.assignedBy?.username || item.assignedBy}</span></div>
+                      <div className="flex items-center gap-1"><UserX className="w-4 h-4" />Giao cho: <span className="font-medium">{item.assignedTo?.username || item.assignedTo}</span></div>
+                      <div className="flex items-center gap-1"><Calendar className="w-4 h-4" />Ngày giao: <span className="font-medium">{item.assignedAt ? new Date(item.assignedAt).toLocaleDateString('vi-VN') : ''}</span></div>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                      <div className="bg-blue-500 h-2 rounded-full transition-all duration-300" style={{ width: `${item.task?.progress || 0}%` }}></div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
+        {/* Recent Orders */}
+        <Card className="rounded-2xl shadow-xl border-0 p-0">
+          <CardHeader className="p-6 pb-2">
+            <CardTitle className="text-xl font-bold">Đơn hàng gần đây</CardTitle>
+          </CardHeader>
+          <CardContent className="p-6 pt-2">
+            {recentOrders.length === 0 ? (
+              <div className="text-gray-500">Không có đơn hàng gần đây</div>
+            ) : (
+              <ul className="space-y-6">
+                {recentOrders.map((item) => (
+                  <li key={item._id} className="p-4 bg-gray-50 rounded-xl shadow flex flex-col gap-2 hover:bg-green-50 transition">
+                    <div className="flex items-center gap-3">
+                      <ShoppingCart className="w-7 h-7 text-green-500" />
+                      <span className="font-semibold text-lg text-green-900">Mã đơn: {item.orderId?._id || item.orderId}</span>
+                      <Badge variant={item.status === 'delivered' ? 'success' : item.status === 'pending' ? 'secondary' : item.status === 'cancelled' ? 'destructive' : 'outline'} className="text-xs px-2 py-1">
+                        {item.status === 'delivered' ? 'Đã giao' : item.status === 'pending' ? 'Chờ xử lý' : item.status === 'cancelled' ? 'Đã hủy' : item.status}
+                      </Badge>
+                    </div>
+                    <div className="flex flex-wrap gap-4 text-xs text-gray-500 pl-10 items-center">
+                      <div className="flex items-center gap-1"><UserCheck className="w-4 h-4" />Giao bởi: <span className="font-medium">{item.assignedBy?.username || item.assignedBy}</span></div>
+                      <div className="flex items-center gap-1"><UserX className="w-4 h-4" />Giao cho: <span className="font-medium">{item.assignedTo?.username || item.assignedTo}</span></div>
+                      <div className="flex items-center gap-1"><Calendar className="w-4 h-4" />Ngày giao: <span className="font-medium">{item.assignedAt ? new Date(item.assignedAt).toLocaleDateString('vi-VN') : ''}</span></div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
+        {/* Completed Tasks */}
+        <Card className="rounded-2xl shadow-xl border-0 p-0">
+          <CardHeader className="p-6 pb-2">
+            <CardTitle className="text-xl font-bold">Task hoàn thành</CardTitle>
+          </CardHeader>
+          <CardContent className="p-6 pt-2">
+            {completedTasks.length === 0 ? (
+              <div className="text-gray-500">Không có task hoàn thành</div>
+            ) : (
+              <ul className="space-y-6">
+                {completedTasks.map((item) => (
+                  <li key={item._id} className="p-4 bg-gray-50 rounded-xl shadow flex flex-col gap-2 hover:bg-blue-50 transition">
+                    <div className="flex items-center gap-3">
+                      <ClipboardList className="w-7 h-7 text-blue-500" />
+                      <span className="font-semibold text-lg text-blue-900">{item.task?.title}</span>
+                      <Badge variant="success" className="text-xs px-2 py-1">Hoàn thành</Badge>
+                      <Button size="sm" className="ml-auto" onClick={() => handleUpdateTask(item)}>Cập nhật</Button>
+                    </div>
+                    <div className="text-sm text-gray-600 pl-10">{item.task?.description}</div>
+                    <div className="flex flex-wrap gap-4 text-xs text-gray-500 pl-10 items-center">
+                      <div className="flex items-center gap-1"><Clock className="w-4 h-4" />Deadline: <span className="font-medium">{item.deadline ? new Date(item.deadline).toLocaleDateString('vi-VN') : ''}</span></div>
+                      <div className="flex items-center gap-1"><TrendingUp className="w-4 h-4" />Tiến độ: <span className="font-medium">{item.task?.progress || 0}%</span></div>
+                      <div className="flex items-center gap-1"><UserCheck className="w-4 h-4" />Giao bởi: <span className="font-medium">{item.assignedBy?.username || item.assignedBy}</span></div>
+                      <div className="flex items-center gap-1"><UserX className="w-4 h-4" />Giao cho: <span className="font-medium">{item.assignedTo?.username || item.assignedTo}</span></div>
+                      <div className="flex items-center gap-1"><Calendar className="w-4 h-4" />Ngày giao: <span className="font-medium">{item.assignedAt ? new Date(item.assignedAt).toLocaleDateString('vi-VN') : ''}</span></div>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                      <div className="bg-blue-500 h-2 rounded-full transition-all duration-300" style={{ width: `${item.task?.progress || 0}%` }}></div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
       </div>
 
       {/* Task Table */}

@@ -118,12 +118,17 @@ exports.getChatHistory = async (req, res) => {
       .where('receiverId', 'in', [currentUserId.toString(), otherUserId])
       .get();
 
-    const chatHistory = messages.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-      timestamp: doc.data().timestamp.toDate(),
-      isCurrentUser: doc.data().senderId === currentUserId.toString()
-    }));
+    const chatHistory = messages.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        ...data,
+        senderId: data.senderId && data.senderId._id ? data.senderId._id.toString() : (typeof data.senderId === 'string' ? data.senderId : ''),
+        receiverId: data.receiverId && data.receiverId._id ? data.receiverId._id.toString() : (typeof data.receiverId === 'string' ? data.receiverId : ''),
+        timestamp: data.timestamp?.toDate ? data.timestamp.toDate() : data.timestamp,
+        isCurrentUser: data.senderId === currentUserId.toString()
+      }
+    });
 
     chatHistory.sort((a, b) => b.timestamp - a.timestamp);
 
@@ -213,6 +218,24 @@ exports.updateMessage = async (req, res) => {
   }
 };
 
+exports.getAlltUsers = async (req, res) => {
+  try {
+    const users = await Users.find().lean();
+    const formattedUsers = users.map(user => ({
+      _id: user._id.toString(),
+      username: user.username || user.userName || 'Unknown User',
+      email: user.email || '',
+      avatar: user.avatar?.url || user.avatar || '',
+      role: user.role
+    }));
+    res.json({ code: 200, message: "Lấy danh sách người dùng thành công", users: formattedUsers });
+  } catch (error) {
+    console.error('Error in getAlltUsers:', error);
+    res.json({ code: 500, message: "Lỗi máy chủ", error: error.message });
+  }
+}
+
+
 exports.getChatUsers = async (req, res) => {
   try {
     const currentUserId =
@@ -226,12 +249,51 @@ exports.getChatUsers = async (req, res) => {
       return res.status(401).json({ message: "User not authenticated" });
     }
 
-    // Lấy tất cả user trừ chính mình
-    const users = await Users.find(
-      { _id: { $ne: currentUserId } },
-      { password: 0, token: 0, deletedAt: 0 }
-    ).lean();
+    const { search = "" } = req.query;
 
+    // Nếu có search, trả về user phù hợp
+    if (search) {
+      const query = {
+        _id: { $ne: currentUserId },
+        $or: [
+          { username: { $regex: search, $options: "i" } },
+          { email: { $regex: search, $options: "i" } },
+        ],
+      };
+      const users = await Users.find(query, { password: 0, token: 0, deletedAt: 0 }).lean();
+      const formattedUsers = users.map(user => ({
+        _id: user._id.toString(),
+        username: user.username || user.userName || 'Unknown User',
+        email: user.email || '',
+        avatar: user.avatar?.url || user.avatar || '',
+        role: user.role
+      }));
+      return res.status(200).json({ users: formattedUsers });
+    }
+
+    // Nếu không có search, lấy user đã chat gần đây
+    // Lấy tất cả message có liên quan đến currentUserId
+    const recentMessages = await ChatMessage.find({
+      $or: [
+        { sender: currentUserId },
+        { receiver: currentUserId }
+      ]
+    }).sort({ updatedAt: -1, createdAt: -1 }).lean();
+
+    // Lấy danh sách userId đã chat (trừ chính mình)
+    const userIds = new Set();
+    recentMessages.forEach(msg => {
+      if (msg.sender && msg.sender.toString() !== currentUserId) userIds.add(msg.sender.toString());
+      if (msg.receiver && msg.receiver.toString() !== currentUserId) userIds.add(msg.receiver.toString());
+    });
+
+    if (userIds.size === 0) {
+      // Nếu chưa từng chat với ai, trả về rỗng
+      return res.status(200).json({ users: [] });
+    }
+
+    // Lấy thông tin user đã chat gần đây
+    const users = await Users.find({ _id: { $in: Array.from(userIds) } }, { password: 0, token: 0, deletedAt: 0 }).lean();
     const formattedUsers = users.map(user => ({
       _id: user._id.toString(),
       username: user.username || user.userName || 'Unknown User',
@@ -239,7 +301,6 @@ exports.getChatUsers = async (req, res) => {
       avatar: user.avatar?.url || user.avatar || '',
       role: user.role
     }));
-
     res.status(200).json({ users: formattedUsers });
   } catch (error) {
     console.error('Error in getChatUsers:', error);
