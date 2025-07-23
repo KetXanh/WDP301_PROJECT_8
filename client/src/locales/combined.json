@@ -727,6 +727,10 @@
         "rating": {
             "en": "reviews",
             "vi": "đánh giá"
+        },
+        "noRating":{
+            "en": "The product has no reviews yet",
+            "vi": "Sản phẩm chưa có đánh giá nào"
         }
     },
     "cart": {
