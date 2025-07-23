@@ -967,6 +967,126 @@
         "order_summary_with_count": {
             "en": "Order ({{count}} items)",
             "vi": "Đơn Hàng ({{count}} sản phẩm)"
+        },
+        "discount": {
+            "en": "Discount",
+            "vi": "Mã Giảm Giá"
+        },
+        "discount_code": {
+            "en": "Enter discount code",
+            "vi": "Nhập mã giảm giá"
+        },
+        "use_discount": {
+            "en": "Apply",
+            "vi": "Áp Dụng"
+        },
+        "applying": {
+            "en": "Applying...",
+            "vi": "Đang áp dụng..."
+        },
+        "available_discounts": {
+            "en": "Available Discounts",
+            "vi": "Mã Giảm Giá Có Sẵn"
+        },
+        "remove": {
+            "en": "Remove",
+            "vi": "Xóa"
+        },
+        "enter_discount_code": {
+            "en": "Please enter a discount code",
+            "vi": "Vui lòng nhập mã giảm giá"
+        },
+        "discount_applied": {
+            "en": "Discount applied successfully",
+            "vi": "Áp dụng mã giảm giá thành công"
+        },
+        "discount_error": {
+            "en": "Failed to apply discount",
+            "vi": "Không thể áp dụng mã giảm giá"
+        },
+        "discount_removed": {
+            "en": "Discount removed",
+            "vi": "Đã xóa mã giảm giá"
+        },
+        "select_discount": {
+            "en": "Select this code",
+            "vi": "Chọn mã này"
+        },
+        "discount_percentage": {
+            "en": "Discount:",
+            "vi": "Giảm giá:"
+        },
+        "remaining_uses": {
+            "en": "Remaining:",
+            "vi": "Còn lại:"
+        },
+        "min_order_value": {
+            "en": "Min. order value:",
+            "vi": "Giá tối thiểu:"
+        },
+        "max_discount": {
+            "en": "Max discount:",
+            "vi": "Giảm tối đa:"
+        },
+        "expiry_date": {
+            "en": "Expiry date:",
+            "vi": "Hạn sử dụng:"
+        },
+        "uses_left": {
+            "en": "uses left",
+            "vi": "lượt"
+        },
+        "min_order_warning": {
+            "en": "⚠️ Minimum order value required: {{amount}}đ to use this code",
+            "vi": "⚠️ Cần đặt hàng tối thiểu {{amount}}đ để sử dụng mã này"
+        },
+        "selected_discounts": {
+            "en": "Selected {{count}} discount codes",
+            "vi": "Đã chọn {{count}} mã giảm giá"
+        },
+        "additional_savings": {
+            "en": "Additional savings:",
+            "vi": "Giảm thêm:"
+        },
+        "apply_selected_discounts": {
+            "en": "Apply {{count}} discount codes",
+            "vi": "Áp dụng {{count}} mã giảm giá"
+        },
+        "applying_discounts": {
+            "en": "Applying...",
+            "vi": "Đang áp dụng..."
+        },
+        "please_select_discount": {
+            "en": "Please select at least one discount code",
+            "vi": "Vui lòng chọn ít nhất một mã giảm giá"
+        },
+        "discount_already_applied": {
+            "en": "This discount code has already been applied",
+            "vi": "Mã giảm giá này đã được áp dụng"
+        },
+        "order_minimum_required": {
+            "en": "Order needs minimum {{amount}}đ to use this code",
+            "vi": "Đơn hàng cần tối thiểu {{amount}}đ để sử dụng mã này"
+        },
+        "applied_discounts": {
+            "en": "Applied Discounts",
+            "vi": "Mã Giảm Giá Đã Áp Dụng"
+        },
+        "preview_discounts": {
+            "en": "Preview Selected Discounts",
+            "vi": "Xem Trước Mã Đã Chọn"
+        },
+        "waiting_to_apply": {
+            "en": "Waiting to apply",
+            "vi": "Chờ áp dụng"
+        },
+        "total_savings": {
+            "en": "Total Savings",
+            "vi": "Tổng Tiết Kiệm"
+        },
+        "discount_code_label": {
+            "en": "Code:",
+            "vi": "Mã:"
         }
     },
     "toast": {

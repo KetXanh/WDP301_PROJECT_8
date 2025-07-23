@@ -63,9 +63,19 @@ const Login = () => {
 
         dispatch(clearCart({ userId: GUEST_ID }));
         if (decoded?.role === 0) {
-          navigate("/");
-        } else if (decoded?.role === 3) {
-          navigate("/admin");
+          navigate('/')
+
+        } else if (decoded?.role === 1) {
+          navigate('/admin-dev')
+        }
+        else if (decoded?.role === 2) {
+          navigate('/sale-manager')
+        }
+        else if (decoded?.role === 3) {
+          navigate('/admin')
+        }
+        else if (decoded?.role === 4) {
+          navigate('/sale-staff')
         }
       } else if (res.data) {
         const status = res.data.code;
