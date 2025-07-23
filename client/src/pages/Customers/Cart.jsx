@@ -78,7 +78,14 @@ const Cart = () => {
     }, [addresses]);
 
     useEffect(() => {
-        setCartItems(reduxCartItems);
+        setCartItems((prevItems) =>
+            reduxCartItems.map((newItem) => {
+                const prevItem = prevItems.find((i) => i.productId === newItem.productId);
+                return {
+                    ...newItem,
+                    selected: prevItem?.selected || false,
+                };
+            }));
     }, [reduxCartItems]);
 
     // Handle delete address

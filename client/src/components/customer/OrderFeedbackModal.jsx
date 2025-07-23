@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
 import { userFeedback } from '../../services/Customer/ApiProduct';
 
-const OrderFeedbackModal = ({ isOpen, onClose, product }) => {
+const OrderFeedbackModal = ({ isOpen, onClose, product, selectedOrder }) => {
     const { t } = useTranslation(['translation']);
 
     const handleSubmitFeedback = async ({ rating, comment }) => {
@@ -15,7 +15,9 @@ const OrderFeedbackModal = ({ isOpen, onClose, product }) => {
                 stars: rating,
                 comment,
                 images: [],
+                orderId: selectedOrder.id
             });
+            console.log(response);
 
             if (response.status === 201) {
                 toast.success(t('order_feedback.toast_feedback_success'));
