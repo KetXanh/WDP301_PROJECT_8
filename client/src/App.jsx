@@ -22,6 +22,7 @@ import ProductDetail from "./pages/Customers/ProductDetail";
 import Cart from "./pages/Customers/Cart";
 import ProtectedRoute from "./components/protectedRouter/ProtectedRoute";
 import Discount from "./pages/Customers/Discount";
+import Blog from "./pages/Customers/Blog";
 
 // Admin Pages
 import Sidebar from "./components/admin/Sidebar";
@@ -54,16 +55,22 @@ import SaleStaffChat from "./pages/SaleStaff/Chat";
 import SaleStaffProfile from "./pages/SaleStaff/Profile";
 
 
-
-//Sale Manager Pages
+//Admin Dev Pages
 import AdminDevLayout from "./pages/AdminDev/AdminDevLayout";
-
+import DashboardAdminDev from "./pages/AdminDev/Dashboard";
+import StatisticsAdminDev from "./pages/AdminDev/Statistics";
+import AccountManagement from "./pages/AdminDev/AccountManagement";
+import ProductManagement from "./pages/AdminDev/ProductManagement";
+import AdminBlog from "./pages/AdminDev/AdminBlog";
 
 import Checkout from "./pages/Customers/Checkout";
 import Rating from "./pages/admin/Rating";
 import PaymentResult from "./pages/Customers/PaymentResult";
 import OrderHistory from "./pages/Customers/OrderHistory";
 // import VnpayWaiting from "./pages/Customers/VnpayWaiting";
+import About from "./components/customer/About";
+import ContactUs from "./components/customer/Contact";
+
 
 // Customer Layout
 const CustomerLayout = () => (
@@ -137,6 +144,9 @@ function App() {
           <Route path="/products" element={<Products />} />
           <Route path="/products/:slug" element={<ProductDetail />} />
           <Route path="/cart" element={<Cart />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/contact" element={<ContactUs />} /> 
+          <Route path="/blog" element={<Blog />} />
           {accessToken && (
             <>
               <Route
@@ -201,9 +211,13 @@ function App() {
           <Route path="profile" element={<SaleStaffProfile />} />
         </Route>
 
-        {/* Admin Dev Routes */}
-        <Route path="/admin-dev" element={<AdminDevLayout />}>
-
+          {/* Admin Dev Routes */}
+        <Route path="/admin-dev" element={<AdminDevLayout/>}>
+          <Route index element={<DashboardAdminDev/>}/>
+          <Route path="stats" element={<StatisticsAdminDev/>}/>
+          <Route path="accmanage" element={<AccountManagement/>}/>
+          <Route path="productmanagement" element={<ProductManagement/>}/>
+          <Route path="blogmanagement" element={<AdminBlog />} />
         </Route>
         {/* Not Found */}
         <Route path="*" element={<NotFound />} />

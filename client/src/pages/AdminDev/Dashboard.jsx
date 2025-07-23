@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card"
 import { DollarSign, ShoppingCart, Users, Package, ClipboardList } from "lucide-react"
 
-export default function Dashboard() {
+export default function DashboardAdminDev() {
   return (
     <div className="space-y-6">
       {/* Welcome Section */}

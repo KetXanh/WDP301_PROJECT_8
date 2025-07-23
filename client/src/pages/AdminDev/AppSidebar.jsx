@@ -1,4 +1,9 @@
-import { ChartBar, ListCheck, Percent, Percent as Discount } from "lucide-react"
+import {
+  ChartBar,
+  ListCheck,
+  Percent,
+  Percent as Discount,
+} from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -6,19 +11,17 @@ import {
   SidebarGroupContent,
   SidebarGroupLabel,
   SidebarMenu,
-} from "@/components/ui/sidebar"
-import { NavigationItem } from "./NavigationItem"
-import { SidebarHeader } from "./SidebarHeader"
-import { SidebarFooterContent } from "./SidebarFooterContent"
+} from "@/components/ui/sidebar";
+import { NavigationItem } from "./NavigationItem";
+import { SidebarHeader } from "./SidebarHeader";
+import { SidebarFooterContent } from "./SidebarFooterContent";
 
 const navigationItems = [
   { title: "Tổng quan", url: "/", icon: ChartBar },
   { title: "Thống kê", url: "/statistics", icon: ChartBar },
-  { title: "Thay đổi vai trò người dùng", url: "/changerole", icon: ListCheck },
-  { title: "Quản lý người dùng", url: "/banuser", icon: ChartBar },
-  { title: "Quản lý sản phẩm", url: "/product", icon: Percent },
-
-]
+  { title: "Quản lí tài khoản người dùng", url: "/accmanage", icon: ListCheck },
+  { title: "Quản lý sản phẩm", url: "/productmanage", icon: ListCheck },
+];
 
 export function AppSidebar() {
   return (
@@ -31,7 +34,7 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {navigationItems.map((item) => (
-                <NavigationItem 
+                <NavigationItem
                   key={item.title}
                   title={item.title}
                   url={item.url}
@@ -45,5 +48,5 @@ export function AppSidebar() {
 
       <SidebarFooterContent />
     </Sidebar>
-  )
+  );
 }

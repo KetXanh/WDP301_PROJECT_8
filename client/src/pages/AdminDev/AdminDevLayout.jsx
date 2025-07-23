@@ -6,8 +6,7 @@ import { NavigationItem } from "./NavigationItem"
 import {
   BarChart3,
   ClipboardList,
-  Users,
-  Percent,
+  Settings,
   LayoutDashboard
 } from "lucide-react"
 
@@ -20,23 +19,23 @@ export default function AdminDevLayout() {
     },
     {
       title: "Thống kê",
-      url: "/admin-dev/statistics",
+      url: "/admin-dev/stats",
       icon: BarChart3
     },
     {
-      title: "Thay đổi vai trò người dùng",
-      url: "/admin-dev/changerole",
+      title: "Quản lí tài khoản người dùng",
+      url: "/admin-dev/accmanage",
       icon: ClipboardList
     },
     {
-      title: "Quản lý người dùng",
-      url: "/admin-dev/banuser",
-      icon: Users
-    },
-    {
       title: "Quản lý sản phẩm",
-      url: "/admin-dev/product",
-      icon: Percent
+      url: "/admin-dev/productmanagement",
+      icon: ClipboardList
+    },
+        {
+      title: "Quản lý blog",
+      url: "/admin-dev/blogmanagement",
+      icon: ClipboardList
     }
   ]
 

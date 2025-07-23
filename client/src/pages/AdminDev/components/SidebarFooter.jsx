@@ -1,11 +1,21 @@
 import { LogOut } from "lucide-react"
 import { SidebarFooter, SidebarMenu, SidebarMenuItem, SidebarMenuButton, useSidebar } from "../../../components/ui/sidebar"
+import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { toast } from "react-toastify";
+import { logout } from "../../../store/customer/authSlice";
 
 export function SidebarFooterContent() {
-    const { open } = useSidebar()
+    const { open } = useSidebar();
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
+    const { t } = useTranslation();
 
     const handleLogout = () => {
-        console.log("Logout clicked")
+        dispatch(logout());
+        toast.success(t('toast.logout'));
+        navigate('/');
     }
 
     return (

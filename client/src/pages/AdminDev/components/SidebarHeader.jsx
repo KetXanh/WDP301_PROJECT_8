@@ -27,7 +27,7 @@ export function SidebarHeader() {
         )} */}
         <div className="p-4 border-b">
           <h2 className="text-lg font-semibold text-primary">
-            {open ? "Quản lý cửa hàng" : "QL"}
+            {open ? "Quản lý trang bán hàng" : "QL"}
           </h2>
         </div>
       </div>

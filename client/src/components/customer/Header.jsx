@@ -146,13 +146,19 @@ const Header = () => {
               {t("home.products")}
             </Link>
             <a
-              href="#"
+              href="blog"
+              className="text-gray-700 hover:text-green-600 font-medium"
+            >
+              {t("home.blog")}
+            </a>
+            <a
+              href="about"
               className="text-gray-700 hover:text-green-600 font-medium"
             >
               {t("home.aboutUs")}
             </a>
             <a
-              href="#"
+              href="contact"
               className="text-gray-700 hover:text-green-600 font-medium"
             >
               {t("home.contact")}

@@ -16,6 +16,10 @@
             "en": "Contact",
             "vi": "Liên Hệ"
         },
+        "blog": {
+            "en": "Blog",
+            "vi": "Bài Viết"
+        },
         "viewProfile": {
             "en": "View Profile",
             "vi": "Xem Profile"

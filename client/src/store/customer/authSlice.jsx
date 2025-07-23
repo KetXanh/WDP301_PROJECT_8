@@ -14,10 +14,10 @@ const customerSlice = createSlice({
             state.refreshToken = action.payload.refreshToken;
         },
         logout: (state) => {
-            state.accessToken = null;
-            state.refreshToken = null;
             localStorage.removeItem('accessToken');
             localStorage.removeItem('refreshToken');
+            state.accessToken = "";
+            state.refreshToken = "";
         }
 
     },
