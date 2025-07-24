@@ -50,7 +50,10 @@ const Login = () => {
       if (!isValidEmail(formData.email)) {
         return toast.error(t('toast.invalidEmailFormat'));
       }
-      const res = await customerLogin(formData);
+      const res = await customerLogin({
+        email: formData.email.trim(),
+        password: formData.password.trim()
+      });
       if (res.data && res.data.code === 200) {
         const dataToken = {
           accessToken: res.data?.accessToken,

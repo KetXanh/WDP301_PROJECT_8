@@ -21,7 +21,7 @@ const OrderFeedbackForm = ({
 
         setIsSubmitting(true);
         try {
-            await onSubmit({ rating, comment });
+            await onSubmit({ rating, comment: comment.trim() });
         } finally {
             setIsSubmitting(false);
         }

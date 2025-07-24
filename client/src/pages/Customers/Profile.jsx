@@ -94,16 +94,16 @@ const Profile = () => {
     setIsLoading(true);
     try {
       const form = new FormData();
-      form.append("username", formData.username);
-      form.append("email", formData.email);
+      form.append("username", formData.username.trim());
+      form.append("email", formData.email.trim());
 
       const address = formData.address[0];
-      form.append("fullName", address.fullName);
-      form.append("phone", address.phone);
-      form.append("street", address.street);
-      form.append("ward", address.ward);
-      form.append("district", address.district);
-      form.append("province", address.province);
+      form.append("fullName", address.fullName.trim());
+      form.append("phone", address.phone.trim());
+      form.append("street", address.street.trim());
+      form.append("ward", address.ward.trim());
+      form.append("district", address.district.trim());
+      form.append("province", address.province.trim());
 
       if (avatarFile) {
         form.append("avatar", avatarFile);
