@@ -34,32 +34,32 @@ const Register = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            if (!formData.username) {
+            if (!formData.username.trim()) {
                 return toast.error(t('toast.usernameEmpty'))
             }
-            if (!formData.email) {
+            if (!formData.email.trim()) {
                 return toast.error(t('toast.emailEmpty'))
             }
-            if (!formData.password) {
+            if (!formData.password.trim()) {
                 return toast.error(t('toast.passwordEmpty'))
             }
-            if (!formData.confirmPassword) {
+            if (!formData.confirmPassword.trim()) {
                 return toast.error(t('toast.confirmPasswordEmpty'))
             }
-            if (!isValidEmail(formData.email)) {
+            if (!isValidEmail(formData.email.trim())) {
                 toast.error(t('toast.invalidEmailFormatRegister'))
             }
             if (formData.password.length < 6) {
                 return toast.error(t('toast.passwordTooShort'))
             }
-            if (formData.password !== formData.confirmPassword) {
+            if (formData.password.trim() !== formData.confirmPassword.trim()) {
                 return toast.error(t('toast.confirmPasswordMismatch'))
             }
-            const res = await customerRegister(formData.username, formData.email, formData.password);
+            const res = await customerRegister(formData.username.trim(), formData.email.trim(), formData.password.trim());
 
             if (res.data && res.data.code === 201) {
                 toast.success(t('toast.registerSuccess'));
-                navigate(`/verify/${formData.email}`)
+                navigate(`/verify/${formData.email.trim()}`)
             } else if (res.data && res.data.code === 400) {
                 toast.error(res.data?.message === "Email already exits" ? t('toast.emailExists') : t('toast.usernameExists'))
             } else {

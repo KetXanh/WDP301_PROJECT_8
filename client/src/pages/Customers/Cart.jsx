@@ -252,22 +252,22 @@ const Cart = () => {
     // Handle add new address
     const handleAddAddress = async () => {
         if (
-            newAddress.fullname &&
-            newAddress.street &&
-            newAddress.ward &&
-            newAddress.district &&
-            newAddress.province &&
-            newAddress.phone
+            newAddress.fullname.trim() &&
+            newAddress.street.trim() &&
+            newAddress.ward.trim() &&
+            newAddress.district.trim() &&
+            newAddress.province.trim() &&
+            newAddress.phone.trim()
         ) {
             try {
                 const res = await addNewAddress({
-                    fullName: newAddress.fullname,
-                    phone: newAddress.phone,
-                    street: newAddress.street,
-                    ward: newAddress.ward,
-                    district: newAddress.district,
-                    province: newAddress.province,
-                    label: newAddress.label || 'Nhà riêng',
+                    fullName: newAddress.fullname.trim(),
+                    phone: newAddress.phone.trim(),
+                    street: newAddress.street.trim(),
+                    ward: newAddress.ward.trim(),
+                    district: newAddress.district.trim(),
+                    province: newAddress.province.trim(),
+                    label: newAddress.label.trim() || 'Nhà riêng',
                     isDefault: newAddress.isDefault,
                 });
 
