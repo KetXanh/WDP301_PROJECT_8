@@ -73,8 +73,17 @@ const Cart = () => {
     }, [username]);
 
     useEffect(() => {
+        if (addresses.length === 0) {
+            setSelectedAddress(null);
+            return;
+        }
+
         const defaultAddr = addresses.find((a) => a.isDefault);
-        if (defaultAddr) setSelectedAddress(defaultAddr.id);
+        if (defaultAddr) {
+            setSelectedAddress(defaultAddr.id);
+        } else {
+            setSelectedAddress(addresses[0].id);
+        }
     }, [addresses]);
 
     useEffect(() => {
@@ -260,6 +269,8 @@ const Cart = () => {
             newAddress.phone.trim()
         ) {
             try {
+                console.log(newAddress);
+
                 const res = await addNewAddress({
                     fullName: newAddress.fullname.trim(),
                     phone: newAddress.phone.trim(),
