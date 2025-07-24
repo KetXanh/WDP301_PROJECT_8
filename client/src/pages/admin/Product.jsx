@@ -148,7 +148,7 @@ export default function Product() {
   return (
     <div className="p-6 space-y-6 mt-10">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Product</h1>
+        <h1 className="text-2xl font-bold">Sản phẩm</h1>
         <Dialog.Root open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
           <div className="flex items-center gap-2">
             <Dialog.Trigger asChild>
@@ -413,7 +413,7 @@ export default function Product() {
             onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
             disabled={currentPage === 1}
           >
-            {'<'}
+            {"<"}
           </button>
           {[...Array(totalPages)].map((_, i) => (
             <button
@@ -431,7 +431,7 @@ export default function Product() {
             onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
             disabled={currentPage === totalPages}
           >
-            {'>'}
+            {">"}
           </button>
         </div>
       )}

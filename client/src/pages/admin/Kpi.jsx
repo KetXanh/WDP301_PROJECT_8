@@ -67,7 +67,7 @@ export default function Kpi() {
   return (
     <div className="p-6 space-y-6 mt-10">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">KPI Management</h1>
+        <h1 className="text-2xl font-bold"> Quản lý KPI</h1>
         <Dialog.Root open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <Dialog.Trigger asChild>
             <button
