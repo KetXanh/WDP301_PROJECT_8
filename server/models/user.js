@@ -2,9 +2,12 @@ const { default: mongoose } = require("mongoose");
 
 const userSchema = new mongoose.Schema({
     username: String,
-    email: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
-    avatar: String,
+    email: { type: String },
+    password: { type: String },
+    avatar: {
+        url: { type: String, default: "" },
+        public_id: { type: String, default: "" },
+    },
     address: [
         {
             fullName: String,
@@ -13,11 +16,13 @@ const userSchema = new mongoose.Schema({
             ward: String,
             district: String,
             province: String,
+            lable: { type: String, default: "Nhà riêng" },
             isDefault: { type: Boolean, default: false }
         }
     ],
 
     role: { type: Number, enum: [0, 1, 2, 3, 4], default: 0 },
+    // 0: user, 1: admin dev, 2: sale manager, 3: product manager, 4: sale staff
     re_token: String,
     status: { type: String, enum: ["active", "inactive"], default: "inactive" }
 }, {

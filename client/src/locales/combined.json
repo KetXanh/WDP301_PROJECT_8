@@ -1,0 +1,1702 @@
+{
+    "home": {
+        "home": {
+            "en": "Home",
+            "vi": "Trang Chủ"
+        },
+        "products": {
+            "en": "Products",
+            "vi": "Sản Phẩm"
+        },
+        "aboutUs": {
+            "en": "About Us",
+            "vi": "Về Chúng Tôi"
+        },
+        "contact": {
+            "en": "Contact",
+            "vi": "Liên Hệ"
+        },
+        "viewProfile": {
+            "en": "View Profile",
+            "vi": "Xem Profile"
+        },
+        "logout": {
+            "en": "Logout",
+            "vi": "Đăng Xuất"
+        },
+        "login": {
+            "en": "Login",
+            "vi": "Đăng Nhập"
+        },
+        "register": {
+            "en": "Register",
+            "vi": "Đăng Ký"
+        },
+        "title": {
+            "en": "Premium Nutritional Nuts",
+            "vi": "Hạt Dinh Dưỡng Cao Cấp"
+        },
+        "subtitle": {
+            "en": "Explore the world of fresh, high-quality nutritional nuts with amazing health benefits for you",
+            "vi": "Khám phá thế giới hạt dinh dưỡng tươi ngon, chất lượng cao với những lợi ích tuyệt vời cho sức khỏe của bạn"
+        },
+        "buyNow": {
+            "en": "Buy Now",
+            "vi": "Mua Ngay"
+        },
+        "learnMore": {
+            "en": "Learn More",
+            "vi": "Tìm Hiểu Thêm"
+        },
+        "featured": {
+            "en": "Featured Products",
+            "vi": "Sản Phẩm Nổi Bật"
+        },
+        "why": {
+            "en": "Why Choose NutiGo?",
+            "vi": "Tại Sao Chọn NutiGo?"
+        },
+        "benefit1Title": {
+            "en": "Fast Delivery",
+            "vi": "Giao Hàng Nhanh"
+        },
+        "benefit1Desc": {
+            "en": "Free shipping on orders over 500k",
+            "vi": "Miễn phí giao hàng cho đơn từ 500k"
+        },
+        "benefit2Title": {
+            "en": "Guaranteed Quality",
+            "vi": "Chất Lượng Đảm Bảo"
+        },
+        "benefit2Desc": {
+            "en": "Authentic and fresh products",
+            "vi": "Sản phẩm chính hãng, tươi ngon"
+        },
+        "benefit3Title": {
+            "en": "Trusted Brand",
+            "vi": "Thương Hiệu Uy Tín"
+        },
+        "benefit3Desc": {
+            "en": "Over 10 years of experience",
+            "vi": "Hơn 10 năm kinh nghiệm"
+        },
+        "benefit4Title": {
+            "en": "Dedicated Support",
+            "vi": "Tư Vấn Tận Tình"
+        },
+        "benefit4Desc": {
+            "en": "24/7 customer assistance",
+            "vi": "Hỗ trợ 24/7 cho khách hàng"
+        },
+        "startJourney": {
+            "en": "Start Your Health Journey with NutiGo",
+            "vi": "Bắt Đầu Hành Trình Sức Khỏe Cùng NutiGo"
+        },
+        "startDesc": {
+            "en": "Register now to receive special offers and updates on the latest products",
+            "vi": "Đăng ký ngay để nhận ưu đãi đặc biệt và cập nhật những sản phẩm mới nhất"
+        },
+        "viewOrder": {
+            "en": "View Orders History",
+            "vi": "Lịch Sử Mua Hàng"
+        },
+        "registerNow": {
+            "en": "Register Now",
+            "vi": "Đăng Ký Ngay"
+        }
+    },
+    "product": {
+        "title": {
+            "en": "Products",
+            "vi": "Sản Phẩm"
+        },
+        "description": {
+            "en": "Explore our collection of premium nutritional nuts",
+            "vi": "Khám phá bộ sưu tập hạt dinh dưỡng cao cấp của chúng tôi"
+        },
+        "searchPlaceholder": {
+            "en": "Search products...",
+            "vi": "Tìm kiếm sản phẩm..."
+        },
+        "sortPlaceholder": {
+            "en": "Sort by",
+            "vi": "Sắp xếp theo"
+        },
+        "sortName": {
+            "en": "Name A-Z",
+            "vi": "Tên A-Z"
+        },
+        "sortPriceLow": {
+            "en": "Price: Low to High",
+            "vi": "Giá: Thấp đến Cao"
+        },
+        "sortPriceHigh": {
+            "en": "Price: High to Low",
+            "vi": "Giá: Cao đến Thấp"
+        },
+        "sortRating": {
+            "en": "Highest Rating",
+            "vi": "Đánh giá cao nhất"
+        },
+        "showing": {
+            "en": "Showing {{count}} / {{total}} products",
+            "vi": "Hiển thị {{count}} / {{total}} sản phẩm"
+        },
+        "noResults": {
+            "en": "No matching products found",
+            "vi": "Không tìm thấy sản phẩm phù hợp"
+        },
+        "clearFilters": {
+            "en": "Clear Filters",
+            "vi": "Xóa bộ lọc"
+        },
+        "filters": {
+            "en": "Product Filters",
+            "vi": "Bộ Lọc Sản Phẩm"
+        },
+        "category": {
+            "en": "Category",
+            "vi": "Danh Mục"
+        },
+        "allCategories": {
+            "en": "All Categories",
+            "vi": "Tất Cả Danh Mục"
+        },
+        "priceRange": {
+            "en": "Price Range",
+            "vi": "Khoảng Giá"
+        }
+    },
+    "footer": {
+        "description": {
+            "en": "Premium nutritious nut store, bringing health and happiness to every family.",
+            "vi": "Cửa hàng hạt dinh dưỡng cao cấp, mang đến sức khỏe và hạnh phúc cho mọi gia đình."
+        },
+        "products": {
+            "title": {
+                "en": "Products",
+                "vi": "Sản Phẩm"
+            },
+            "walnut": {
+                "en": "Walnut",
+                "vi": "Hạt Óc Chó"
+            },
+            "almond": {
+                "en": "Almond",
+                "vi": "Hạnh Nhân"
+            },
+            "cashew": {
+                "en": "Cashew",
+                "vi": "Hạt Điều"
+            },
+            "mix": {
+                "en": "Mix Nuts",
+                "vi": "Mix Nuts"
+            }
+        },
+        "support": {
+            "title": {
+                "en": "Support",
+                "vi": "Hỗ Trợ"
+            },
+            "contact": {
+                "en": "Contact",
+                "vi": "Liên Hệ"
+            },
+            "faq": {
+                "en": "FAQ",
+                "vi": "FAQ"
+            },
+            "policy": {
+                "en": "Policy",
+                "vi": "Chính Sách"
+            },
+            "shipping": {
+                "en": "Shipping",
+                "vi": "Giao Hàng"
+            }
+        },
+        "contact": {
+            "title": {
+                "en": "Contact",
+                "vi": "Liên Hệ"
+            },
+            "phone": {
+                "en": "0123 456 789",
+                "vi": "0123 456 789"
+            },
+            "email": {
+                "en": "nutigo93@gmail.com",
+                "vi": "nutigo93@gmail.com"
+            },
+            "address": {
+                "en": "Hoa Lac, Hanoi City",
+                "vi": "Hòa Lạc, TP.Hà Nội"
+            }
+        },
+        "rights": {
+            "en": "All rights reserved.",
+            "vi": "Tất cả quyền được bảo lưu."
+        }
+    },
+    "login": {
+        "title": {
+            "en": "Login",
+            "vi": "Đăng Nhập"
+        },
+        "subtitle": {
+            "en": "Welcome back to the nut store",
+            "vi": "Chào mừng bạn trở lại với cửa hàng hạt dinh dưỡng"
+        },
+        "emailLabel": {
+            "en": "Email",
+            "vi": "Email"
+        },
+        "emailPlaceholder": {
+            "en": "Enter your email address",
+            "vi": "Nhập địa chỉ email của bạn"
+        },
+        "passwordLabel": {
+            "en": "Password",
+            "vi": "Mật khẩu"
+        },
+        "passwordPlaceholder": {
+            "en": "Enter your password",
+            "vi": "Nhập mật khẩu của bạn"
+        },
+        "forgotPassword": {
+            "en": "Forgot password?",
+            "vi": "Quên mật khẩu?"
+        },
+        "loginButton": {
+            "en": "Login",
+            "vi": "Đăng Nhập"
+        },
+        "divider": {
+            "en": "Or",
+            "vi": "Hoặc"
+        },
+        "googleButton": {
+            "en": "Sign in with Google",
+            "vi": "Đăng nhập với Google"
+        },
+        "noAccount": {
+            "en": "Don't have an account?",
+            "vi": "Chưa có tài khoản?"
+        },
+        "registerNow": {
+            "en": "Sign up now",
+            "vi": "Đăng ký ngay"
+        },
+        "termsPrefix": {
+            "en": "By logging in, you agree to the",
+            "vi": "Bằng việc đăng nhập, bạn đồng ý với"
+        },
+        "termsOfUse": {
+            "en": "Terms of use",
+            "vi": "Điều khoản sử dụng"
+        },
+        "and": {
+            "en": "and",
+            "vi": "và"
+        },
+        "privacyPolicy": {
+            "en": "Privacy policy",
+            "vi": "Chính sách bảo mật"
+        }
+    },
+    "register": {
+        "title": {
+            "en": "Create Account",
+            "vi": "Đăng Ký Tài Khoản"
+        },
+        "subtitle": {
+            "en": "Create a new account to explore amazing nut products",
+            "vi": "Tạo tài khoản mới để khám phá các sản phẩm hạt dinh dưỡng tuyệt vời"
+        },
+        "usernameLabel": {
+            "en": "Username",
+            "vi": "Tên đăng nhập"
+        },
+        "usernamePlaceholder": {
+            "en": "Enter your username",
+            "vi": "Nhập tên đăng nhập của bạn"
+        },
+        "emailLabel": {
+            "en": "Email",
+            "vi": "Email"
+        },
+        "emailPlaceholder": {
+            "en": "Enter your email address",
+            "vi": "Nhập địa chỉ email của bạn"
+        },
+        "passwordLabel": {
+            "en": "Password",
+            "vi": "Mật khẩu"
+        },
+        "passwordPlaceholder": {
+            "en": "Enter your password",
+            "vi": "Nhập mật khẩu của bạn"
+        },
+        "confirmPasswordLabel": {
+            "en": "Confirm Password",
+            "vi": "Nhập lại mật khẩu"
+        },
+        "confirmPasswordPlaceholder": {
+            "en": "Re-enter your password",
+            "vi": "Nhập lại mật khẩu của bạn"
+        },
+        "registerButton": {
+            "en": "Sign Up",
+            "vi": "Đăng Ký"
+        },
+        "divider": {
+            "en": "Or",
+            "vi": "Hoặc"
+        },
+        "googleButton": {
+            "en": "Sign up with Google",
+            "vi": "Đăng ký bằng Google"
+        },
+        "alreadyHaveAccount": {
+            "en": "Already have an account?",
+            "vi": "Đã có tài khoản?"
+        },
+        "loginNow": {
+            "en": "Login now",
+            "vi": "Đăng nhập ngay"
+        },
+        "termsPrefix": {
+            "en": "By signing up, you agree to the",
+            "vi": "Bằng việc đăng ký, bạn đồng ý với"
+        },
+        "termsOfUse": {
+            "en": "Terms of Use",
+            "vi": "Điều khoản sử dụng"
+        },
+        "and": {
+            "en": "and",
+            "vi": "và"
+        },
+        "privacyPolicy": {
+            "en": "Privacy Policy",
+            "vi": "Chính sách bảo mật"
+        }
+    },
+    "forgot-password": {
+        "backToLogin": {
+            "en": "Back to login",
+            "vi": "Quay lại đăng nhập"
+        },
+        "title": {
+            "en": "Forgot Password",
+            "vi": "Quên Mật Khẩu"
+        },
+        "subtitle": {
+            "en": "Enter your email and we’ll send you a reset link",
+            "vi": "Nhập email của bạn và chúng tôi sẽ gửi link đặt lại mật khẩu"
+        },
+        "emailLabel": {
+            "en": "Email",
+            "vi": "Email"
+        },
+        "emailPlaceholder": {
+            "en": "example@email.com",
+            "vi": "example@email.com"
+        },
+        "sendLink": {
+            "en": "Send Reset Link",
+            "vi": "Gửi Link Đặt Lại"
+        },
+        "sending": {
+            "en": "Sending...",
+            "vi": "Đang gửi..."
+        },
+        "remember": {
+            "en": "Remember your password?",
+            "vi": "Nhớ mật khẩu?"
+        },
+        "loginNow": {
+            "en": "Log in now",
+            "vi": "Đăng nhập ngay"
+        }
+    },
+    "otp": {
+        "back": {
+            "en": "Go back",
+            "vi": "Quay lại"
+        },
+        "title": {
+            "en": "OTP Verification",
+            "vi": "Xác Thực OTP"
+        },
+        "subtitle": {
+            "en": "We've sent a 6-digit OTP code to your email. Please enter it to continue resetting your password.",
+            "vi": "Chúng tôi đã gửi mã OTP 6 số đến email của bạn. Vui lòng nhập mã để tiếp tục đặt lại mật khẩu."
+        },
+        "label": {
+            "en": "Enter OTP Code",
+            "vi": "Nhập mã OTP"
+        },
+        "verifying": {
+            "en": "Verifying...",
+            "vi": "Đang xác thực..."
+        },
+        "verifyBtn": {
+            "en": "Verify OTP",
+            "vi": "Xác Thực OTP"
+        }
+    },
+    "verify": {
+        "back": {
+            "en": "Go back",
+            "vi": "Quay lại"
+        },
+        "title": {
+            "en": "Email Verification",
+            "vi": "Xác Thực Email"
+        },
+        "subtitle": {
+            "en": "We have sent a 6-digit verification code to your email. Please enter it to complete your registration.",
+            "vi": "Chúng tôi đã gửi mã xác thực 6 số đến email của bạn. Vui lòng nhập mã để hoàn tất đăng ký."
+        },
+        "label": {
+            "en": "Enter verification code",
+            "vi": "Nhập mã xác thực"
+        },
+        "verifying": {
+            "en": "Verifying...",
+            "vi": "Đang xác thực..."
+        },
+        "verify": {
+            "en": "Verify",
+            "vi": "Xác Thực"
+        },
+        "notReceived": {
+            "en": "Didn't receive the code?",
+            "vi": "Không nhận được mã?"
+        },
+        "resend": {
+            "en": "Resend verification code",
+            "vi": "Gửi lại mã xác thực"
+        }
+    },
+    "reset_password": {
+        "back": {
+            "en": "Go back",
+            "vi": "Quay lại"
+        },
+        "title": {
+            "en": "Reset Password",
+            "vi": "Đặt Lại Mật Khẩu"
+        },
+        "subtitle": {
+            "en": "Enter a new password to complete the reset process",
+            "vi": "Nhập mật khẩu mới để hoàn tất quá trình đặt lại mật khẩu"
+        },
+        "newPassword": {
+            "en": "New Password",
+            "vi": "Mật khẩu mới"
+        },
+        "confirmPassword": {
+            "en": "Confirm New Password",
+            "vi": "Xác nhận mật khẩu mới"
+        },
+        "newPasswordPlaceholder": {
+            "en": "Enter new password",
+            "vi": "Nhập mật khẩu mới"
+        },
+        "confirmPasswordPlaceholder": {
+            "en": "Re-enter new password",
+            "vi": "Nhập lại mật khẩu mới"
+        },
+        "passwordRequirementTitle": {
+            "en": "Password requirements:",
+            "vi": "Yêu cầu mật khẩu:"
+        },
+        "passwordRequirement1": {
+            "en": "• At least 6 characters",
+            "vi": "• Ít nhất 6 ký tự"
+        },
+        "passwordRequirement2": {
+            "en": "• Should include uppercase, lowercase, and numbers",
+            "vi": "• Nên bao gồm chữ hoa, chữ thường và số"
+        },
+        "passwordRequirement3": {
+            "en": "• Avoid personal information",
+            "vi": "• Không sử dụng thông tin cá nhân"
+        },
+        "updating": {
+            "en": "Updating...",
+            "vi": "Đang cập nhật..."
+        },
+        "updateButton": {
+            "en": "Update Password",
+            "vi": "Cập Nhật Mật Khẩu"
+        },
+        "rememberPassword": {
+            "en": "Remember your password?",
+            "vi": "Nhớ mật khẩu?"
+        },
+        "loginNow": {
+            "en": "Login now",
+            "vi": "Đăng nhập ngay"
+        }
+    },
+    "profile": {
+        "backHome": {
+            "en": "Back to Home",
+            "vi": "Quay lại trang chủ"
+        },
+        "title": {
+            "en": "Profile",
+            "vi": "Thông Tin Cá Nhân"
+        },
+        "editHint": {
+            "en": "Edit your information",
+            "vi": "Chỉnh sửa thông tin của bạn"
+        },
+        "viewHint": {
+            "en": "View and manage your personal info",
+            "vi": "Xem và quản lý thông tin cá nhân"
+        },
+        "changePhoto": {
+            "en": "Change photo",
+            "vi": "Đổi ảnh"
+        },
+        "usernameLabel": {
+            "en": "Username",
+            "vi": "Tên tài khoản"
+        },
+        "usernamePlaceholder": {
+            "en": "Enter username",
+            "vi": "Nhập tên tài khoản"
+        },
+        "fullNameLabel": {
+            "en": "Full name",
+            "vi": "Họ và tên"
+        },
+        "emailLabel": {
+            "en": "Email",
+            "vi": "Email"
+        },
+        "phoneLabel": {
+            "en": "Phone number",
+            "vi": "Số điện thoại"
+        },
+        "addressLabel": {
+            "en": "Address",
+            "vi": "Địa chỉ"
+        },
+        "streetPlaceholder": {
+            "en": "Street, house number",
+            "vi": "Số nhà, tên đường"
+        },
+        "wardPlaceholder": {
+            "en": "Ward/Commune",
+            "vi": "Phường/Xã"
+        },
+        "districtPlaceholder": {
+            "en": "District",
+            "vi": "Quận/Huyện"
+        },
+        "provincePlaceholder": {
+            "en": "Province/City",
+            "vi": "Tỉnh/Thành phố"
+        },
+        "updatePrompt": {
+            "en": "Please update your profile",
+            "vi": "Hãy Cập Nhật Thông Tin Cá Nhân"
+        },
+        "saving": {
+            "en": "Saving...",
+            "vi": "Đang lưu..."
+        },
+        "save": {
+            "en": "Save changes",
+            "vi": "Lưu thay đổi"
+        },
+        "cancel": {
+            "en": "Cancel",
+            "vi": "Hủy"
+        }
+    },
+    "product_detail": {
+        "back": {
+            "en": "Back",
+            "vi": "Quay lại"
+        },
+        "product": {
+            "en": "Product",
+            "vi": "Sản phẩm"
+        },
+        "notFound": {
+            "en": "Product not found",
+            "vi": "Không tìm thấy sản phẩm"
+        },
+        "fetchError": {
+            "en": "Unable to load product information",
+            "vi": "Không thể tải thông tin sản phẩm"
+        },
+        "loading": {
+            "en": "Loading...",
+            "vi": "Đang tải..."
+        },
+        "inStock": {
+            "en": "{{count}} items left",
+            "vi": "{{count}} sản phẩm"
+        },
+        "origin": {
+            "en": "Origin",
+            "vi": "Xuất xứ"
+        },
+        "weight": {
+            "en": "Weight",
+            "vi": "Trọng lượng"
+        },
+        "expiry": {
+            "en": "Expiry",
+            "vi": "Hạn sử dụng"
+        },
+        "quantity": {
+            "en": "Quantity",
+            "vi": "Số lượng"
+        },
+        "stock": {
+            "en": "Stock",
+            "vi": "Còn Lại"
+        },
+        "outOfStock": {
+            "en": "Out of stock",
+            "vi": "Hết hàng"
+        },
+        "addToCart": {
+            "en": "Add to cart",
+            "vi": "Thêm vào giỏ"
+        },
+        "wishlistAdd": {
+            "en": "Added to wishlist",
+            "vi": "Đã thêm vào yêu thích"
+        },
+        "wishlistRemove": {
+            "en": "Removed from wishlist",
+            "vi": "Đã xóa khỏi yêu thích"
+        },
+        "copied": {
+            "en": "Copied",
+            "vi": "Đã sao chép"
+        },
+        "copiedDescription": {
+            "en": "Product link copied to clipboard",
+            "vi": "Link sản phẩm đã được sao chép vào clipboard"
+        },
+        "healthBenefits": {
+            "en": "Health Benefits",
+            "vi": "Lợi ích sức khỏe"
+        },
+        "usageInstructions": {
+            "en": "Usage Instructions",
+            "vi": "Hướng dẫn sử dụng"
+        },
+        "instructions": [
+            {
+                "en": "• Can be eaten directly or combined with other dishes",
+                "vi": "• Có thể ăn trực tiếp hoặc kết hợp với các món ăn khác"
+            },
+            {
+                "en": "• Store in a cool, dry place",
+                "vi": "• Nên bảo quản nơi khô ráo, thoáng mát"
+            },
+            {
+                "en": "• Avoid direct sunlight and high humidity",
+                "vi": "• Tránh ánh nắng trực tiếp và độ ẩm cao"
+            },
+            {
+                "en": "• Seal tightly after use to maintain freshness",
+                "vi": "• Đóng kín sau khi sử dụng để giữ độ tươi ngon"
+            }
+        ],
+        "customerReviews": {
+            "en": "Customer Reviews",
+            "vi": "Đánh giá khách hàng"
+        },
+        "seeAllReviews": {
+            "en": "See all reviews",
+            "vi": "Xem tất cả đánh giá"
+        },
+        "rating": {
+            "en": "reviews",
+            "vi": "đánh giá"
+        },
+        "noRating":{
+            "en": "The product has no reviews yet",
+            "vi": "Sản phẩm chưa có đánh giá nào"
+        }
+    },
+    "cart": {
+        "title": {
+            "en": "Shopping Cart",
+            "vi": "Giỏ Hàng"
+        },
+        "items_count": {
+            "en": "items",
+            "vi": "sản phẩm"
+        },
+        "continue_shopping": {
+            "en": "Continue Shopping",
+            "vi": "Tiếp tục mua sắm"
+        },
+        "select_all": {
+            "en": "Select All",
+            "vi": "Chọn tất cả"
+        },
+        "delete_selected": {
+            "en": "Delete Selected",
+            "vi": "Xóa đã chọn"
+        },
+        "empty_title": {
+            "en": "Your Cart is Empty",
+            "vi": "Giỏ hàng trống"
+        },
+        "empty_message": {
+            "en": "Start adding amazing products to your cart!",
+            "vi": "Hãy thêm một số sản phẩm tuyệt vời vào giỏ hàng của bạn!"
+        },
+        "explore_products": {
+            "en": "Explore Products",
+            "vi": "Khám Phá Sản Phẩm"
+        },
+        "shipping_address": {
+            "en": "Shipping Address",
+            "vi": "Địa Chỉ Giao Hàng"
+        },
+        "add_new_address": {
+            "en": "Add New Address",
+            "vi": "Thêm Địa Chỉ Mới"
+        },
+        "add_address_button": {
+            "en": "Add Address",
+            "vi": "Thêm Địa Chỉ"
+        },
+        "add_address_description": {
+            "en": "Enter your new shipping address information.",
+            "vi": "Nhập thông tin địa chỉ giao hàng mới của bạn."
+        },
+        "cancel": {
+            "en": "Cancel",
+            "vi": "Hủy"
+        },
+        "address_label": {
+            "en": "Address Label",
+            "vi": "Loại địa chỉ"
+        },
+        "receiver_name": {
+            "en": "Receiver's Name",
+            "vi": "Tên người nhận"
+        },
+        "label": {
+            "en": "Home, company, etc.",
+            "vi": "Nhà riêng, công ty, v.v..."
+        },
+        "street": {
+            "en": "Street & House Number",
+            "vi": "Số nhà, tên đường"
+        },
+        "ward": {
+            "en": "Ward",
+            "vi": "Phường/Xã"
+        },
+        "district": {
+            "en": "District",
+            "vi": "Quận/Huyện"
+        },
+        "province": {
+            "en": "Province/City",
+            "vi": "Tỉnh/Thành phố"
+        },
+        "phone": {
+            "en": "Phone Number",
+            "vi": "Số điện thoại"
+        },
+        "set_default": {
+            "en": "Set as Default Address",
+            "vi": "Đặt làm địa chỉ mặc định"
+        },
+        "yes": {
+            "en": "Yes",
+            "vi": "Có"
+        },
+        "no": {
+            "en": "No",
+            "vi": "Không"
+        },
+        "order_summary": {
+            "en": "Order Summary",
+            "vi": "Tóm Tắt Đơn Hàng"
+        },
+        "items_selected": {
+            "en": "Selected Items:",
+            "vi": "Sản phẩm đã chọn:"
+        },
+        "subtotal": {
+            "en": "Subtotal:",
+            "vi": "Tạm tính:"
+        },
+        "total": {
+            "en": "Total:",
+            "vi": "Tổng cộng:"
+        },
+        "checkout": {
+            "en": "Checkout",
+            "vi": "Thanh Toán"
+        },
+        "agree_terms": {
+            "en": "By checking out, you agree to our terms of use.",
+            "vi": "Bằng cách thanh toán, bạn đồng ý với điều khoản sử dụng."
+        },
+        "discover_more": {
+            "en": "Discover More Products",
+            "vi": "Khám Phá Thêm Sản Phẩm"
+        },
+        "discover_message": {
+            "en": "High-quality nutrition products are waiting for you",
+            "vi": "Những sản phẩm hạt dinh dưỡng chất lượng cao đang chờ bạn"
+        },
+        "view_all_products": {
+            "en": "View All Products",
+            "vi": "Xem Tất Cả Sản Phẩm"
+        }
+    },
+    "checkout": {
+        "title": {
+            "en": "Checkout",
+            "vi": "Thanh Toán"
+        },
+        "subtitle": {
+            "en": "Complete your order",
+            "vi": "Hoàn tất đơn hàng của bạn"
+        },
+        "shipping_address": {
+            "en": "Shipping Address",
+            "vi": "Địa Chỉ Giao Hàng"
+        },
+        "payment_method": {
+            "en": "Payment Method",
+            "vi": "Phương Thức Thanh Toán"
+        },
+        "cod_title": {
+            "en": "Cash on Delivery (COD)",
+            "vi": "Thanh toán khi nhận hàng (COD)"
+        },
+        "cod_description": {
+            "en": "Pay with cash upon delivery",
+            "vi": "Bằng tiền mặt"
+        },
+        "bank_title": {
+            "en": "Bank Transfer",
+            "vi": "Chuyển khoản ngân hàng"
+        },
+        "bank_description": {
+            "en": "Prepay the order",
+            "vi": "Trả trước đơn hàng"
+        },
+        "noteOrder": {
+            "en": "Order Note",
+            "vi": "Ghi Chú Đơn Hàng"
+        },
+        "order_summary": {
+            "en": "Order Summary",
+            "vi": "Đơn Hàng"
+        },
+        "order_total": {
+            "en": "Total",
+            "vi": "Tổng Cộng"
+        },
+        "subtotal": {
+            "en": "Subtotal",
+            "vi": "Tạm tính"
+        },
+        "shipping_fee": {
+            "en": "Shipping Fee",
+            "vi": "Phí vận chuyển"
+        },
+        "total_payment": {
+            "en": "Total Payment",
+            "vi": "Tổng thanh toán"
+        },
+        "place_order": {
+            "en": "Place Order",
+            "vi": "Đặt Hàng"
+        },
+        "processing": {
+            "en": "Processing...",
+            "vi": "Đang xử lý..."
+        },
+        "go_back": {
+            "en": "Back to cart",
+            "vi": "Quay lại giỏ hàng"
+        },
+        "titlePayemnt": {
+            "en": "Bank Transfer Details:",
+            "vi": "Thông tin chuyển khoản:"
+        },
+        "bank": {
+            "en": "Bank",
+            "vi": "Ngân hàng"
+        },
+        "account_number": {
+            "en": "Account No.",
+            "vi": "Số TK"
+        },
+        "account_name": {
+            "en": "Account Holder",
+            "vi": "Chủ TK"
+        },
+        "note": {
+            "en": "Transfer Note",
+            "vi": "Nội dung"
+        },
+        "noteCheckout": {
+            "en": "Enter a note (optional)",
+            "vi": "Nhập ghi chú (không bắt buộc)"
+        },
+        "popular": {
+            "en": "Popular",
+            "vi": "Phổ biến"
+        },
+        "safe": {
+            "en": "Secure",
+            "vi": "An toàn"
+        },
+        "order_summary_with_count": {
+            "en": "Order ({{count}} items)",
+            "vi": "Đơn Hàng ({{count}} sản phẩm)"
+        }
+    },
+    "toast": {
+        "loginEmailPasswordEmpty": {
+            "en": "Email or Password cannot be empty",
+            "vi": "Email hoặc Mật khẩu không được để trống"
+        },
+        "invalidEmailFormat": {
+            "en": "Invalid email format",
+            "vi": "Định dạng email không hợp lệ"
+        },
+        "productPaused": {
+            "en": "Product is temporarily out of business",
+            "vi": "Sản phẩm đã tạm dừng kinh doanh"
+        },
+        "loginSuccess": {
+            "en": "Login successful",
+            "vi": "Đăng nhập thành công"
+        },
+        "emailNotExist": {
+            "en": "Email does not exist",
+            "vi": "Email không tồn tại"
+        },
+        "passwordWrong": {
+            "en": "Incorrect password",
+            "vi": "Mật khẩu không đúng"
+        },
+        "accountNotExist": {
+            "en": "Account does not exist",
+            "vi": "Tài khoản không tồn tại"
+        },
+        "accountNotVerified": {
+            "en": "Account not verified",
+            "vi": "Tài khoản chưa được xác minh"
+        },
+        "loginFailed": {
+            "en": "Login failed",
+            "vi": "Đăng nhập thất bại"
+        },
+        "serverConnectionFailed": {
+            "en": "Unable to connect to server",
+            "vi": "Không thể kết nối với máy chủ"
+        },
+        "logout": {
+            "en": "Logout successful",
+            "vi": "Đăng xuất thành công"
+        },
+        "register": {
+            "en": "",
+            "vi": ""
+        },
+        "usernameEmpty": {
+            "en": "Username cannot be empty",
+            "vi": "Tên đăng nhập không được để trống"
+        },
+        "emailEmpty": {
+            "en": "Email cannot be empty",
+            "vi": "Email không được để trống"
+        },
+        "passwordEmpty": {
+            "en": "Password cannot be empty",
+            "vi": "Mật khẩu không được để trống"
+        },
+        "confirmPasswordEmpty": {
+            "en": "Confirmation password cannot be empty",
+            "vi": "Mật khẩu xác nhận không được để trống"
+        },
+        "invalidEmailFormatRegister": {
+            "en": "Invalid email format",
+            "vi": "Định dạng email không hợp lệ"
+        },
+        "passwordTooShort": {
+            "en": "Password must be longer than 6 characters",
+            "vi": "Mật khẩu phải dài hơn 6 ký tự"
+        },
+        "confirmPasswordMismatch": {
+            "en": "Passwords do not match",
+            "vi": "Mật khẩu không khớp"
+        },
+        "registerSuccess": {
+            "en": "Account registered successfully",
+            "vi": "Tài khoản được đăng ký thành công"
+        },
+        "emailExists": {
+            "en": "Email already exists",
+            "vi": "Email đã tồn tại"
+        },
+        "usernameExists": {
+            "en": "Username already exists",
+            "vi": "Tên đăng nhập đã tồn tại"
+        },
+        "registerFailed": {
+            "en": "Registration failed",
+            "vi": "Đăng ký thất bại"
+        },
+        "forgot_password": {
+            "en": "",
+            "vi": ""
+        },
+        "emailEmpty_forgot": {
+            "en": "Please enter your email",
+            "vi": "Vui lòng nhập email của bạn"
+        },
+        "emailNotExist_forgot": {
+            "en": "Email does not exist",
+            "vi": "Email không tồn tại"
+        },
+        "OTP": {
+            "en": "",
+            "vi": ""
+        },
+        "otpRequired": {
+            "en": "Please enter all 6 digits",
+            "vi": "Vui lòng nhập đủ 6 chữ số"
+        },
+        "otpEmpty": {
+            "en": "Please enter the OTP",
+            "vi": "Vui lòng nhập mã OTP"
+        },
+        "otpInvalid": {
+            "en": "Invalid OTP",
+            "vi": "Mã OTP không hợp lệ"
+        },
+        "emailNotExist_otp": {
+            "en": "Email does not exist",
+            "vi": "Email không tồn tại"
+        },
+        "otpFailed": {
+            "en": "OTP verification failed",
+            "vi": "Xác thực OTP thất bại"
+        },
+        "Verify": {
+            "en": "",
+            "vi": ""
+        },
+        "otpRequired_verify": {
+            "en": "Please enter all 6 digits",
+            "vi": "Vui lòng nhập đủ 6 chữ số"
+        },
+        "emailNotFound": {
+            "en": "Email not found",
+            "vi": "Không tìm thấy email"
+        },
+        "verifySuccess": {
+            "en": "Account verified successfully",
+            "vi": "Tài khoản được xác minh thành công"
+        },
+        "otpInvalid_verify": {
+            "en": "Invalid OTP",
+            "vi": "Mã OTP không hợp lệ"
+        },
+        "verifyFail": {
+            "en": "Account verification failed",
+            "vi": "Xác minh tài khoản thất bại"
+        },
+        "resendSuccess": {
+            "en": "OTP sent successfully",
+            "vi": "Gửi OTP thành công"
+        },
+        "alreadyVerified": {
+            "en": "Account already verified",
+            "vi": "Tài khoản đã được xác minh"
+        },
+        "resendFail": {
+            "en": "Could not send OTP",
+            "vi": "Không thể gửi OTP"
+        },
+        "serverError": {
+            "en": "Could not connect to server",
+            "vi": "Không thể kết nối với máy chủ"
+        },
+        "Reset_Password": {
+            "en": "",
+            "vi": ""
+        },
+        "emptyFields": {
+            "en": "Please fill in all fields",
+            "vi": "Vui lòng điền đầy đủ tất cả các trường"
+        },
+        "passwordMismatch": {
+            "en": "Confirmation password does not match",
+            "vi": "Mật khẩu xác nhận không khớp"
+        },
+        "passwordTooShort_reset_password": {
+            "en": "Password must be at least 6 characters",
+            "vi": "Mật khẩu phải có ít nhất 6 ký tự"
+        },
+        "updateSuccess": {
+            "en": "Password updated successfully",
+            "vi": "Cập nhật mật khẩu thành công"
+        },
+        "updateFail": {
+            "en": "Failed to update password",
+            "vi": "Cập nhật mật khẩu thất bại"
+        },
+        "Login_google": {
+            "en": "",
+            "vi": ""
+        },
+        "loginSuccess_gg": {
+            "en": "Login successful",
+            "vi": "Đăng nhập thành công"
+        },
+        "loginFail": {
+            "en": "Login failed",
+            "vi": "Đăng nhập thất bại"
+        },
+        "serverError_gg": {
+            "en": "Failed to connect to server",
+            "vi": "Không thể kết nối với máy chủ"
+        },
+        "googleFail": {
+            "en": "Google sign-in failed",
+            "vi": "Đăng nhập bằng Google thất bại"
+        },
+        "Profile": {
+            "en": "",
+            "vi": ""
+        },
+        "profileUpdateSuccess": {
+            "en": "Your profile has been updated.",
+            "vi": "Hồ sơ của bạn đã được cập nhật."
+        },
+        "emailExists_profile": {
+            "en": "Email already exists",
+            "vi": "Email đã tồn tại"
+        },
+        "usernameExists_profile": {
+            "en": "Username already exists",
+            "vi": "Tên đăng nhập đã tồn tại"
+        },
+        "profileUpdateFail": {
+            "en": "Update failed.",
+            "vi": "Cập nhật thất bại."
+        },
+        "profileUpdateError": {
+            "en": "An error occurred while updating.",
+            "vi": "Đã xảy ra lỗi khi cập nhật."
+        },
+        "profileFetchError": {
+            "en": "Failed to retrieve profile information",
+            "vi": "Không thể lấy thông tin hồ sơ"
+        },
+        "Cart": {
+            "en": "",
+            "vi": ""
+        },
+        "add_address_success": {
+            "en": "Address added successfully",
+            "vi": "Địa chỉ được thêm thành công"
+        },
+        "add_address_fail": {
+            "en": "Failed to add address",
+            "vi": "Không thể thêm địa chỉ"
+        },
+        "missing_address_fields": {
+            "en": "Please fill out all address information",
+            "vi": "Vui lòng điền đầy đủ thông tin địa chỉ"
+        },
+        "delete_address_success": {
+            "en": "Address deleted successfully",
+            "vi": "Địa chỉ được xóa thành công"
+        },
+        "delete_address_fail": {
+            "en": "Failed to delete address",
+            "vi": "Không thể xóa địa chỉ"
+        },
+        "delete_product_success": {
+            "en": "Product removed successfully",
+            "vi": "Sản phẩm được xóa thành công"
+        },
+        "delete_product_fail": {
+            "en": "Failed to remove product",
+            "vi": "Không thể xóa sản phẩm"
+        },
+        "remove_selected_success": {
+            "en": "Selected products removed successfully",
+            "vi": "Các sản phẩm được chọn đã được xóa thành công"
+        },
+        "remove_selected_fail": {
+            "en": "Failed to remove selected products",
+            "vi": "Không thể xóa các sản phẩm được chọn"
+        },
+        "increase_quantity_fail": {
+            "en": "Failed to increase quantity",
+            "vi": "Không thể tăng số lượng"
+        },
+        "decrease_quantity_fail": {
+            "en": "Failed to decrease quantity",
+            "vi": "Không thể giảm số lượng"
+        },
+        "cart_deleted": {
+            "en": "Cart has been cleared. Please reload.",
+            "vi": "Giỏ hàng đã được xóa. Vui lòng tải lại."
+        },
+        "select_items_and_address": {
+            "en": "Please select products and a shipping address",
+            "vi": "Vui lòng chọn sản phẩm và địa chỉ giao hàng"
+        },
+        "api_error": {
+            "en": "Connection error to server",
+            "vi": "Lỗi kết nối với máy chủ"
+        },
+        "CheckOut": {
+            "en": "",
+            "vi": ""
+        },
+        "no_permission": {
+            "en": "You don't have permission to place an order",
+            "vi": "Bạn không có quyền đặt hàng"
+        },
+        "login_required": {
+            "vi": "Vui lòng đăng nhập trước khi thực hiện thao tác này",
+            "en": "Please log in to perform this action"
+        },
+        "please_login": {
+            "en": "Please log in to place an order",
+            "vi": "Vui lòng đăng nhập để đặt hàng"
+        },
+        "order_success": {
+            "en": "Order placed successfully",
+            "vi": "Đặt hàng thành công"
+        },
+        "invalid_address": {
+            "en": "Invalid shipping address",
+            "vi": "Địa chỉ giao hàng không hợp lệ"
+        },
+        "error_occurred": {
+            "en": "An error occurred while placing the order",
+            "vi": "Đã xảy ra lỗi khi đặt hàng"
+        },
+        "out_of_stock": {
+            "vi": "Sản phẩm đã hết hàng",
+            "en": "This product is out of stock"
+        },
+        "add_success": {
+            "vi": "Đã thêm vào giỏ",
+            "en": "Added to cart"
+        },
+        "add_fail": {
+            "vi": "Không thể thêm vào giỏ hàng",
+            "en": "Could not add to cart"
+        },
+        "add_error": {
+            "vi": "Lỗi khi thêm vào giỏ hàng",
+            "en": "Error adding to cart"
+        },
+        "payment_url_failed": {
+            "en": "Failed to generate payment URL. Please try again.",
+            "vi": "Không thể tạo URL thanh toán. Vui lòng thử lại."
+        },
+        "order_error": {
+            "en": "An error occurred while placing the order.",
+            "vi": "Có lỗi xảy ra khi đặt hàng."
+        },
+        "payment_success": {
+            "en": "Payment completed successfully!",
+            "vi": "Thanh toán thành công!"
+        },
+        "payment_failed": {
+            "en": "Payment failed: {{message}}",
+            "vi": "Thanh toán thất bại: {{message}}"
+        },
+        "payment_error": {
+            "en": "Payment error: {{message}}",
+            "vi": "Lỗi thanh toán: {{message}}"
+        },
+        "payment_error_generic": {
+            "en": "An error occurred while processing the payment.",
+            "vi": "Có lỗi xảy ra khi xử lý thanh toán."
+        },
+        "invalid_order_id": {
+            "en": "Invalid order ID. Please try again.",
+            "vi": "Mã đơn hàng không hợp lệ. Vui lòng thử lại."
+        },
+        "order_fetch_failed": {
+            "en": "Failed to fetch order details. Please try again.",
+            "vi": "Không thể lấy chi tiết đơn hàng. Vui lòng thử lại."
+        }
+    },
+    "payment_result": {
+        "success": {
+            "en": "Payment Successful!",
+            "vi": "Thanh toán thành công!"
+        },
+        "success_subtitle": {
+            "en": "Your order has been confirmed.",
+            "vi": "Đơn hàng của bạn đã được xác nhận."
+        },
+        "failed": {
+            "en": "Payment Failed!",
+            "vi": "Thanh toán thất bại!"
+        },
+        "failed_subtitle": {
+            "en": "{{message}}",
+            "vi": "{{message}}"
+        },
+        "error": {
+            "en": "Payment Error!",
+            "vi": "Lỗi thanh toán!"
+        },
+        "error_subtitle": {
+            "en": "{{message}}",
+            "vi": "{{message}}"
+        },
+        "unknown": {
+            "en": "Unknown Status",
+            "vi": "Trạng thái không xác định"
+        },
+        "unknown_subtitle": {
+            "en": "Please contact support for assistance.",
+            "vi": "Vui lòng liên hệ hỗ trợ để được trợ giúp."
+        },
+        "order_id": {
+            "en": "Order ID",
+            "vi": "Mã đơn hàng"
+        },
+        "order_details": {
+            "en": "Order Details",
+            "vi": "Chi tiết đơn hàng"
+        },
+        "quantity": {
+            "en": "Quantity",
+            "vi": "Số lượng"
+        },
+        "total": {
+            "en": "Total",
+            "vi": "Tổng cộng"
+        },
+        "payment_method": {
+            "en": "Payment Method",
+            "vi": "Phương thức thanh toán"
+        },
+        "date": {
+            "en": "Date",
+            "vi": "Ngày"
+        },
+        "shipping_address": {
+            "en": "Shipping Address",
+            "vi": "Địa chỉ giao hàng"
+        },
+        "back_to_home": {
+            "en": "Back to Home",
+            "vi": "Về trang chủ"
+        },
+        "view_orders": {
+            "en": "View My Orders",
+            "vi": "Xem đơn hàng của tôi"
+        },
+        "back_to_cart": {
+            "en": "Back to Cart",
+            "vi": "Quay lại giỏ hàng"
+        },
+        "try_again": {
+            "en": "Try Payment Again",
+            "vi": "Thử thanh toán lại"
+        },
+        "important_info": {
+            "en": "Important Information",
+            "vi": "Thông tin quan trọng"
+        },
+        "info_processing": {
+            "en": "Your order will be processed within 1-2 business days.",
+            "vi": "Đơn hàng của bạn sẽ được xử lý trong vòng 1-2 ngày làm việc."
+        },
+        "info_email": {
+            "en": "You will receive an email confirmation and shipping details.",
+            "vi": "Bạn sẽ nhận được email xác nhận và thông tin vận chuyển."
+        },
+        "info_support": {
+            "en": "Contact our hotline at 1900-1234 for support.",
+            "vi": "Liên hệ hotline 1900-1234 để được hỗ trợ."
+        },
+        "support_title": {
+            "en": "Need Help?",
+            "vi": "Bạn cần giúp đỡ?"
+        },
+        "support_contact": {
+            "en": "Contact our hotline at 1900-1234 for assistance.",
+            "vi": "Liên hệ hotline 1900-1234 để được hỗ trợ."
+        },
+        "support_alternative": {
+            "en": "Try a different payment method.",
+            "vi": "Thử phương thức thanh toán khác."
+        },
+        "support_check_order": {
+            "en": "Check your order details.",
+            "vi": "Kiểm tra chi tiết đơn hàng của bạn."
+        },
+        "error_reasons": {
+            "en": "Possible Reasons",
+            "vi": "Nguyên nhân có thể"
+        },
+        "error_card_info": {
+            "en": "Incorrect card information.",
+            "vi": "Thông tin thẻ không chính xác."
+        },
+        "error_balance": {
+            "en": "Insufficient account balance.",
+            "vi": "Số dư tài khoản không đủ."
+        },
+        "error_network": {
+            "en": "Unstable network connection.",
+            "vi": "Kết nối mạng không ổn định."
+        },
+        "error_support": {
+            "en": "Contact our hotline at 1900-1234 if the issue persists.",
+            "vi": "Liên hệ hotline 1900-1234 nếu sự cố vẫn tiếp diễn."
+        }
+    },
+    "order_history": {
+        "title": {
+            "en": "Order History",
+            "vi": "Lịch Sử Đơn Hàng"
+        },
+        "subtitle": {
+            "en": "Manage and track all your orders",
+            "vi": "Quản lý và theo dõi tất cả đơn hàng của bạn"
+        },
+        "loading": {
+            "en": "Loading order history...",
+            "vi": "Đang tải lịch sử đơn hàng..."
+        },
+        "search_placeholder": {
+            "en": "Search by order number...",
+            "vi": "Tìm kiếm theo mã đơn hàng..."
+        },
+        "status_filter_placeholder": {
+            "en": "Status",
+            "vi": "Trạng thái"
+        },
+        "status_all": {
+            "en": "All Statuses",
+            "vi": "Tất cả trạng thái"
+        },
+        "status_pending": {
+            "en": "Pending",
+            "vi": "Chờ xác nhận"
+        },
+        "status_processing": {
+            "en": "Processing",
+            "vi": "Đang xử lý"
+        },
+        "status_shipped": {
+            "en": "Shipped",
+            "vi": "Đang giao"
+        },
+        "status_delivered": {
+            "en": "Delivered",
+            "vi": "Đã giao"
+        },
+        "status_cancelled": {
+            "en": "Cancelled",
+            "vi": "Đã hủy"
+        },
+        "date_filter_placeholder": {
+            "en": "Time Period",
+            "vi": "Thời gian"
+        },
+        "date_all": {
+            "en": "All Time",
+            "vi": "Tất cả thời gian"
+        },
+        "date_7days": {
+            "en": "Last 7 Days",
+            "vi": "7 ngày qua"
+        },
+        "date_30days": {
+            "en": "Last 30 Days",
+            "vi": "30 ngày qua"
+        },
+        "date_90days": {
+            "en": "Last 90 Days",
+            "vi": "90 ngày qua"
+        },
+        "reset_filter": {
+            "en": "Reset",
+            "vi": "Đặt lại"
+        },
+        "orders_list_title": {
+            "en": "Order List",
+            "vi": "Danh sách đơn hàng"
+        },
+        "no_orders_title": {
+            "en": "No Orders",
+            "vi": "Không có đơn hàng"
+        },
+        "no_orders_message": {
+            "en": "No orders found matching your filters.",
+            "vi": "Không tìm thấy đơn hàng nào phù hợp với bộ lọc của bạn."
+        },
+        "table_order_number": {
+            "en": "Order Number",
+            "vi": "Mã đơn hàng"
+        },
+        "table_date": {
+            "en": "Order Date",
+            "vi": "Ngày đặt"
+        },
+        "table_products": {
+            "en": "Products",
+            "vi": "Sản phẩm"
+        },
+        "table_status": {
+            "en": "Status",
+            "vi": "Trạng thái"
+        },
+        "table_total": {
+            "en": "Total",
+            "vi": "Tổng tiền"
+        },
+        "table_actions": {
+            "en": "Actions",
+            "vi": "Thao tác"
+        },
+        "more_products": {
+            "en": "more products",
+            "vi": "sản phẩm khác"
+        },
+        "view_detail": {
+            "en": "View Details",
+            "vi": "Xem chi tiết"
+        },
+        "send_feedback": {
+            "en": "Send Feedback",
+            "vi": "Gửi đánh giá"
+        }
+    },
+    "order_detail": {
+        "order_date": {
+            "en": "Ordered on",
+            "vi": "Đặt hàng ngày"
+        },
+        "items_title": {
+            "en": "Ordered Products",
+            "vi": "Sản phẩm đã đặt"
+        },
+        "quantity": {
+            "en": "Quantity:",
+            "vi": "Số lượng:"
+        },
+        "price_per_item": {
+            "en": "{{price}}đ",
+            "vi": "{{price}}đ"
+        },
+        "total_per_item": {
+            "en": "{{total}}đ",
+            "vi": "{{total}}đ"
+        },
+        "shipping_address_title": {
+            "en": "Shipping Address",
+            "vi": "Địa chỉ giao hàng"
+        },
+        "note_label": {
+            "en": "Note:",
+            "vi": "Ghi chú:"
+        },
+        "tracking_title": {
+            "en": "Tracking Information",
+            "vi": "Thông tin vận chuyển"
+        },
+        "tracking_number": {
+            "en": "Tracking Number:",
+            "vi": "Mã vận đơn:"
+        },
+        "estimated_delivery": {
+            "en": "Estimated Delivery:",
+            "vi": "Dự kiến giao hàng:"
+        },
+        "summary_title": {
+            "en": "Order Summary",
+            "vi": "Tổng quan đơn hàng"
+        },
+        "discount": {
+            "en": "Discount: -{{discount}}đ",
+            "vi": "Giảm giá: -{{discount}}đ"
+        },
+        "total": {
+            "en": "Total:",
+            "vi": "Tổng cộng:"
+        },
+        "payment_method_title": {
+            "en": "Payment Method",
+            "vi": "Phương thức thanh toán"
+        },
+        "payment_method_bank": {
+            "en": "Bank Transfer",
+            "vi": "Chuyển khoản"
+        },
+        "payment_method_cod": {
+            "en": "Cash on Delivery (COD)",
+            "vi": "Tiền mặt (COD)"
+        },
+        "payment_status_success": {
+            "en": "Success",
+            "vi": "Thành công"
+        },
+        "payment_status_failed": {
+            "en": "Failed",
+            "vi": "Thất Bại"
+        },
+        "payment_status_pending": {
+            "en": "Pending",
+            "vi": "Chờ xác nhận"
+        },
+        "payment_status_cancelled": {
+            "en": "Cancelled",
+            "vi": "Đã hủy"
+        }
+    },
+    "order_feedback": {
+        "title": {
+            "en": "Submit Feedback for Product",
+            "vi": "Gửi đánh giá cho sản phẩm"
+        },
+        "toast_feedback_success": {
+            "en": "Your review has been submitted successfully",
+            "vi": "Đánh giá đã được gửi thành công"
+        },
+        "toast_feedback_star": {
+            "en": "Invalid star rating",
+            "vi": "Số sao không hợp lệ"
+        },
+        "toast_exitfeddback": {
+            "en": "You have already reviewed this product",
+            "vi": "Bạn đã đánh giá sản phẩm này"
+        }
+    }
+}

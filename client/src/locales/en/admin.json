@@ -1,0 +1,32 @@
+{
+  "menu": {
+    "categories": "Categories",
+    "subcategories": "SubCategories",
+    "order": "Order",
+    "products": "Products",
+    "task": "Task",
+    "kpi": "Kpi",
+    "dashboard": "Dashboard",
+    "logout": "Logout",
+    "register": "Register",
+    "login": "Login",
+    "totalOrder": "Total Orders",
+    "totalProduct": "Total Products",
+    "totalSubcategory": "Total Subcategory",
+    "totalCategory": "Total Category",
+    "Overview": "General statistics",
+    "noData":"No noData"
+  },
+  "category": {
+    "title": "Categories",
+    "add": "Add Category",
+    "search": "🔍 Search categories by name",
+    "filter": "Filter",
+    "id": "Category ID",
+    "name": "Category Name",
+    "description": "Description",
+    "status": "Status",
+    "createdDate": "Created Date",
+    "actions": "Actions"
+  }
+}
