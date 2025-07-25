@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const kpiSchema = new mongoose.Schema({
   employeeId: { type: mongoose.Schema.Types.ObjectId, ref: 'Users', required: true },
-  month: { type: String, required: true }, 
+  month: { type: String, required: true },
   targetSales: { type: Number, required: true },
   achievedSales: { type: Number, default: 0 },
   evaluation: String,

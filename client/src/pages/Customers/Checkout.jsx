@@ -253,7 +253,6 @@ const CheckoutDemo = () => {
                 return setIsProcessing(false);
             } else {
                 const order = res.data;
-
                 const payRes = await createPaymentUrl(
                     {
                         orderId: order.orderId,
@@ -261,8 +260,6 @@ const CheckoutDemo = () => {
                         language: i18n.language === 'vi' ? 'vn' : 'en',
                     }
                 );
-                console.log(payRes.data);
-
                 window.location.href = payRes.data;
             }
         } catch (error) {
