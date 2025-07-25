@@ -68,8 +68,15 @@ export default function Discount() {
         toast.error(t('luckyWheel.toastError'));
         console.error('API assignDiscountToUser error:', err);
       }
-    } else {
-      toast.info(t('luckyWheel.toastTryAgain'));
+    } else if (item.type === 'lose') {
+      try {
+        const { addReceivableDiscount } = await import('@/services/Customer/ApiUserDiscount');
+        await addReceivableDiscount(-1);
+        toast.info(t('luckyWheel.toastTryAgain'));
+        fetchUserDiscounts();
+      } catch {
+        toast.error('Không thể trừ lượt quay!');
+      }
     }
     setReceivable(r => Math.max(0, r - 1));
   };

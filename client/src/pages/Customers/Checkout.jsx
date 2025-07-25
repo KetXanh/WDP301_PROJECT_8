@@ -25,8 +25,9 @@ import { useTranslation } from 'react-i18next';
 import { createPaymentUrl } from '../../services/Customer/vnPay';
 import i18n from '../../i18n/i18n';
 import { removePurchasedItems } from '../../store/customer/cartSlice';
-import { getUserDiscounts, useUserDiscount } from '../../services/Customer/ApiUserDiscount';
+import { getUserDiscounts, useUserDiscount as applyUserDiscount } from '../../services/Customer/ApiUserDiscount';
 import { Input } from '@/components/ui/input';
+import { addReceivableDiscount } from '../../services/Customer/ApiUserDiscount';
 
 const CheckoutDemo = () => {
     const navigate = useNavigate();
@@ -96,8 +97,7 @@ const CheckoutDemo = () => {
 
         setIsApplyingDiscount(true);
         try {
-            // eslint-disable-next-line react-hooks/rules-of-hooks
-            const res = await useUserDiscount(discountCode);
+            const res = await applyUserDiscount(discountCode);
             if (res.data && res.data.code === 200) {
                 setAppliedDiscounts(prev => [...prev, res.data.data]);
                 toast.success(t('checkout.discount_applied'));
@@ -129,57 +129,14 @@ const CheckoutDemo = () => {
 
     const handleSelectDiscount = (discount) => {
         setSelectedDiscounts(prev => {
-            const isSelected = prev.some(d => d.discount.code === discount.discount.code);
-            if (isSelected) {
-                return prev.filter(d => d.discount.code !== discount.discount.code);
-            } else {
-                return [...prev, discount];
+            if (prev.length === 1 && prev[0].discount.code === discount.discount.code) {
+                return [];
             }
+            if (prev.length === 1) {
+                return [discount];
+            }
+            return [discount];
         });
-    };
-
-    const handleApplyAllSelected = async () => {
-        if (selectedDiscounts.length === 0) {
-            toast.error('Vui lòng chọn ít nhất một mã giảm giá');
-            return;
-        }
-
-        setIsApplyingAll(true);
-        try {
-            const promises = selectedDiscounts.map(discount => 
-                // eslint-disable-next-line react-hooks/rules-of-hooks
-                useUserDiscount(discount.discount.code)
-            );
-            
-            const results = await Promise.all(promises);
-            const successfulDiscounts = [];
-            
-            results.forEach((res, index) => {
-                if (res.data && res.data.code === 200) {
-                    successfulDiscounts.push(res.data.data);
-                } else {
-                    toast.error(`Không thể áp dụng mã ${selectedDiscounts[index].discount.code}`);
-                }
-            });
-
-            if (successfulDiscounts.length > 0) {
-                setAppliedDiscounts(prev => [...prev, ...successfulDiscounts]);
-                toast.success(`Đã áp dụng ${successfulDiscounts.length} mã giảm giá`);
-                setSelectedDiscounts([]);
-                
-                // Refresh user discounts
-                const refreshRes = await getUserDiscounts();
-                if (refreshRes.data && refreshRes.data.data && refreshRes.data.data.length > 0) {
-                    const updatedUserDiscounts = refreshRes.data.data[0].discounts || [];
-                    setUserDiscounts(updatedUserDiscounts);
-                }
-            }
-        } catch (error) {
-            console.error('Error applying all discounts:', error);
-            toast.error('Có lỗi xảy ra khi áp dụng mã giảm giá');
-        } finally {
-            setIsApplyingAll(false);
-        }
     };
 
     const subtotal = selectedItems.reduce(
@@ -189,14 +146,6 @@ const CheckoutDemo = () => {
 
 
     
-    // Calculate total discount amount from all applied discounts
-    const totalDiscountAmount = appliedDiscounts.reduce((total, discount) => {
-        const discountAmount = subtotal * discount.discount.discountValue / 100;
-        // Apply max discount limit if exists
-        const maxDiscount = discount.discount.maxDiscount || Infinity;
-        return total + Math.min(discountAmount, maxDiscount);
-    }, 0);
-    
     // Calculate preview discount for selected discounts (not yet applied)
     const previewDiscountAmount = selectedDiscounts.reduce((total, discount) => {
         const discountAmount = subtotal * discount.discount.discountValue / 100;
@@ -204,18 +153,22 @@ const CheckoutDemo = () => {
         return total + Math.min(discountAmount, maxDiscount);
     }, 0);
     
-    // Total includes both applied and preview discounts
-    const total = subtotal - totalDiscountAmount - previewDiscountAmount;
+    // Total includes preview discounts (selectedDiscounts)
+    const total = subtotal - previewDiscountAmount;
 
 
     const handlePlaceOrder = async () => {
         try {
+            setIsProcessing(true);
+            // 1. Tạo order trước
             const decoded = jwtDecode(accessToken);
             const userId = decoded.username;
             if (decoded && ROLE.includes(decoded.role)) {
+                setIsProcessing(false);
                 return toast.error(t("toast.no_permission"))
             }
             if (!accessToken) {
+                setIsProcessing(false);
                 toast.error(t("toast.please_login"))
                 navigate('/login')
                 return;
@@ -236,35 +189,73 @@ const CheckoutDemo = () => {
                 province,
                 phone: selectedAddress.phone,
             }
-            // Include applied discounts in order data
-            const discountIds = appliedDiscounts.map(discount => discount.discount._id);
-            const res = await userOrder(items, dataShipping, paymentMethod, orderNote, discountIds);
-            if (paymentMethod === "CASH") {
-                if (res.data && res.data.code === 201) {
-                    toast.success(t("toast.order_success"))
-                    dispatch(removePurchasedItems({
-                        userId,
-                        purchasedIds: selectedItems.map(item => item.productId),
-                    }))
-                    navigate('/')
-                } else if (res.data && res.data.code === 401) {
-                    toast.error(t("toast.invalid_address"))
+            // Lấy discountIds từ selectedDiscounts
+            const discountIds = selectedDiscounts.map(discount => discount.discount._id);
+            // Tính tổng tiền đã trừ discount
+            const totalAmount = subtotal - previewDiscountAmount;
+            const res = await userOrder(items, dataShipping, paymentMethod, orderNote, discountIds, totalAmount);
+            if ((paymentMethod === "CASH" && res.data && res.data.code === 201) || (paymentMethod !== "CASH" && res.data)) {
+                // 2. Sau khi tạo order thành công, mới gọi useDiscount cho từng discount đã chọn
+                let allSuccess = true;
+                if (selectedDiscounts.length > 0) {
+                    const promises = selectedDiscounts.map(discount => applyUserDiscount(discount.discount._id));
+                    const results = await Promise.all(promises);
+                    results.forEach((res, index) => {
+                        if (!(res.status === 200 && res.data && res.data.message === 'Discount used successfully')) {
+                            allSuccess = false;
+                            toast.error(`Không thể áp dụng mã ${selectedDiscounts[index].discount.code}`);
+                        }
+                    });
                 }
-                return setIsProcessing(false);
-            } else {
-                const order = res.data;
-                const payRes = await createPaymentUrl(
-                    {
-                        orderId: order.orderId,
-                        amount: order.totalAmount,
-                        language: i18n.language === 'vi' ? 'vn' : 'en',
+                if (!allSuccess) {
+                    setIsProcessing(false);
+                    return;
+                }
+                // 3. Cộng lượt quay dựa trên tổng tiền
+                let spinCount = 0;
+                if (totalAmount >= 350000) spinCount = 5;
+                else if (totalAmount >= 200000) spinCount = 2;
+                else if (totalAmount >= 50000) spinCount = 1;
+                if (spinCount > 0) {
+                    try {
+                        await addReceivableDiscount(spinCount);
+                        toast.success(`Bạn đã nhận được ${spinCount} lượt quay!`);
+                    } catch {
+                        toast.error('Không thể cộng lượt quay!');
                     }
-                );
-                window.location.href = payRes.data;
+                }
+                // 4. Xóa selectedDiscounts, cập nhật lại userDiscounts, chuyển trang, v.v.
+                dispatch(removePurchasedItems({
+                    userId,
+                    purchasedIds: selectedItems.map(item => item.productId),
+                }))
+                setSelectedDiscounts([]);
+                // Cập nhật lại userDiscounts
+                const refreshRes = await getUserDiscounts();
+                if (refreshRes.data && refreshRes.data.data && refreshRes.data.data.length > 0) {
+                    const updatedUserDiscounts = refreshRes.data.data[0].discounts || [];
+                    setUserDiscounts(updatedUserDiscounts);
+                }
+                if (paymentMethod === "CASH") {
+                    toast.success(t("toast.order_success"))
+                    navigate('/')
+                } else {
+                    const order = res.data;
+                    const payRes = await createPaymentUrl(
+                        {
+                            orderId: order.orderId,
+                            amount: order.totalAmount,
+                            language: i18n.language === 'vi' ? 'vn' : 'en',
+                        }
+                    );
+                    window.location.href = payRes.data;
+                }
+            } else if (res.data && res.data.code === 401) {
+                toast.error(t("toast.invalid_address"))
             }
-        } catch (error) {
-            console.log(error);
-
+            setIsProcessing(false);
+        } catch {
+            setIsProcessing(false);
         }
     };
 
@@ -325,13 +316,12 @@ const CheckoutDemo = () => {
                             <CardContent>
                                 {appliedDiscounts.length > 0 ? (
                                     <div className="space-y-3">
-                                                                                    {appliedDiscounts.map((appliedDiscount, index) => {
-                                                const discountAmount = subtotal * appliedDiscount.discount.discountValue / 100;
-                                                const maxDiscount = appliedDiscount.discount.maxDiscount || Infinity;
-                                                const finalDiscountAmount = Math.min(discountAmount, maxDiscount);
-                                                
-                                                return (
-                                                    <div key={`${appliedDiscount.discount.code}-${index}`} className="bg-green-50 p-4 rounded-lg border border-green-200">
+                                        {appliedDiscounts.map((appliedDiscount, index) => {
+                                            const discountAmount = subtotal * appliedDiscount.discount.discountValue / 100;
+                                            const maxDiscount = appliedDiscount.discount.maxDiscount || Infinity;
+                                            const finalDiscountAmount = Math.min(discountAmount, maxDiscount);
+                                            return (
+                                                <div key={`${appliedDiscount.discount.code}-${index}`} className="bg-green-50 p-4 rounded-lg border border-green-200">
                                                     <div className="flex justify-between items-center">
                                                         <div>
                                                             <p className="font-semibold text-green-800">
@@ -382,7 +372,7 @@ const CheckoutDemo = () => {
                                                 )}
                                             </Button>
                                         </div>
-                                        {userDiscounts.length > 0 && (
+                                        {userDiscounts.length > 0 ? (
                                             <div className="mt-4">
                                                 <Button
                                                     type="button"
@@ -399,11 +389,11 @@ const CheckoutDemo = () => {
                                                 
                                                 {showAvailableDiscounts && (
                                                     <div className="mt-3 space-y-3 max-h-64 overflow-y-auto">
-                                                                                                            {userDiscounts.map((userDiscount, index) => (
-                                                        <div 
-                                                            key={`${userDiscount._id}-${index}`}
-                                                            className="p-3 bg-gray-50 rounded-lg border border-gray-200"
-                                                        >
+                                                        {userDiscounts.map((userDiscount, index) => (
+                                                            <div 
+                                                                key={`${userDiscount._id}-${index}`}
+                                                                className="p-3 bg-gray-50 rounded-lg border border-gray-200"
+                                                            >
                                                                 <div className="flex justify-between items-start mb-2">
                                                                     <div className="flex-1">
                                                                         <h4 className="font-semibold text-gray-800 text-sm">
@@ -418,42 +408,42 @@ const CheckoutDemo = () => {
                                                                     </Badge>
                                                                 </div>
                                                                 
-                                                                                                                <div className="flex items-center justify-between mb-2">
-                                                    <div className="flex items-center space-x-2">
-                                                        <span className="text-sm font-medium text-gray-700">Chọn mã này</span>
-                                                        <Badge variant="secondary" className="text-xs">
-                                                            {userDiscount.discount.discountValue}%
-                                                        </Badge>
-                                                    </div>
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={selectedDiscounts.some(d => d.discount.code === userDiscount.discount.code)}
-                                                        onChange={() => handleSelectDiscount(userDiscount)}
-                                                        className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
-                                                    />
-                                                </div>
-                                                
-                                                <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
-                                                    <div>
-                                                        <span className="font-medium">Giảm giá:</span> {userDiscount.discount.discountValue}%
-                                                    </div>
-                                                    <div>
-                                                        <span className="font-medium">Còn lại:</span> {userDiscount.quantity_available} lượt
-                                                    </div>
-                                                    <div>
-                                                        <span className="font-medium">Giá tối thiểu:</span> {userDiscount.discount.minOrderValue.toLocaleString('vi-VN')}đ
-                                                    </div>
-                                                    <div>
-                                                        <span className="font-medium">Giảm tối đa:</span> {userDiscount.discount.maxDiscount.toLocaleString('vi-VN')}đ
-                                                    </div>
-                                                </div>
-                                                
-                                                {/* Check if current order meets minimum value */}
-                                                {subtotal < userDiscount.discount.minOrderValue && (
-                                                    <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs text-yellow-700">
-                                                        ⚠️ Cần đặt hàng tối thiểu {userDiscount.discount.minOrderValue.toLocaleString('vi-VN')}đ để sử dụng mã này
-                                                    </div>
-                                                )}
+                                                                <div className="flex items-center justify-between mb-2">
+                                                                    <div className="flex items-center space-x-2">
+                                                                        <span className="text-sm font-medium text-gray-700">Chọn mã này</span>
+                                                                        <Badge variant="secondary" className="text-xs">
+                                                                            {userDiscount.discount.discountValue}%
+                                                                        </Badge>
+                                                                    </div>
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        checked={selectedDiscounts.some(d => d.discount.code === userDiscount.discount.code)}
+                                                                        onChange={() => handleSelectDiscount(userDiscount)}
+                                                                        className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                                                                    />
+                                                                </div>
+                                                                
+                                                                <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
+                                                                    <div>
+                                                                        <span className="font-medium">Giảm giá:</span> {userDiscount.discount.discountValue}%
+                                                                    </div>
+                                                                    <div>
+                                                                        <span className="font-medium">Còn lại:</span> {userDiscount.quantity_available} lượt
+                                                                    </div>
+                                                                    <div>
+                                                                        <span className="font-medium">Giá tối thiểu:</span> {userDiscount.discount.minOrderValue.toLocaleString('vi-VN')}đ
+                                                                    </div>
+                                                                    <div>
+                                                                        <span className="font-medium">Giảm tối đa:</span> {userDiscount.discount.maxDiscount.toLocaleString('vi-VN')}đ
+                                                                    </div>
+                                                                </div>
+                                                                
+                                                                {/* Check if current order meets minimum value */}
+                                                                {subtotal < userDiscount.discount.minOrderValue && (
+                                                                    <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs text-yellow-700">
+                                                                        ⚠️ Cần đặt hàng tối thiểu {userDiscount.discount.minOrderValue.toLocaleString('vi-VN')}đ để sử dụng mã này
+                                                                    </div>
+                                                                )}
                                                                 
                                                                 <div className="mt-2 text-xs text-gray-500">
                                                                     <span className="font-medium">Hạn sử dụng:</span> {new Date(userDiscount.expired_at).toLocaleDateString('vi-VN')}
@@ -475,7 +465,37 @@ const CheckoutDemo = () => {
                                                             </span>
                                                         </div>
                                                         <Button
-                                                            onClick={handleApplyAllSelected}
+                                                            onClick={async () => {
+                                                                setIsApplyingAll(true);
+                                                                try {
+                                                                    const promises = selectedDiscounts.map(discount => applyUserDiscount(discount.discount._id));
+                                                                    const results = await Promise.all(promises);
+                                                                    const successfulDiscounts = [];
+                                                                    results.forEach((res, index) => {
+                                                                        if (res.data && res.data.code === 200) {
+                                                                            successfulDiscounts.push(res.data.data);
+                                                                        } else {
+                                                                            toast.error(`Không thể áp dụng mã ${selectedDiscounts[index].discount.code}`);
+                                                                        }
+                                                                    });
+                                                                    if (successfulDiscounts.length > 0) {
+                                                                        setAppliedDiscounts(prev => [...prev, ...successfulDiscounts]);
+                                                                        toast.success(`Đã áp dụng ${successfulDiscounts.length} mã giảm giá`);
+                                                                        setSelectedDiscounts([]);
+                                                                        // Refresh user discounts
+                                                                        const refreshRes = await getUserDiscounts();
+                                                                        if (refreshRes.data && refreshRes.data.data && refreshRes.data.data.length > 0) {
+                                                                            const updatedUserDiscounts = refreshRes.data.data[0].discounts || [];
+                                                                            setUserDiscounts(updatedUserDiscounts);
+                                                                        }
+                                                                    }
+                                                                } catch (error) {
+                                                                    console.error('Error applying all discounts:', error);
+                                                                    toast.error('Có lỗi xảy ra khi áp dụng mã giảm giá');
+                                                                } finally {
+                                                                    setIsApplyingAll(false);
+                                                                }
+                                                            }}
                                                             disabled={isApplyingAll}
                                                             className="w-full bg-blue-600 hover:bg-blue-700 text-white"
                                                             size="sm"
@@ -491,6 +511,10 @@ const CheckoutDemo = () => {
                                                         </Button>
                                                     </div>
                                                 )}
+                                            </div>
+                                        ) : (
+                                            <div className="mt-4 text-center text-gray-500 text-sm">
+                                                Bạn không có mã giảm giá nào thỏa mãn
                                             </div>
                                         )}
                                     </div>
@@ -640,47 +664,23 @@ const CheckoutDemo = () => {
                                         <span>{t('checkout.subtotal')}:</span>
                                         <span>{subtotal.toLocaleString('vi-VN')}đ</span>
                                     </div>
-                                    
-                                    {/* Applied Discounts */}
-                                    {appliedDiscounts.length > 0 && (
-                                        <>
-                                            {appliedDiscounts.map((appliedDiscount, index) => {
-                                                const discountAmount = subtotal * appliedDiscount.discount.discountValue / 100;
-                                                const maxDiscount = appliedDiscount.discount.maxDiscount || Infinity;
-                                                const finalDiscountAmount = Math.min(discountAmount, maxDiscount);
-                                                
-                                                return (
-                                                    <div key={`${appliedDiscount.discount.code}-${index}`} className="flex justify-between text-green-600">
-                                                        <span>{t('checkout.discount')} ({appliedDiscount.discount.discountValue}%):</span>
-                                                        <span>-{finalDiscountAmount.toLocaleString('vi-VN')}đ</span>
-                                                    </div>
-                                                );
-                                            })}
-                                        </>
-                                    )}
-                                    
-                                    {/* Preview Selected Discounts */}
+                                    {/* Chỉ hiển thị discount đã chọn */}
                                     {selectedDiscounts.length > 0 && (
                                         <>
                                             {selectedDiscounts.map((selectedDiscount, index) => {
                                                 const discountAmount = subtotal * selectedDiscount.discount.discountValue / 100;
                                                 const maxDiscount = selectedDiscount.discount.maxDiscount || Infinity;
                                                 const finalDiscountAmount = Math.min(discountAmount, maxDiscount);
-                                                
                                                 return (
                                                     <div key={`preview-${selectedDiscount.discount.code}-${index}`} className="flex justify-between text-blue-600">
-                                                        <span>{t('checkout.discount')} ({selectedDiscount.discount.discountValue}%) - Chờ áp dụng:</span>
+                                                        <span>{t('checkout.discount')} ({selectedDiscount.discount.discountValue}%):</span>
                                                         <span>-{finalDiscountAmount.toLocaleString('vi-VN')}đ</span>
                                                     </div>
                                                 );
                                             })}
                                         </>
                                     )}
-                                    
-                                    {(appliedDiscounts.length > 0 || selectedDiscounts.length > 0) && (
-                                        <Separator />
-                                    )}
-
+                                    {selectedDiscounts.length > 0 && <Separator />}
                                     <div className="flex justify-between items-center">
                                         <span className="text-lg font-semibold text-gray-800">
                                             {t('checkout.total_payment')}:
@@ -690,7 +690,6 @@ const CheckoutDemo = () => {
                                         </span>
                                     </div>
                                 </div>
-
                                 <Button
                                     size="lg"
                                     className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 py-3 text-lg font-semibold"
