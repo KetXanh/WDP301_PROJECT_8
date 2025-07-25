@@ -2,16 +2,16 @@ import { useEffect, useState } from "react";
 import {
   getRatingsByBaseProduct,
   getAllProducts,
+  getAllRatings,
   deleteRating,
 } from "../../services/Admin/AdminAPI";
 import { toast } from "react-toastify";
 import { Trash2 } from "lucide-react";
 import { FaStar } from "react-icons/fa";
 
-
 function Rating() {
   const [products, setProducts] = useState([]);
-  const [baseProductId, setBaseProductId] = useState("");
+  const [baseProductId, setBaseProductId] = useState(""); // mặc định là lấy tất cả
   const [starsFilter, setStarsFilter] = useState(null);
   const [ratings, setRatings] = useState([]);
   const [page, setPage] = useState(1);
@@ -24,7 +24,6 @@ function Rating() {
       try {
         const res = await getAllProducts();
         setProducts(res.data.products);
-        if (res.data.length > 0) setBaseProductId(res.data[0]._id);
       } catch (err) {
         toast.error("Lỗi khi tải danh sách sản phẩm");
       }
@@ -32,16 +31,24 @@ function Rating() {
     fetchProducts();
   }, []);
 
-  // Load đánh giá theo sản phẩm và bộ lọc
+  // Load đánh giá: toàn bộ hoặc theo sản phẩm
   useEffect(() => {
-    if (!baseProductId) return;
     async function fetchRatings() {
       try {
-        const res = await getRatingsByBaseProduct(baseProductId, {
-          stars: starsFilter,
-          page,
-          limit,
-        });
+        let res;
+        if (baseProductId) {
+          res = await getRatingsByBaseProduct(baseProductId, {
+            stars: starsFilter,
+            page,
+            limit,
+          });
+        } else {
+          res = await getAllRatings({
+            stars: starsFilter,
+            page,
+            limit,
+          });
+        }
         setRatings(res.data.ratings);
         setTotal(res.data.total);
       } catch (err) {
@@ -67,14 +74,18 @@ function Rating() {
     <div className="p-6 space-y-6 mt-10">
       <h1 className="text-2xl font-bold mb-4">Quản lý đánh giá sản phẩm</h1>
 
-      {/* Lọc theo sản phẩm */}
-      <div className="mb-4 flex gap-4 items-center">
+      {/* Bộ lọc */}
+      <div className="mb-4 flex gap-4 items-center flex-wrap">
         <label className="font-medium">Sản phẩm:</label>
         <select
           value={baseProductId}
-          onChange={(e) => setBaseProductId(e.target.value)}
+          onChange={(e) => {
+            setBaseProductId(e.target.value);
+            setPage(1); // reset page
+          }}
           className="border px-3 py-1 rounded"
         >
+          <option value="">Tất cả sản phẩm</option>
           {products.map((product) => (
             <option key={product._id} value={product._id}>
               {product.name}
@@ -82,12 +93,14 @@ function Rating() {
           ))}
         </select>
 
-        {/* Lọc theo số sao */}
         <label className="ml-6 font-medium">Lọc sao:</label>
         {[1, 2, 3, 4, 5].map((star) => (
           <button
             key={star}
-            onClick={() => setStarsFilter(star)}
+            onClick={() => {
+              setStarsFilter(star);
+              setPage(1);
+            }}
             className={`flex items-center gap-1 px-3 py-1 border rounded mx-1 ${
               starsFilter === star ? "bg-blue-600 text-white" : "bg-white"
             }`}
@@ -101,10 +114,12 @@ function Rating() {
             ))}
           </button>
         ))}
-
         {starsFilter && (
           <button
-            onClick={() => setStarsFilter(null)}
+            onClick={() => {
+              setStarsFilter(null);
+              setPage(1);
+            }}
             className="text-sm underline ml-2"
           >
             Bỏ lọc
@@ -112,7 +127,7 @@ function Rating() {
         )}
       </div>
 
-      {/* Danh sách đánh giá */}
+      {/* Bảng đánh giá */}
       <table className="w-full border text-sm">
         <thead className="bg-gray-100">
           <tr>
@@ -146,7 +161,6 @@ function Rating() {
                     ))}
                   </div>
                 </td>
-
                 <td>{r.comment}</td>
                 <td>{new Date(r.createdAt).toLocaleString()}</td>
                 <td className="text-center">

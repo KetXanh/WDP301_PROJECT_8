@@ -377,7 +377,7 @@ useEffect(() => {
                 </div>
               ))
             ) : (
-              <p className="text-gray-500">No data</p>
+              <p className="text-gray-500"> {t("product_detail.noRating")}</p>
             )}
           </CardContent>
         </Card>

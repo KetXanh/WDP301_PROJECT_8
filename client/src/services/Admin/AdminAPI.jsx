@@ -149,7 +149,7 @@ export const getTotalOrders = async () => {
     return instance.get("productmanager/product/orders/total"); 
 };
 
-// Lấy tất cả đánh giá (dành cho admin hoặc product manager)
+
 export const getAllRatings = (params) => {
   return instance.get("/productmanager/rating/ratings", { params });
 };

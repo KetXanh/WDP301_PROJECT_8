@@ -6,12 +6,16 @@ import {
   updateOrderSatatus,
 } from "../../services/Admin/AdminAPI";
 import OrderDetail from "./Form/OrderDetail";
-
 const statusOptions = [
   {
     value: "pending",
-    label: "Đang xử lý",
+    label: "Đang chờ xử lý",
     color: "bg-yellow-100 text-yellow-800",
+  },
+  {
+    value: "processing",
+    label: "Đang xử lý",
+    color: "bg-orange-100 text-orange-800",
   },
   { value: "shipped", label: "Đang giao", color: "bg-blue-100 text-blue-800" },
   {
@@ -20,6 +24,7 @@ const statusOptions = [
     color: "bg-green-100 text-green-800",
   },
   { value: "cancelled", label: "Đã huỷ", color: "bg-red-100 text-red-800" },
+  { value: "failed", label: "Thất bại", color: "bg-gray-100 text-gray-800" },
 ];
 
 const getStatusOption = (value) =>

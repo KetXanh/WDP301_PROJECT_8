@@ -30,54 +30,45 @@ export const links = [
   {
     href: "/admin",
     icon: FaChartBar,
-    text: "dashboard",
+    text: "Trang chủ",
   },
   {
     href: "/admin/category",
     icon: MdOutlineCategory,
-    text: "categories",
+    text: "Danh mục",
   },
   {
     href: "/admin/subcategory",
     icon: MdOutlineCategory,
-    text: "subcategories",
+    text: "Danh mục con",
   },
   {
     href: "/admin/order",
     icon: FaCartPlus,
-    text: "order",
+    text: "Đơn hàng",
   },
   {
     href: "/admin/rating",
     icon: FaStarHalfAlt,
-    text: "Rating",
+    text: "Đánh giá",
   },
   {
     href: "/admin/product",
     icon: FaBox,
-    text: "products",
+    text: "Sản phẩm",
   },
   {
     href: "/admin/task",
     icon: FaListAlt,
-    text: "task",
+    text: "Công việc",
   },
   {
     href: "/admin/kpi",
     icon: FaUsersCog,
-    text: "kpi",
-  },
-  {
-    href: "/login",
-    icon: IoIosLogIn,
-    text: "login",
-  },
-  {
-    href: "/register",
-    icon: IoIosPersonAdd,
-    text: "register",
+    text: "Chỉ số KPI",
   },
 ];
+
 
 
 export const empolyeesData = [
