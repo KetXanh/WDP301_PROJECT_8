@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Sparkles, Gift, Zap } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 function getSegments(discounts) {
   const segments = [];
@@ -36,6 +37,7 @@ function getSegments(discounts) {
 }
 
 export default function LuckyWheel({ discounts, receivableQuantity, onSpin }) {
+  const { t } = useTranslation();
   const segments = getSegments(discounts);
   const [isSpinning, setIsSpinning] = useState(false);
   const [rotation, setRotation] = useState(0);
@@ -118,18 +120,18 @@ export default function LuckyWheel({ discounts, receivableQuantity, onSpin }) {
         <div className="flex items-center justify-center gap-2 mb-3">
           <Sparkles className="w-6 h-6 text-emerald-600 animate-pulse" />
           <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
-            Vòng Quay May Mắn
+            {t('luckyWheel.title')}
           </h1>
           <Sparkles className="w-6 h-6 text-emerald-600 animate-pulse" />
         </div>
-        <p className="text-gray-600 text-sm md:text-base">Quay để nhận ngay ưu đãi hấp dẫn!</p>
+        <p className="text-gray-600 text-sm md:text-base">{t('luckyWheel.subtitle')}</p>
       </div>
 
       {/* Remaining spins */}
       <div className="mb-6 p-3 bg-white rounded-lg shadow-md border border-emerald-200">
         <div className="flex items-center gap-2 justify-center">
           <Gift className="w-4 h-4 text-emerald-600" />
-          <span className="font-medium text-gray-700 text-sm">Số lượt quay còn lại:</span>
+          <span className="font-medium text-gray-700 text-sm">{t('luckyWheel.remaining')}</span>
           <Badge className="bg-emerald-600 text-white font-bold text-sm px-2 py-1">
             {receivableQuantity}
           </Badge>
@@ -219,12 +221,12 @@ export default function LuckyWheel({ discounts, receivableQuantity, onSpin }) {
         {isSpinning ? (
           <div className="flex items-center gap-2">
             <div className="w-5 h-5 md:w-6 md:h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-            <span className="text-white">Đang quay...</span>
+            <span className="text-white">{t('luckyWheel.spinning')}</span>
           </div>
         ) : (
           <div className="flex items-center gap-2 text-white">
             <Sparkles className="w-5 h-5 md:w-6 md:h-6" />
-            <span>Quay ngay</span>
+            <span>{t('luckyWheel.spinNow')}</span>
             <Sparkles className="w-5 h-5 md:w-6 md:h-6" />
           </div>
         )}
@@ -235,7 +237,7 @@ export default function LuckyWheel({ discounts, receivableQuantity, onSpin }) {
         <div className="mt-6 p-4 bg-white rounded-lg shadow-md border border-emerald-200 max-w-sm text-center">
           <div className="flex items-center justify-center gap-2 mb-2">
             <Gift className="w-5 h-5 text-emerald-600" />
-            <h3 className="text-lg font-bold text-gray-800">Kết quả</h3>
+            <h3 className="text-lg font-bold text-gray-800">{t('luckyWheel.result')}</h3>
             <Gift className="w-5 h-5 text-emerald-600" />
           </div>
           <p className="text-base font-semibold text-gray-700 mb-2">
@@ -243,7 +245,7 @@ export default function LuckyWheel({ discounts, receivableQuantity, onSpin }) {
           </p>
           {result.type === "discount" && (
             <Badge className="bg-emerald-100 text-emerald-800 text-xs px-2 py-1">
-              Chúc mừng bạn đã trúng thưởng! 🎉
+              {t('luckyWheel.congrats')}
             </Badge>
           )}
         </div>

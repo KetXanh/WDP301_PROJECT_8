@@ -210,7 +210,7 @@ const Header = () => {
                   <DropdownMenuSeparator />
                   <DropdownMenuItem className="cursor-pointer" onClick={handleGoToDiscount}>
                     <Tag className="h-4 w-4 mr-2 text-pink-500" />
-                    <span>Mã giảm giá</span>
+                    <span>{t("checkout.available_discounts")}</span>
                     <span className="ml-1 bg-pink-100 text-pink-600 text-xs rounded px-2 py-0.5 font-bold animate-pulse">HOT</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem className="cursor-pointer">

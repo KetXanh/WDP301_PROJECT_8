@@ -5,6 +5,8 @@ import { toast } from "sonner";
 import LuckyWheel from "@/components/discount/LuckyWheel";
 import DiscountList from "@/components/discount/DiscountList";
 import UserDiscountList from "@/components/discount/UserDiscountList";
+import { FaGift } from "react-icons/fa";
+import { useTranslation } from "react-i18next";
 
 function getActiveDiscounts(discounts) {
   return discounts.filter(d => d.active !== false && (!d.endDate || new Date(d.endDate) > new Date()));
@@ -16,9 +18,9 @@ function getReceivableQuantity(userDiscounts) {
 }
 
 export default function Discount() {
+  const { t } = useTranslation();
   const [discounts, setDiscounts] = useState([]);
   const [userDiscounts, setUserDiscounts] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [receivable, setReceivable] = useState(0);
 
   useEffect(() => {
@@ -31,14 +33,12 @@ export default function Discount() {
   }, [userDiscounts]);
 
   const fetchDiscounts = async () => {
-    setLoading(true);
     try {
       const res = await getAllDiscounts();
       setDiscounts(res.data?.data || []);
     } catch {
-      toast.error("Không thể tải mã giảm giá");
+      toast.error(t('discountList.loadError'));
     }
-    setLoading(false);
   };
 
   const fetchUserDiscounts = async () => {
@@ -46,57 +46,71 @@ export default function Discount() {
       const res = await getUserDiscounts();
       setUserDiscounts(res.data?.data || []);
     } catch {
-      toast.error("Không thể tải mã giảm giá của bạn");
+      toast.error(t('userDiscountList.loadError'));
     }
   };
 
   const handleCopy = (code) => {
     navigator.clipboard.writeText(code);
-    toast.success("Đã sao chép mã giảm giá!");
+    toast.success(t('discountList.copied'));
   };
 
   // Xử lý khi quay vòng quay may mắn
   const handleSpin = async (item) => {
+    console.log('LuckyWheel spin result:', item);
     if (item.type === 'discount') {
-      // Gán discount cho user (nếu cần)
       try {
-        await assignDiscountToUser(item.discount._id);
-        toast.success(`Chúc mừng! Bạn đã nhận được mã giảm giá: ${item.discount.code}`);
+        const res = await assignDiscountToUser(item.discount._id);
+        toast.success(t('luckyWheel.toastCongrats', { code: item.discount.code }));
         fetchUserDiscounts();
-      } catch {
-        toast.error('Có lỗi khi nhận mã giảm giá, vui lòng thử lại!');
+        console.log('API assignDiscountToUser response:', res);
+      } catch (err) {
+        toast.error(t('luckyWheel.toastError'));
+        console.error('API assignDiscountToUser error:', err);
       }
     } else {
-      toast.info('Chúc bạn may mắn lần sau!');
+      toast.info(t('luckyWheel.toastTryAgain'));
     }
     setReceivable(r => Math.max(0, r - 1));
   };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      <h2 className="text-2xl font-bold mb-6">Vòng quay may mắn - Mã giảm giá</h2>
-      <div className="flex flex-col md:flex-row gap-8">
-        {/* Bên trái: LuckyWheel + DiscountList */}
-        <div className="flex-1 min-w-0">
-          <LuckyWheel
-            discounts={getActiveDiscounts(discounts)}
-            receivableQuantity={receivable}
-            onSpin={handleSpin}
-            result={null}
-          />
-          {loading ? (
-            <div className="flex items-center justify-center h-32">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 py-10 px-2">
+      <div className="max-w-7xl mx-auto rounded-3xl shadow-2xl bg-white/90 p-8 md:p-12 border border-blue-100">
+        <h2 className="flex items-center justify-center gap-3 text-3xl md:text-4xl font-extrabold mb-10 text-blue-700 drop-shadow-lg">
+          <FaGift className="text-pink-500 text-4xl" />
+          {t('discountPage.title')}
+        </h2>
+        <div className="flex flex-col md:flex-row md:flex-nowrap gap-6 md:gap-8">
+          {/* Bên trái: DiscountList nhỏ gọn */}
+          <div className="w-full md:basis-1/6 lg:basis-1/6 max-w-[220px] flex-shrink-0">
+            <div className="rounded-2xl border border-green-200 bg-white/80 shadow-lg p-3 h-full flex flex-col">
+              <h4 className="text-base font-bold text-green-700 mb-3 text-center">{t('discountPage.available')}</h4>
+              <div className="flex-1 overflow-y-auto max-h-[420px] pr-1">
+                <DiscountList list={getActiveDiscounts(discounts)} handleCopy={handleCopy} compact />
+              </div>
             </div>
-          ) : (
-            <DiscountList list={getActiveDiscounts(discounts)} handleCopy={handleCopy} />
-          )}
-        </div>
-        {/* Bên phải: UserDiscountList */}
-        <div className="w-full md:w-[380px] lg:w-[420px] xl:w-[480px]">
-          <div className="bg-white rounded-lg shadow-md p-4 mb-4">
-            <h3 className="text-lg font-semibold mb-4 text-center">Mã giảm giá của bạn</h3>
-            <UserDiscountList userDiscounts={userDiscounts} handleCopy={handleCopy} />
+          </div>
+          {/* Ở giữa: LuckyWheel chiếm 2/3 màn hình */}
+          <div className="flex-1 md:basis-2/3 flex items-center justify-center min-w-0">
+            <div className="rounded-2xl border border-blue-200 bg-white/80 shadow-lg p-10 w-full max-w-4xl flex items-center justify-center">
+              <LuckyWheel
+                discounts={getActiveDiscounts(discounts)}
+                receivableQuantity={receivable}
+                onSpin={handleSpin}
+                result={null}
+              />
+            </div>
+          </div>
+          {/* Bên phải: UserDiscountList */}
+          <div className="w-full md:basis-1/6 lg:basis-1/6 max-w-[420px]">
+            <div className="bg-gradient-to-br from-blue-100 via-white to-green-100 rounded-3xl shadow-xl border-2 border-blue-200 p-6 mb-4">
+              <h3 className="flex items-center justify-center gap-2 text-xl font-bold mb-6 text-blue-800">
+                <FaGift className="text-pink-400 text-2xl" />
+                {t('discountPage.yourDiscounts')}
+              </h3>
+              <UserDiscountList userDiscounts={userDiscounts} handleCopy={handleCopy} />
+            </div>
           </div>
         </div>
       </div>
