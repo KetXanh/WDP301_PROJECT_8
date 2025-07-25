@@ -66,6 +66,7 @@ exports.createRating = async (req, res) => {
             rating: avgStars,
             ratingCount: ratings.length,
         });
+        
 
         res.status(201).json({ message: "Tạo đánh giá thành công", rating });
     } catch (err) {

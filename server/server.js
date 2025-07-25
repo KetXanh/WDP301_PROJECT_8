@@ -10,6 +10,7 @@ const productRouter = require("./routers/ProductManager/index");
 const saleManager = require("./routers/SaleManager/index");
 const chatRouter = require("./routers/chatbot/index");
 const saleStaffRouter = require("./routers/SaleStaff/index");
+
 require("dotenv").config();
 require('./utils/discountStatusJob');
 require('./utils/taskStatusJob');

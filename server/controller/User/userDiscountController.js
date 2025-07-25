@@ -183,8 +183,8 @@ exports.addReceivableDiscount = async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(userId)) {
       return res.status(400).json({ message: 'Invalid user ID' });
     }
-    if (!quantity || quantity <= 0) {
-      return res.status(400).json({ message: 'Quantity must be greater than 0' });
+    if (!quantity || typeof quantity !== 'number') {
+      return res.status(400).json({ message: 'Quantity must be a number' });
     }
 
     // Cập nhật receivable_quantity cho tất cả UserDiscount của user
@@ -193,6 +193,7 @@ exports.addReceivableDiscount = async (req, res) => {
       await Promise.all(
         userDiscounts.map(async (userDiscount) => {
           userDiscount.receivable_quantity += quantity;
+          if (userDiscount.receivable_quantity < 0) userDiscount.receivable_quantity = 0;
           await userDiscount.save();
         })
       );
@@ -203,7 +204,7 @@ exports.addReceivableDiscount = async (req, res) => {
         discount: null, // Không gán discount cụ thể
         quantity_available: 0,
         quantity_total: 0,
-        receivable_quantity: quantity,
+        receivable_quantity: quantity > 0 ? quantity : 0,
         expired_at: null,
         status: 'active',
       });

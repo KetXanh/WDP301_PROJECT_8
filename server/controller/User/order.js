@@ -4,6 +4,8 @@ const ProductVariant = require("../../models/product/ProductVariant");
 const Users = require("../../models/user");
 const generateCOD = require('../../utils/generateCOD');
 const removePurchasedFromCart = require("../../utils/removeProductInCart");
+const Discount = require('../../models/product/discount');
+const UserDiscount = require('../../models/userDiscount');
 
 module.exports.userOrder = async (req, res) => {
     try {
@@ -35,13 +37,13 @@ module.exports.userOrder = async (req, res) => {
             return res.status(404).json({ message: `Variant(s) not found: ${missing.join(", ")}` });
         }
 
-        let total = 0;
+        let subtotal = 0;
         let totalQuantity = 0;
         const items = itemsInput.map(it => {
             const variant = variants.find(v => v._id.equals(it.product));
             const linePrice = variant.price * it.quantity;
 
-            total += linePrice;
+            subtotal += linePrice;
             totalQuantity += it.quantity;
             return {
                 product: variant._id,
@@ -49,6 +51,43 @@ module.exports.userOrder = async (req, res) => {
                 price: linePrice
             };
         });
+        let total = subtotal;
+
+        let totalDiscount = 0;
+        if (req.body.discountIds && req.body.discountIds.length > 0) {
+            const userRaw = await Users.findOne({ email: req.user.email })
+            const userDiscount = await UserDiscount.findOne({ user: userRaw._id }).populate('discounts.discount');
+            console.log("userDiscount: " + userDiscount);
+            if (userDiscount) {
+                for (const discountId of req.body.discountIds) {
+                    const userDiscountObj = userDiscount.discounts.find(d =>
+                        d.discount &&
+                        d.discount._id.toString() === discountId &&
+                        d.quantity_available > 0 &&
+                        d.status === 'active'
+                    );
+                    if (userDiscountObj) {
+                        const discount = userDiscountObj.discount;
+                        if (subtotal >= discount.minOrderValue) {
+                            let discountAmount = 0;
+                            if (discount.discountType === 'percentage') {
+                                discountAmount = subtotal * discount.discountValue / 100;
+                                if (discount.maxDiscount) {
+                                    discountAmount = Math.min(discountAmount, discount.maxDiscount);
+                                }
+                            } else if (discount.discountType === 'fixed') {
+                                discountAmount = discount.discountValue;
+                            }
+                            totalDiscount += discountAmount;
+                        }
+                    }
+                }
+            }
+        }
+
+        total = subtotal - totalDiscount;
+        if (total < 0) total = 0;
+
 
         const cod = generateCOD();
 
