@@ -38,7 +38,7 @@ const handleLogout = () => {
           <a href="#" className="flex items-center gap-2">
             <img src={logo} alt="logo" className="w-10 h-10 object-contain" />
             <span className="text-xl font-semibold text-gray-800 dark:text-white">
-              {t("admin")}
+              {t("Admin")}
             </span>
           </a>
         </div>
