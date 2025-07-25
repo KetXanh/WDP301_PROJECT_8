@@ -31,12 +31,12 @@ const ResetPassword = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if (!passwords.newPassword || !passwords.confirmPassword) {
+        if (!passwords.newPassword.trim() || !passwords.confirmPassword.trim()) {
             toast.error(t("toast.emptyFields"));
             return;
         }
 
-        if (passwords.newPassword !== passwords.confirmPassword) {
+        if (passwords.newPassword.trim() !== passwords.confirmPassword.trim()) {
             toast.error(t("toast.passwordMismatch"));
             return;
         }
@@ -49,7 +49,7 @@ const ResetPassword = () => {
         setIsLoading(true);
 
         try {
-            const res = await resetPass(email, passwords.newPassword);
+            const res = await resetPass(email, passwords.newPassword.trim());
             if (res.data && res.data.code === 200) {
                 toast.success(t("toast.updateSuccess"));
                 setIsLoading(false)

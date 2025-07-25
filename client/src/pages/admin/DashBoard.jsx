@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Box, Package, ShoppingCart, Tag } from "lucide-react";
-import { getTotalStock ,getCategoryStats,getTotalOrders} from "../../services/Admin/AdminAPI";
-import{ ProductChart } from "./Form/ProductChart";
+import { getTotalStock, getCategoryStats, getTotalOrders } from "../../services/Admin/AdminAPI";
+import { ProductChart } from "./Form/ProductChart";
 import { useTranslation } from "react-i18next";
 
-const Dashboard = () => {
+const DashboardAdmin = () => {
   const { t } = useTranslation("admin");
   const [totalStock, setTotalStock] = useState(0);
   const [totalOrders, setTotalOrders] = useState(0);
@@ -13,31 +13,31 @@ const Dashboard = () => {
   const [subcategoryCount, setSubcategoryCount] = useState(0);
 
 
-useEffect(() => {
-  getTotalStock()
-    .then((res) => {
-      setTotalStock(res.data.totalStock);
-    })
-    .catch((err) => {
-      console.error("Error fetching stock:", err);
-    });
+  useEffect(() => {
+    getTotalStock()
+      .then((res) => {
+        setTotalStock(res.data.totalStock);
+      })
+      .catch((err) => {
+        console.error("Error fetching stock:", err);
+      });
 
-  getCategoryStats()
-    .then((res) => {
-      setCategoryCount(res.data.categoryCount);
-      setSubcategoryCount(res.data.subcategoryCount);
-    })
-    .catch((err) => {
-      console.error("Error fetching category stats:", err);
-    });
+    getCategoryStats()
+      .then((res) => {
+        setCategoryCount(res.data.categoryCount);
+        setSubcategoryCount(res.data.subcategoryCount);
+      })
+      .catch((err) => {
+        console.error("Error fetching category stats:", err);
+      });
     getTotalOrders()
       .then((res) => {
-        setTotalOrders(res.data.totalOrders); 
+        setTotalOrders(res.data.totalOrders);
       })
       .catch((err) => {
         console.error("Error fetching total orders:", err);
       });
-}, []);
+  }, []);
 
 
   return (
@@ -110,4 +110,4 @@ useEffect(() => {
   );
 };
 
-export default Dashboard;
+export default DashboardAdmin;

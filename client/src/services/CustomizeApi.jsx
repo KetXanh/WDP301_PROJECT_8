@@ -4,7 +4,7 @@ import { logout, login } from '../store/customer/authSlice.jsx';
 
 const instance = axios.create({
     baseURL: 'http://localhost:3000/api',
-});
+}); 
 
 let isRefreshing = false;
 let failedQueue = [];

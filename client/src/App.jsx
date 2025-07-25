@@ -21,6 +21,8 @@ import Profile from "./pages/Customers/Profile";
 import ProductDetail from "./pages/Customers/ProductDetail";
 import Cart from "./pages/Customers/Cart";
 import ProtectedRoute from "./components/protectedRouter/ProtectedRoute";
+import Discount from "./pages/Customers/Discount";
+import Blog from "./pages/Customers/Blog";
 
 // Admin Pages
 import Sidebar from "./components/admin/Sidebar";
@@ -28,15 +30,47 @@ import HeaderAdmin from "./components/admin/Header";
 import Product from "./pages/admin/Product";
 import Order from "./pages/admin/Order";
 import Category from "./pages/admin/Category";
-import Dashboard from "./pages/admin/DashBoard";
+import DashboardAdmin from "./pages/admin/DashBoard";
 import SubCategory from "./pages/admin/SubCategory";
 import Task from "./pages/admin/Task";
 import Kpi from "./pages/admin/Kpi";
+
+//Sale Manager Pages
+import SaleManagerLayout from "./pages/SaleManager/SaleManagerLayout";
+import Dashboard from "./pages/SaleManager/Dashboard";
+import Statistics from "./pages/SaleManager/Statistics";
+import ManagerTask from "./pages/SaleManager/ManagerTask";
+import ManagerDiscount from "./pages/SaleManager/ManagerDiscount";
+import Chat from "./pages/SaleManager/components/Chat";
+import ManagerOrder from "./pages/SaleManager/ManagerOrder";
+import SaleManagerProfile from "./pages/SaleManager/Profile";
+import SaleManagerUser from "./pages/SaleManager/SaleManagerUser";
+
+//Sale Staff Pages
+import SaleStaffLayout from "./pages/SaleStaff/SaleStaffLayout";
+import SaleStaffDashboard from "./pages/SaleStaff/Dashboard";
+import SaleStaffOrders from "./pages/SaleStaff/Orders";
+import SaleStaffTasks from "./pages/SaleStaff/Tasks";
+import SaleStaffChat from "./pages/SaleStaff/Chat";
+import SaleStaffProfile from "./pages/SaleStaff/Profile";
+
+
+//Admin Dev Pages
+import AdminDevLayout from "./pages/AdminDev/AdminDevLayout";
+import DashboardAdminDev from "./pages/AdminDev/Dashboard";
+import StatisticsAdminDev from "./pages/AdminDev/Statistics";
+import AccountManagement from "./pages/AdminDev/AccountManagement";
+import ProductManagement from "./pages/AdminDev/ProductManagement";
+import AdminBlog from "./pages/AdminDev/AdminBlog";
+
 import Checkout from "./pages/Customers/Checkout";
 import Rating from "./pages/admin/Rating";
 import PaymentResult from "./pages/Customers/PaymentResult";
 import OrderHistory from "./pages/Customers/OrderHistory";
 // import VnpayWaiting from "./pages/Customers/VnpayWaiting";
+import About from "./components/customer/About";
+import ContactUs from "./components/customer/Contact";
+
 
 // Customer Layout
 const CustomerLayout = () => (
@@ -98,6 +132,7 @@ function App() {
 
           {/* Công khai */}
           <Route path="products" element={<Products />} />
+          <Route path="discount" element={<Discount />} />
 
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
@@ -105,9 +140,13 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/otp" element={<ForgotOtp />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/profile" element={<Profile />} />
           <Route path="/products" element={<Products />} />
           <Route path="/products/:slug" element={<ProductDetail />} />
           <Route path="/cart" element={<Cart />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/contact" element={<ContactUs />} /> 
+          <Route path="/blog" element={<Blog />} />
           {accessToken && (
             <>
               <Route
@@ -141,7 +180,7 @@ function App() {
             />
           }
         >
-          <Route index element={<Dashboard />} />
+          <Route index element={<DashboardAdmin />} />
           <Route path="product" element={<Product />} />
           <Route path="order" element={<Order />} />
           <Route path="subcategory" element={<SubCategory />} />
@@ -151,6 +190,35 @@ function App() {
           <Route path="rating" element={<Rating/>} />
         </Route>
 
+        {/* Sale Manager Routes */}
+        <Route path="/sale-manager" element={<SaleManagerLayout />}>
+          <Route index element={<Dashboard />} />
+          <Route path="statistics" element={<Statistics />} />
+          <Route path="task" element={<ManagerTask />} />
+          <Route path="discount" element={<ManagerDiscount />} />
+          <Route path="chat" element={<Chat />} />
+          <Route path="order" element={<ManagerOrder />} />
+          <Route path="profile" element={<SaleManagerProfile />} />
+          <Route path="users" element={<SaleManagerUser />} />
+        </Route>
+
+        {/* Sale Staff Routes */}
+        <Route path="/sale-staff" element={<SaleStaffLayout />}>
+          <Route index element={<SaleStaffDashboard />} />
+          <Route path="orders" element={<SaleStaffOrders />} />
+          <Route path="tasks" element={<SaleStaffTasks />} />
+          <Route path="chat" element={<SaleStaffChat />} />
+          <Route path="profile" element={<SaleStaffProfile />} />
+        </Route>
+
+          {/* Admin Dev Routes */}
+        <Route path="/admin-dev" element={<AdminDevLayout/>}>
+          <Route index element={<DashboardAdminDev/>}/>
+          <Route path="stats" element={<StatisticsAdminDev/>}/>
+          <Route path="accmanage" element={<AccountManagement/>}/>
+          <Route path="productmanagement" element={<ProductManagement/>}/>
+          <Route path="blogmanagement" element={<AdminBlog />} />
+        </Route>
         {/* Not Found */}
         <Route path="*" element={<NotFound />} />
       </Routes>

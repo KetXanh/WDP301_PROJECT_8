@@ -16,6 +16,10 @@
             "en": "Contact",
             "vi": "Liên Hệ"
         },
+        "blog": {
+            "en": "Blog",
+            "vi": "Bài Viết"
+        },
         "viewProfile": {
             "en": "View Profile",
             "vi": "Xem Profile"
@@ -971,6 +975,126 @@
         "order_summary_with_count": {
             "en": "Order ({{count}} items)",
             "vi": "Đơn Hàng ({{count}} sản phẩm)"
+        },
+        "discount": {
+            "en": "Discount",
+            "vi": "Mã giảm giá"
+        },
+        "discount_code": {
+            "en": "Enter discount code",
+            "vi": "Mã giảm giá nhập"
+        },
+        "use_discount": {
+            "en": "Apply",
+            "vi": "Áp dụng"
+        },
+        "applying": {
+            "en": "Applying...",
+            "vi": "Đang áp dụng..."
+        },
+        "available_discounts": {
+            "en": "Discounts",
+            "vi": "Mã giảm giá"
+        },
+        "remove": {
+            "en": "Remove",
+            "vi": "Xóa"
+        },
+        "enter_discount_code": {
+            "en": "Please enter a discount code",
+            "vi": "Vui lòng nhập mã giảm giá"
+        },
+        "discount_applied": {
+            "en": "Discount applied successfully",
+            "vi": "Áp dụng thành công mã giảm giá"
+        },
+        "discount_error": {
+            "en": "Failed to apply discount",
+            "vi": "Áp dụng mã giảm giá thất bại"
+        },
+        "discount_removed": {
+            "en": "Discount removed",
+            "vi": "Đã xóa mã giảm giá"
+        },
+        "select_discount": {
+            "en": "Select this code",
+            "vi": "Chọn mã này"
+        },
+        "discount_percentage": {
+            "en": "Discount:",
+            "vi": "Giảm giá:"
+        },
+        "remaining_uses": {
+            "en": "Remaining:",
+            "vi": "Còn lại:"
+        },
+        "min_order_value": {
+            "en": "Min. order value:",
+            "vi": "Giá tối thiểu:"
+        },
+        "max_discount": {
+            "en": "Max discount:",
+            "vi": "Giảm tối đa:"
+        },
+        "expiry_date": {
+            "en": "Expiry date:",
+            "vi": "Hạn sử dụng:"
+        },
+        "uses_left": {
+            "en": "uses left",
+            "vi": "lượt"
+        },
+        "min_order_warning": {
+            "en": "⚠️ Minimum order value required: {{amount}}đ to use this code",
+            "vi": "⚠️ Cần đặt hàng tối thiểu {{amount}}đ để dùng mã này"
+        },
+        "selected_discounts": {
+            "en": "Selected {{count}} discount codes",
+            "vi": "Đã chọn {{count}} mã giảm giá"
+        },
+        "additional_savings": {
+            "en": "Additional savings:",
+            "vi": "Giảm thêm:"
+        },
+        "apply_selected_discounts": {
+            "en": "Apply {{count}} discount codes",
+            "vi": "Áp dụng {{count}} mã giảm giá"
+        },
+        "applying_discounts": {
+            "en": "Applying...",
+            "vi": "Đang áp dụng..."
+        },
+        "please_select_discount": {
+            "en": "Please select at least one discount code",
+            "vi": "Vui lòng chọn ít nhất một mã giảm giá"
+        },
+        "discount_already_applied": {
+            "en": "This discount code has already been applied",
+            "vi": "Mã giảm giá này đã được áp dụng"
+        },
+        "order_minimum_required": {
+            "en": "Order needs minimum {{amount}}đ to use this code",
+            "vi": "Đơn hàng cần tối thiểu {{amount}}đ để dùng mã này"
+        },
+        "applied_discounts": {
+            "en": "Applied Discounts",
+            "vi": "Mã giảm giá đã áp dụng"
+        },
+        "preview_discounts": {
+            "en": "Preview Selected Discounts",
+            "vi": "Xem trước mã đã chọn"
+        },
+        "waiting_to_apply": {
+            "en": "Waiting to apply",
+            "vi": "Chờ áp dụng"
+        },
+        "total_savings": {
+            "en": "Total Savings",
+            "vi": "Tổng tiết kiệm"
+        },
+        "discount_code_label": {
+            "en": "Code:",
+            "vi": "Mã:"
         }
     },
     "toast": {
@@ -1698,5 +1822,42 @@
             "en": "You have already reviewed this product",
             "vi": "Bạn đã đánh giá sản phẩm này"
         }
+    },
+    "discountList": {
+        "code": { "en": "CODE", "vi": "MÃ" },
+        "noExpiry": { "en": "No expiry", "vi": "Không HSD" },
+        "noDiscount": { "en": "No discount codes", "vi": "Không có mã giảm giá nào" },
+        "copy": { "en": "Copy", "vi": "Sao chép mã" },
+        "minOrder": { "en": "Min. order", "vi": "Đơn tối thiểu" },
+        "maxDiscount": { "en": "Max discount", "vi": "Giảm tối đa" },
+        "expiry": { "en": "Expiry", "vi": "HSD" },
+        "loadError": { "en": "Cannot load discount codes", "vi": "Không thể tải mã giảm giá" },
+        "copied": { "en": "Copied discount code!", "vi": "Đã sao chép mã giảm giá!" }
+    },
+    "userDiscountList": {
+        "total": { "en": "Total discount codes", "vi": "Tổng số mã giảm giá" },
+        "useNow": { "en": "Use now", "vi": "Dùng ngay" },
+        "active": { "en": "Active", "vi": "Còn hiệu lực" },
+        "expired": { "en": "Expired", "vi": "Hết hạn" },
+        "remaining": { "en": "Remaining", "vi": "Số lượng còn" },
+        "noDiscount": { "en": "You have no discount codes", "vi": "Bạn chưa có mã giảm giá nào" },
+        "loadError": { "en": "Cannot load your discount codes", "vi": "Không thể tải mã giảm giá của bạn" }
+    },
+    "luckyWheel": {
+        "title": { "en": "Lucky Wheel", "vi": "Vòng Quay May Mắn" },
+        "subtitle": { "en": "Spin to get amazing offers!", "vi": "Quay để nhận ngay ưu đãi hấp dẫn!" },
+        "remaining": { "en": "Spins left:", "vi": "Số lượt quay còn lại:" },
+        "spinning": { "en": "Spinning...", "vi": "Đang quay..." },
+        "spinNow": { "en": "Spin now", "vi": "Quay ngay" },
+        "result": { "en": "Result", "vi": "Kết quả" },
+        "congrats": { "en": "Congratulations! You won! 🎉", "vi": "Chúc mừng bạn đã trúng thưởng! 🎉" },
+        "toastCongrats": { "en": "Congratulations! You received discount code: {{code}}", "vi": "Chúc mừng! Bạn đã nhận được mã giảm giá: {{code}}" },
+        "toastError": { "en": "Error receiving discount code, please try again!", "vi": "Có lỗi khi nhận mã giảm giá, vui lòng thử lại!" },
+        "toastTryAgain": { "en": "Better luck next time!", "vi": "Chúc bạn may mắn lần sau!" }
+    },
+    "discountPage": {
+        "title": { "en": "Lucky Wheel - Discount Codes", "vi": "Vòng quay may mắn - Mã giảm giá" },
+        "available": { "en": "Available discount codes", "vi": "Các mã giảm giá đang có" },
+        "yourDiscounts": { "en": "Your discount codes", "vi": "Mã giảm giá của bạn" }
     }
 }

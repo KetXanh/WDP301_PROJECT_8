@@ -50,7 +50,10 @@ const Login = () => {
       if (!isValidEmail(formData.email)) {
         return toast.error(t('toast.invalidEmailFormat'));
       }
-      const res = await customerLogin(formData);
+      const res = await customerLogin({
+        email: formData.email.trim(),
+        password: formData.password.trim()
+      });
       if (res.data && res.data.code === 200) {
         const dataToken = {
           accessToken: res.data?.accessToken,
@@ -63,9 +66,19 @@ const Login = () => {
 
         dispatch(clearCart({ userId: GUEST_ID }));
         if (decoded?.role === 0) {
-          navigate("/");
-        } else if (decoded?.role === 3) {
-          navigate("/admin");
+          navigate('/')
+
+        } else if (decoded?.role === 1) {
+          navigate('/admin-dev')
+        }
+        else if (decoded?.role === 2) {
+          navigate('/sale-manager')
+        }
+        else if (decoded?.role === 3) {
+          navigate('/admin')
+        }
+        else if (decoded?.role === 4) {
+          navigate('/sale-staff')
         }
       } else if (res.data) {
         const status = res.data.code;

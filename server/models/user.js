@@ -16,7 +16,7 @@ const userSchema = new mongoose.Schema({
             ward: String,
             district: String,
             province: String,
-            lable: { type: String, default: "Nhà riêng" },
+            label: String,
             isDefault: { type: Boolean, default: false }
         }
     ],
@@ -32,3 +32,5 @@ const userSchema = new mongoose.Schema({
 const Users = mongoose.model('Users', userSchema, 'users');
 
 module.exports = Users;
+
+

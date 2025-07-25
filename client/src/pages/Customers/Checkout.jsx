@@ -25,7 +25,9 @@ import { useTranslation } from 'react-i18next';
 import { createPaymentUrl } from '../../services/Customer/vnPay';
 import i18n from '../../i18n/i18n';
 import { removePurchasedItems } from '../../store/customer/cartSlice';
-
+import { getUserDiscounts, useUserDiscount as applyUserDiscount } from '../../services/Customer/ApiUserDiscount';
+import { Input } from '@/components/ui/input';
+import { addReceivableDiscount } from '../../services/Customer/ApiUserDiscount';
 
 const CheckoutDemo = () => {
     const navigate = useNavigate();
@@ -36,7 +38,13 @@ const CheckoutDemo = () => {
     const { selectedItems, selectedAddress } = location.state || {};
     const accessToken = useSelector((state) => state.customer.accessToken);
     const dispatch = useDispatch();
-
+    const [discountCode, setDiscountCode] = useState('');   
+    const [appliedDiscounts, setAppliedDiscounts] = useState([]);
+    const [isApplyingDiscount, setIsApplyingDiscount] = useState(false);
+    const [userDiscounts, setUserDiscounts] = useState([]);
+    const [showAvailableDiscounts, setShowAvailableDiscounts] = useState(false);
+    const [selectedDiscounts, setSelectedDiscounts] = useState([]);
+    const [isApplyingAll, setIsApplyingAll] = useState(false);
     const { t } = useTranslation(['translation']);
 
     useEffect(() => {
@@ -45,22 +53,122 @@ const CheckoutDemo = () => {
         }
     }, [selectedItems, selectedAddress, navigate]);
 
+    useEffect(() => {
+        const fetchUserDiscounts = async () => {
+            try {
+                const res = await getUserDiscounts();
+                console.log('User discounts response:', res);
+                if (res.data && res.data.data && res.data.data.length > 0) {
+                    // Extract discounts from the first user's discounts array
+                    const userDiscounts = res.data.data[0].discounts || [];
+                    setUserDiscounts(userDiscounts);
+                }
+            } catch (error) {
+                console.error('Error fetching user discounts:', error);
+            }
+        };
+        fetchUserDiscounts();
+    }, []);
+
+    const handleUseDiscount = async () => {
+        if (!discountCode.trim()) {
+            toast.error(t('checkout.enter_discount_code'));
+            return;
+        }
+
+        // Check if discount already applied
+        const isAlreadyApplied = appliedDiscounts.some(discount => 
+            discount.discount.code === discountCode.trim()
+        );
+        if (isAlreadyApplied) {
+            toast.error('Mã giảm giá này đã được áp dụng');
+            return;
+        }
+
+        // Check if order meets minimum value for any available discount
+        const matchingDiscount = userDiscounts.find(discount => 
+            discount.discount.code === discountCode.trim()
+        );
+        
+        if (matchingDiscount && subtotal < matchingDiscount.discount.minOrderValue) {
+            toast.error(`Đơn hàng cần tối thiểu ${matchingDiscount.discount.minOrderValue.toLocaleString('vi-VN')}đ để sử dụng mã này`);
+            return;
+        }
+
+        setIsApplyingDiscount(true);
+        try {
+            const res = await applyUserDiscount(discountCode);
+            if (res.data && res.data.code === 200) {
+                setAppliedDiscounts(prev => [...prev, res.data.data]);
+                toast.success(t('checkout.discount_applied'));
+                setDiscountCode('');
+                
+                // Refresh user discounts to update quantities
+                const refreshRes = await getUserDiscounts();
+                if (refreshRes.data && refreshRes.data.data && refreshRes.data.data.length > 0) {
+                    const updatedUserDiscounts = refreshRes.data.data[0].discounts || [];
+                    setUserDiscounts(updatedUserDiscounts);
+                }
+            } else {
+                toast.error(res.data?.message || t('checkout.discount_error'));
+            }
+        } catch (error) {
+            console.error('Error applying discount:', error);
+            toast.error(t('checkout.discount_error'));
+        } finally {
+            setIsApplyingDiscount(false);
+        }
+    };
+
+    const handleRemoveDiscount = (discountToRemove) => {
+        setAppliedDiscounts(prev => prev.filter(discount => 
+            discount.discount.code !== discountToRemove.discount.code
+        ));
+        toast.success(t('checkout.discount_removed'));
+    };
+
+    const handleSelectDiscount = (discount) => {
+        setSelectedDiscounts(prev => {
+            if (prev.length === 1 && prev[0].discount.code === discount.discount.code) {
+                return [];
+            }
+            if (prev.length === 1) {
+                return [discount];
+            }
+            return [discount];
+        });
+    };
 
     const subtotal = selectedItems.reduce(
         (sum, i) => sum + i.price * i.quantity,
         0
     );
-    const total = subtotal;
+
+
+    
+    // Calculate preview discount for selected discounts (not yet applied)
+    const previewDiscountAmount = selectedDiscounts.reduce((total, discount) => {
+        const discountAmount = subtotal * discount.discount.discountValue / 100;
+        const maxDiscount = discount.discount.maxDiscount || Infinity;
+        return total + Math.min(discountAmount, maxDiscount);
+    }, 0);
+    
+    // Total includes preview discounts (selectedDiscounts)
+    const total = subtotal - previewDiscountAmount;
 
 
     const handlePlaceOrder = async () => {
         try {
+            setIsProcessing(true);
+            // 1. Tạo order trước
             const decoded = jwtDecode(accessToken);
             const userId = decoded.username;
             if (decoded && ROLE.includes(decoded.role)) {
+                setIsProcessing(false);
                 return toast.error(t("toast.no_permission"))
             }
             if (!accessToken) {
+                setIsProcessing(false);
                 toast.error(t("toast.please_login"))
                 navigate('/login')
                 return;
@@ -81,36 +189,73 @@ const CheckoutDemo = () => {
                 province,
                 phone: selectedAddress.phone,
             }
-            const res = await userOrder(items, dataShipping, paymentMethod, orderNote);
-            if (paymentMethod === "CASH") {
-                if (res.data && res.data.code === 201) {
-                    toast.success(t("toast.order_success"))
-                    dispatch(removePurchasedItems({
-                        userId,
-                        purchasedIds: selectedItems.map(item => item.productId),
-                    }))
-                    navigate('/')
-                } else if (res.data && res.data.code === 401) {
-                    toast.error(t("toast.invalid_address"))
+            // Lấy discountIds từ selectedDiscounts
+            const discountIds = selectedDiscounts.map(discount => discount.discount._id);
+            // Tính tổng tiền đã trừ discount
+            const totalAmount = subtotal - previewDiscountAmount;
+            const res = await userOrder(items, dataShipping, paymentMethod, orderNote, discountIds, totalAmount);
+            if ((paymentMethod === "CASH" && res.data && res.data.code === 201) || (paymentMethod !== "CASH" && res.data)) {
+                // 2. Sau khi tạo order thành công, mới gọi useDiscount cho từng discount đã chọn
+                let allSuccess = true;
+                if (selectedDiscounts.length > 0) {
+                    const promises = selectedDiscounts.map(discount => applyUserDiscount(discount.discount._id));
+                    const results = await Promise.all(promises);
+                    results.forEach((res, index) => {
+                        if (!(res.status === 200 && res.data && res.data.message === 'Discount used successfully')) {
+                            allSuccess = false;
+                            toast.error(`Không thể áp dụng mã ${selectedDiscounts[index].discount.code}`);
+                        }
+                    });
                 }
-                return setIsProcessing(false);
-            } else {
-                const order = res.data;
-
-                const payRes = await createPaymentUrl(
-                    {
-                        orderId: order.orderId,
-                        amount: order.totalAmount,
-                        language: i18n.language === 'vi' ? 'vn' : 'en',
+                if (!allSuccess) {
+                    setIsProcessing(false);
+                    return;
+                }
+                // 3. Cộng lượt quay dựa trên tổng tiền
+                let spinCount = 0;
+                if (totalAmount >= 350000) spinCount = 5;
+                else if (totalAmount >= 200000) spinCount = 2;
+                else if (totalAmount >= 50000) spinCount = 1;
+                if (spinCount > 0) {
+                    try {
+                        await addReceivableDiscount(spinCount);
+                        toast.success(`Bạn đã nhận được ${spinCount} lượt quay!`);
+                    } catch {
+                        toast.error('Không thể cộng lượt quay!');
                     }
-                );
-                console.log(payRes.data);
-
-                window.location.href = payRes.data;
+                }
+                // 4. Xóa selectedDiscounts, cập nhật lại userDiscounts, chuyển trang, v.v.
+                dispatch(removePurchasedItems({
+                    userId,
+                    purchasedIds: selectedItems.map(item => item.productId),
+                }))
+                setSelectedDiscounts([]);
+                // Cập nhật lại userDiscounts
+                const refreshRes = await getUserDiscounts();
+                if (refreshRes.data && refreshRes.data.data && refreshRes.data.data.length > 0) {
+                    const updatedUserDiscounts = refreshRes.data.data[0].discounts || [];
+                    setUserDiscounts(updatedUserDiscounts);
+                }
+                if (paymentMethod === "CASH") {
+                    toast.success(t("toast.order_success"))
+                    navigate('/')
+                } else {
+                    const order = res.data;
+                    const payRes = await createPaymentUrl(
+                        {
+                            orderId: order.orderId,
+                            amount: order.totalAmount,
+                            language: i18n.language === 'vi' ? 'vn' : 'en',
+                        }
+                    );
+                    window.location.href = payRes.data;
+                }
+            } else if (res.data && res.data.code === 401) {
+                toast.error(t("toast.invalid_address"))
             }
-        } catch (error) {
-            console.log(error);
-
+            setIsProcessing(false);
+        } catch {
+            setIsProcessing(false);
         }
     };
 
@@ -163,7 +308,219 @@ const CheckoutDemo = () => {
                                 </div>
                             </CardContent>
                         </Card>
-
+                        {/* Mã giảm giá */}
+                        <Card className="shadow-sm">
+                            <CardHeader className="pb-4">
+                                <CardTitle>{t('checkout.discount')}</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                {appliedDiscounts.length > 0 ? (
+                                    <div className="space-y-3">
+                                        {appliedDiscounts.map((appliedDiscount, index) => {
+                                            const discountAmount = subtotal * appliedDiscount.discount.discountValue / 100;
+                                            const maxDiscount = appliedDiscount.discount.maxDiscount || Infinity;
+                                            const finalDiscountAmount = Math.min(discountAmount, maxDiscount);
+                                            return (
+                                                <div key={`${appliedDiscount.discount.code}-${index}`} className="bg-green-50 p-4 rounded-lg border border-green-200">
+                                                    <div className="flex justify-between items-center">
+                                                        <div>
+                                                            <p className="font-semibold text-green-800">
+                                                                {appliedDiscount.discount.description}
+                                                            </p>
+                                                            <p className="text-sm text-green-600">
+                                                                Giảm {appliedDiscount.discount.discountValue}% - {finalDiscountAmount.toLocaleString('vi-VN')}đ
+                                                            </p>
+                                                            <p className="text-xs text-green-500">
+                                                                Mã: {appliedDiscount.discount.code}
+                                                            </p>
+                                                        </div>
+                                                        <Button 
+                                                            variant="outline" 
+                                                            size="sm"
+                                                            onClick={() => handleRemoveDiscount(appliedDiscount)}
+                                                            className="text-red-600 border-red-200 hover:bg-red-50"
+                                                        >
+                                                            {t('checkout.remove')}
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                ) : (
+                                    <div className="space-y-3">
+                                        <div className="flex items-center space-x-3">
+                                            <Input
+                                                placeholder={t('checkout.discount_code')}
+                                                value={discountCode}
+                                                onChange={(e) => setDiscountCode(e.target.value)}
+                                                onKeyPress={(e) => e.key === 'Enter' && handleUseDiscount()}
+                                                disabled={isApplyingDiscount}
+                                            />
+                                            <Button 
+                                                onClick={handleUseDiscount}
+                                                disabled={isApplyingDiscount || !discountCode.trim()}
+                                                className="min-w-[120px]"
+                                            >
+                                                {isApplyingDiscount ? (
+                                                    <div className="flex items-center space-x-2">
+                                                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                                        <span>{t('checkout.applying')}</span>
+                                                    </div>
+                                                ) : (
+                                                    t('checkout.use_discount')
+                                                )}
+                                            </Button>
+                                        </div>
+                                        {userDiscounts.length > 0 ? (
+                                            <div className="mt-4">
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => setShowAvailableDiscounts(!showAvailableDiscounts)}
+                                                    className="w-full flex items-center justify-between text-sm"
+                                                >
+                                                    <span>{t('checkout.available_discounts')} ({userDiscounts.length})</span>
+                                                    <span className={`transform transition-transform ${showAvailableDiscounts ? 'rotate-180' : ''}`}>
+                                                        ▼
+                                                    </span>
+                                                </Button>
+                                                
+                                                {showAvailableDiscounts && (
+                                                    <div className="mt-3 space-y-3 max-h-64 overflow-y-auto">
+                                                        {userDiscounts.map((userDiscount, index) => (
+                                                            <div 
+                                                                key={`${userDiscount._id}-${index}`}
+                                                                className="p-3 bg-gray-50 rounded-lg border border-gray-200"
+                                                            >
+                                                                <div className="flex justify-between items-start mb-2">
+                                                                    <div className="flex-1">
+                                                                        <h4 className="font-semibold text-gray-800 text-sm">
+                                                                            {userDiscount.discount.description}
+                                                                        </h4>
+                                                                        <p className="text-xs text-gray-500 mt-1">
+                                                                            Mã: <span className="font-mono bg-gray-200 px-1 rounded">{userDiscount.discount.code}</span>
+                                                                        </p>
+                                                                    </div>
+                                                                    <Badge variant="secondary" className="text-xs">
+                                                                        {userDiscount.discount.discountValue}%
+                                                                    </Badge>
+                                                                </div>
+                                                                
+                                                                <div className="flex items-center justify-between mb-2">
+                                                                    <div className="flex items-center space-x-2">
+                                                                        <span className="text-sm font-medium text-gray-700">Chọn mã này</span>
+                                                                        <Badge variant="secondary" className="text-xs">
+                                                                            {userDiscount.discount.discountValue}%
+                                                                        </Badge>
+                                                                    </div>
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        checked={selectedDiscounts.some(d => d.discount.code === userDiscount.discount.code)}
+                                                                        onChange={() => handleSelectDiscount(userDiscount)}
+                                                                        className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                                                                    />
+                                                                </div>
+                                                                
+                                                                <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
+                                                                    <div>
+                                                                        <span className="font-medium">Giảm giá:</span> {userDiscount.discount.discountValue}%
+                                                                    </div>
+                                                                    <div>
+                                                                        <span className="font-medium">Còn lại:</span> {userDiscount.quantity_available} lượt
+                                                                    </div>
+                                                                    <div>
+                                                                        <span className="font-medium">Giá tối thiểu:</span> {userDiscount.discount.minOrderValue.toLocaleString('vi-VN')}đ
+                                                                    </div>
+                                                                    <div>
+                                                                        <span className="font-medium">Giảm tối đa:</span> {userDiscount.discount.maxDiscount.toLocaleString('vi-VN')}đ
+                                                                    </div>
+                                                                </div>
+                                                                
+                                                                {/* Check if current order meets minimum value */}
+                                                                {subtotal < userDiscount.discount.minOrderValue && (
+                                                                    <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs text-yellow-700">
+                                                                        ⚠️ Cần đặt hàng tối thiểu {userDiscount.discount.minOrderValue.toLocaleString('vi-VN')}đ để sử dụng mã này
+                                                                    </div>
+                                                                )}
+                                                                
+                                                                <div className="mt-2 text-xs text-gray-500">
+                                                                    <span className="font-medium">Hạn sử dụng:</span> {new Date(userDiscount.expired_at).toLocaleDateString('vi-VN')}
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                                
+                                                {/* Apply All Selected Button */}
+                                                {selectedDiscounts.length > 0 && (
+                                                    <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                                        <div className="flex justify-between items-center mb-2">
+                                                            <span className="text-sm font-medium text-blue-800">
+                                                                Đã chọn {selectedDiscounts.length} mã giảm giá
+                                                            </span>
+                                                            <span className="text-sm text-blue-600">
+                                                                Giảm thêm: {previewDiscountAmount.toLocaleString('vi-VN')}đ
+                                                            </span>
+                                                        </div>
+                                                        <Button
+                                                            onClick={async () => {
+                                                                setIsApplyingAll(true);
+                                                                try {
+                                                                    const promises = selectedDiscounts.map(discount => applyUserDiscount(discount.discount._id));
+                                                                    const results = await Promise.all(promises);
+                                                                    const successfulDiscounts = [];
+                                                                    results.forEach((res, index) => {
+                                                                        if (res.data && res.data.code === 200) {
+                                                                            successfulDiscounts.push(res.data.data);
+                                                                        } else {
+                                                                            toast.error(`Không thể áp dụng mã ${selectedDiscounts[index].discount.code}`);
+                                                                        }
+                                                                    });
+                                                                    if (successfulDiscounts.length > 0) {
+                                                                        setAppliedDiscounts(prev => [...prev, ...successfulDiscounts]);
+                                                                        toast.success(`Đã áp dụng ${successfulDiscounts.length} mã giảm giá`);
+                                                                        setSelectedDiscounts([]);
+                                                                        // Refresh user discounts
+                                                                        const refreshRes = await getUserDiscounts();
+                                                                        if (refreshRes.data && refreshRes.data.data && refreshRes.data.data.length > 0) {
+                                                                            const updatedUserDiscounts = refreshRes.data.data[0].discounts || [];
+                                                                            setUserDiscounts(updatedUserDiscounts);
+                                                                        }
+                                                                    }
+                                                                } catch (error) {
+                                                                    console.error('Error applying all discounts:', error);
+                                                                    toast.error('Có lỗi xảy ra khi áp dụng mã giảm giá');
+                                                                } finally {
+                                                                    setIsApplyingAll(false);
+                                                                }
+                                                            }}
+                                                            disabled={isApplyingAll}
+                                                            className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                                                            size="sm"
+                                                        >
+                                                            {isApplyingAll ? (
+                                                                <div className="flex items-center space-x-2">
+                                                                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                                                    <span>Đang áp dụng...</span>
+                                                                </div>
+                                                            ) : (
+                                                                `Áp dụng ${selectedDiscounts.length} mã giảm giá`
+                                                            )}
+                                                        </Button>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ) : (
+                                            <div className="mt-4 text-center text-gray-500 text-sm">
+                                                Bạn không có mã giảm giá nào thỏa mãn
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
                         {/* Phương thức thanh toán */}
                         <Card className="shadow-sm">
                             <CardHeader className="pb-4">
@@ -307,8 +664,23 @@ const CheckoutDemo = () => {
                                         <span>{t('checkout.subtotal')}:</span>
                                         <span>{subtotal.toLocaleString('vi-VN')}đ</span>
                                     </div>
-
-                                    <Separator />
+                                    {/* Chỉ hiển thị discount đã chọn */}
+                                    {selectedDiscounts.length > 0 && (
+                                        <>
+                                            {selectedDiscounts.map((selectedDiscount, index) => {
+                                                const discountAmount = subtotal * selectedDiscount.discount.discountValue / 100;
+                                                const maxDiscount = selectedDiscount.discount.maxDiscount || Infinity;
+                                                const finalDiscountAmount = Math.min(discountAmount, maxDiscount);
+                                                return (
+                                                    <div key={`preview-${selectedDiscount.discount.code}-${index}`} className="flex justify-between text-blue-600">
+                                                        <span>{t('checkout.discount')} ({selectedDiscount.discount.discountValue}%):</span>
+                                                        <span>-{finalDiscountAmount.toLocaleString('vi-VN')}đ</span>
+                                                    </div>
+                                                );
+                                            })}
+                                        </>
+                                    )}
+                                    {selectedDiscounts.length > 0 && <Separator />}
                                     <div className="flex justify-between items-center">
                                         <span className="text-lg font-semibold text-gray-800">
                                             {t('checkout.total_payment')}:
@@ -318,7 +690,6 @@ const CheckoutDemo = () => {
                                         </span>
                                     </div>
                                 </div>
-
                                 <Button
                                     size="lg"
                                     className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 py-3 text-lg font-semibold"

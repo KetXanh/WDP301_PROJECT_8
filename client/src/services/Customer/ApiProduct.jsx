@@ -12,8 +12,8 @@ export const address = () => {
     return instance.get(`/user/auth/address`)
 }
 
-export const userOrder = (items, shippingAddress, paymentMethod, note) => {
-    return instance.post('/user/orders', { items, shippingAddress, paymentMethod, note })
+export const userOrder = (items, shippingAddress, paymentMethod, note, discountIds, totalAmount) => {
+    return instance.post('/user/orders', { items, shippingAddress, paymentMethod, note, discountIds, totalAmount })
 }
 
 export const getOrderById = (id) => {

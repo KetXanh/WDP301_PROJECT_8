@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, LogOut, User, Package } from "lucide-react";
+import { ShoppingCart, LogOut, User, Package , Tag } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   DropdownMenu,
@@ -76,8 +76,12 @@ const Header = () => {
           dispatch(clearCart({ userId: username }));
         }
       } catch (error) {
-        console.error("Lỗi khi lấy giỏ hàng:", error);
-        dispatch(clearCart({ userId: username }));
+        if (error.response && error.response.status === 404) {
+          dispatch(clearCart({ userId: username }));
+        } else {
+          console.error("Lỗi khi lấy giỏ hàng:", error);
+          dispatch(clearCart({ userId: username }));
+        }
       }
     };
 
@@ -113,6 +117,10 @@ const Header = () => {
     i18n.changeLanguage(lang);
   };
 
+  const handleGoToDiscount = () => {
+    navigate("/discount");
+  };
+
   return (
     <header className="bg-white/95 backdrop-blur-sm shadow-sm sticky top-0 z-50">
       <div className="container mx-auto px-4 py-4">
@@ -138,13 +146,19 @@ const Header = () => {
               {t("home.products")}
             </Link>
             <a
-              href="#"
+              href="blog"
+              className="text-gray-700 hover:text-green-600 font-medium"
+            >
+              {t("home.blog")}
+            </a>
+            <a
+              href="about"
               className="text-gray-700 hover:text-green-600 font-medium"
             >
               {t("home.aboutUs")}
             </a>
             <a
-              href="#"
+              href="contact"
               className="text-gray-700 hover:text-green-600 font-medium"
             >
               {t("home.contact")}
@@ -194,6 +208,11 @@ const Header = () => {
                     </p>
                   </div>
                   <DropdownMenuSeparator />
+                  <DropdownMenuItem className="cursor-pointer" onClick={handleGoToDiscount}>
+                    <Tag className="h-4 w-4 mr-2 text-pink-500" />
+                    <span>{t("checkout.available_discounts")}</span>
+                    <span className="ml-1 bg-pink-100 text-pink-600 text-xs rounded px-2 py-0.5 font-bold animate-pulse">HOT</span>
+                  </DropdownMenuItem>
                   <DropdownMenuItem className="cursor-pointer">
                     <User className="mr-2 h-4 w-4" />
                     <span onClick={() => navigate("/profile")}>
