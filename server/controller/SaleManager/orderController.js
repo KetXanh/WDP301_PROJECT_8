@@ -741,36 +741,89 @@ exports.assignAllOrdersToStaff = async (req, res) => {
         if (!pendingOrders.length) {
             return res.status(400).json({ success: false, message: "Không có đơn hàng chờ xử lý" });
         }
+        
         // Lấy tất cả nhân viên bán hàng
         const saleStaff = await Users.find({ role: 4 });
         if (!saleStaff.length) {
             return res.status(400).json({ success: false, message: "Không có nhân viên bán hàng" });
         }
+        
         // Lấy user thực hiện
         const user = await Users.findOne({ email: req.user.email });
-        // Chia đều đơn hàng cho nhân viên
-        let assignedCount = 0;
-        let skippedCount = 0;
-        for (let i = 0; i < pendingOrders.length; i++) {
-            const order = pendingOrders[i];
-            // Kiểm tra đã được gán chưa
+        
+        // Lọc ra những đơn hàng chưa được gán
+        const unassignedOrders = [];
+        for (const order of pendingOrders) {
             const existingAssignment = await OrderAssignment.findOne({ orderId: order._id });
-            if (existingAssignment) {
-                skippedCount++;
-                continue;
+            if (!existingAssignment) {
+                unassignedOrders.push(order);
             }
-            const staff = saleStaff[i % saleStaff.length];
+        }
+        
+        if (!unassignedOrders.length) {
+            return res.status(400).json({ success: false, message: "Tất cả đơn hàng đã được gán" });
+        }
+        
+        // Tính toán workload hiện tại của từng nhân viên
+        const staffWorkload = {};
+        for (const staff of saleStaff) {
+            const currentAssignments = await OrderAssignment.countDocuments({
+                assignedTo: staff._id,
+                status: { $in: ["pending", "processing"] }
+            });
+            staffWorkload[staff._id.toString()] = currentAssignments;
+        }
+        
+        // Chia đều đơn hàng cho nhân viên (mỗi đơn chỉ gán cho 1 nhân viên)
+        let assignedCount = 0;
+        
+        for (let i = 0; i < unassignedOrders.length; i++) {
+            const order = unassignedOrders[i];
+            
+            // Tìm nhân viên có ít việc nhất
+            let selectedStaff = saleStaff[0];
+            let minWorkload = staffWorkload[selectedStaff._id.toString()];
+            
+            for (const staff of saleStaff) {
+                const currentWorkload = staffWorkload[staff._id.toString()];
+                if (currentWorkload < minWorkload) {
+                    minWorkload = currentWorkload;
+                    selectedStaff = staff;
+                }
+            }
+            
             // Tạo assignment mới
             await OrderAssignment.create({
                 orderId: order._id,
-                assignedTo: staff._id,
+                assignedTo: selectedStaff._id,
                 assignedBy: user._id,
+                status: "pending"
             });
+            
             // Cập nhật trạng thái đơn hàng thành processing
             await Orders.findByIdAndUpdate(order._id, { status: "processing" });
+            
+            // Cập nhật workload cho nhân viên được chọn
+            staffWorkload[selectedStaff._id.toString()]++;
             assignedCount++;
         }
-        res.status(200).json({ success: true, message: `Đã gán ${assignedCount} đơn hàng. Bỏ qua ${skippedCount} đơn đã được gán trước đó.` });
+        
+        const skippedCount = pendingOrders.length - unassignedOrders.length;
+        const staffCount = saleStaff.length;
+        const message = `Đã gán ${assignedCount} đơn hàng cho ${staffCount} nhân viên (phân phối theo workload).`;
+        const detailMessage = skippedCount > 0 ? ` Bỏ qua ${skippedCount} đơn đã được gán trước đó.` : "";
+        
+        res.status(200).json({ 
+            success: true, 
+            message: message + detailMessage,
+            data: {
+                assignedCount,
+                skippedCount,
+                staffCount,
+                totalOrders: pendingOrders.length,
+                distribution: staffWorkload
+            }
+        });
     } catch (error) {
         console.error('Error in assignAllOrdersToStaff:', error);
         res.status(500).json({ success: false, message: "Lỗi máy chủ", error: error.message });

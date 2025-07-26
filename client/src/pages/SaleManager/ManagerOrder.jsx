@@ -10,7 +10,7 @@ import { OrderFilter } from "./components/OrderFilter";
 import { getAllOrders, assignOrder, getAllSaleStaff, getOrderById, assignAllOrdersToStaff } from "@/services/SaleManager/ApiSaleManager";
 import OrderDetailModal from "./components/OrderDetailModal";
 import Chat from "./components/Chat";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 
 export default function ManagerOrder() {
   const [orders, setOrders] = useState([]);
@@ -23,6 +23,7 @@ export default function ManagerOrder() {
   const [errorMessage, setErrorMessage] = useState("");
   const [chatUser, setChatUser] = useState(null);
   const [showChatModal, setShowChatModal] = useState(false);
+  const [showAssignConfirmModal, setShowAssignConfirmModal] = useState(false);
 
   useEffect(() => {
     fetchOrders();
@@ -105,15 +106,39 @@ export default function ManagerOrder() {
   };
 
   const handleAssignToAll = async () => {
+    setShowAssignConfirmModal(true);
+  };
+
+  const confirmAssignToAll = async () => {
     try {
       const res = await assignAllOrdersToStaff();
       if (res.data && res.data.success === false) {
         toast.error(res.data.message || "Không thể giao tất cả order!");
         return;
       }
-      toast.success("Đã giao tất cả order cho nhân viên thành công!");
+      
+      // Hiển thị thông tin chi tiết về việc phân phối
+      const { assignedCount, staffCount, skippedCount, distribution } = res.data.data || {};
+      let message = res.data.message || "Đã giao tất cả order cho nhân viên thành công!";
+      
+      if (assignedCount && staffCount) {
+        if (distribution) {
+          const distributionInfo = Object.values(distribution).join(', ');
+          message = `Đã gán ${assignedCount} đơn hàng cho ${staffCount} nhân viên (phân phối: ${distributionInfo} đơn)`;
+        } else {
+          const ordersPerStaff = Math.ceil(assignedCount / staffCount);
+          message = `Đã gán ${assignedCount} đơn hàng cho ${staffCount} nhân viên (trung bình ${ordersPerStaff} đơn/người)`;
+        }
+        if (skippedCount > 0) {
+          message += `. Bỏ qua ${skippedCount} đơn đã được gán trước đó.`;
+        }
+      }
+      
+      toast.success(message);
       fetchOrders();
-    } catch {
+      setShowAssignConfirmModal(false);
+    } catch (error) {
+      console.error('Error assigning orders:', error);
       toast.error("Không thể giao tất cả order!");
     }
   };
@@ -232,7 +257,7 @@ export default function ManagerOrder() {
           className="flex items-center gap-2"
         >
           <Users className="h-4 w-4" />
-          Giao cho tất cả
+          Phân phối đều cho nhân viên
         </Button>
       </div>
 
@@ -356,6 +381,27 @@ export default function ManagerOrder() {
       <Dialog open={showChatModal} onOpenChange={setShowChatModal}>
         <DialogContent className="max-w-2xl p-0">
           {chatUser && <Chat initialUser={chatUser} />}
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal xác nhận phân phối đơn hàng */}
+      <Dialog open={showAssignConfirmModal} onOpenChange={setShowAssignConfirmModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Xác nhận phân phối đơn hàng</DialogTitle>
+            <DialogDescription>
+              Hệ thống sẽ phân phối các đơn hàng đang chờ xử lý cho tất cả nhân viên bán hàng dựa trên workload hiện tại. 
+              Mỗi đơn hàng sẽ chỉ được gán cho một nhân viên duy nhất, ưu tiên nhân viên có ít việc hơn.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAssignConfirmModal(false)}>
+              Hủy
+            </Button>
+            <Button onClick={confirmAssignToAll}>
+              Xác nhận phân phối
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
