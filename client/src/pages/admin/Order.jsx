@@ -18,13 +18,6 @@ const statusOptions = [
     color: "bg-orange-100 text-orange-800",
   },
   { value: "shipped", label: "Đang giao", color: "bg-blue-100 text-blue-800" },
-  {
-    value: "delivered",
-    label: "Hoàn thành",
-    color: "bg-green-100 text-green-800",
-  },
-  { value: "cancelled", label: "Đã huỷ", color: "bg-red-100 text-red-800" },
-  { value: "failed", label: "Thất bại", color: "bg-gray-100 text-gray-800" },
 ];
 
 const getStatusOption = (value) =>
@@ -46,14 +39,48 @@ export default function Order() {
   const fetchOrders = async () => {
     try {
       const res = await getAllOrders();
-      setOrders(res.data);
+      // Filter to only show orders with status: pending, processing, shipped
+      const filteredOrders = res.data.filter(order => 
+        ['pending', 'processing', 'shipped'].includes(order.status)
+      );
+      setOrders(filteredOrders);
     } catch (error) {
       console.error("Lỗi khi lấy đơn hàng:", error);
     }
   };
 
+  // Helper function to check if status can be updated
+  const canUpdateStatus = (status) => {
+    const allowedStatuses = ['pending', 'processing', 'shipped'];
+    return allowedStatuses.includes(status);
+  };
+
+  // Helper function to check if status is blocked from updates
+  const isStatusBlocked = (status) => {
+    const blockedStatuses = ['delivered', 'cancelled', 'failed'];
+    return blockedStatuses.includes(status);
+  };
+
   const handleChangeStatus = async (orderId, newStatus) => {
     try {
+      // Find the current order to check its status
+      const currentOrder = orders.find(order => order._id === orderId);
+      if (!currentOrder) {
+        console.error("Không tìm thấy đơn hàng");
+        return;
+      }
+
+      // Check if order status allows updates
+      if (isStatusBlocked(currentOrder.status)) {
+        console.error(`Không thể cập nhật trạng thái đơn hàng với trạng thái "${getStatusOption(currentOrder.status).label}"`);
+        return;
+      }
+
+      if (!canUpdateStatus(currentOrder.status)) {
+        console.error('Trạng thái đơn hàng không hợp lệ để cập nhật');
+        return;
+      }
+
       await updateOrderSatatus(orderId, newStatus);
       fetchOrders();
     } catch (err) {
@@ -207,23 +234,36 @@ export default function Order() {
                       <button
                         className={`px-2 py-1 text-xs font-medium rounded ${
                           getStatusOption(order.status).color
-                        }`}
+                        } ${isStatusBlocked(order.status) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                        disabled={isStatusBlocked(order.status)}
+                        title={isStatusBlocked(order.status) ? 'Không thể cập nhật trạng thái đơn hàng đã hoàn thành' : 'Cập nhật trạng thái'}
                       >
                         {getStatusOption(order.status).label}
                       </button>
                     </DropdownMenu.Trigger>
                     <DropdownMenu.Content className="bg-white border rounded shadow-md z-50">
-                      {statusOptions.map((option) => (
-                        <DropdownMenu.Item
-                          key={option.value}
-                          onSelect={() =>
-                            handleChangeStatus(order._id, option.value)
-                          }
-                          className={`px-4 py-2 text-sm cursor-pointer hover:bg-gray-100 ${option.color}`}
-                        >
-                          {option.label}
-                        </DropdownMenu.Item>
-                      ))}
+                      {statusOptions.map((option) => {
+                        const isDisabled = isStatusBlocked(order.status);
+                        return (
+                          <DropdownMenu.Item
+                            key={option.value}
+                            onSelect={() => !isDisabled && handleChangeStatus(order._id, option.value)}
+                            className={`px-4 py-2 text-sm ${option.color} ${
+                              isDisabled 
+                                ? 'opacity-50 cursor-not-allowed' 
+                                : 'cursor-pointer hover:bg-gray-100'
+                            }`}
+                            disabled={isDisabled}
+                          >
+                            {option.label}
+                            {isDisabled && (
+                              <span className="ml-2 text-xs text-gray-500">
+                                (Không thể cập nhật)
+                              </span>
+                            )}
+                          </DropdownMenu.Item>
+                        );
+                      })}
                     </DropdownMenu.Content>
                   </DropdownMenu.Root>
                 </td>

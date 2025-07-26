@@ -8,7 +8,8 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FileSpreadsheet } from "lucide-react";
-import { getAllUser, banUser, unbanUser, changeRole } from "../../services/Admin/AdminAPI";
+import { getAllUser, banUser, unbanUser, changeRole, exportUserToExcel } from "../../services/Admin/AdminAPI";
+import { toast } from "react-toastify";
 
 export default function AccountManagement() {
   const [accounts, setAccounts] = useState([]);
@@ -18,6 +19,7 @@ export default function AccountManagement() {
   const [message, setMessage] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [roleLoadingId, setRoleLoadingId] = useState(null);
+  const [exportLoading, setExportLoading] = useState(false);
   const rowsPerPage = 5;
 
   const roleNames = {
@@ -34,14 +36,15 @@ export default function AccountManagement() {
         const response = await getAllUser();
         if (Array.isArray(response.data)) {
           setAccounts(response.data);
-          console(response.data);
+          console.log(response.data);
         } else if (Array.isArray(response.data.users)) {
           setAccounts(response.data.users);
         } else {
           setAccounts([]);
         }
         setLoading(false);
-      } catch (error) {
+      } catch (err) {
+        console.error("Lỗi khi tải dữ liệu người dùng:", err);
         setError("Không thể tải dữ liệu người dùng.");
         setLoading(false);
       }
@@ -49,8 +52,44 @@ export default function AccountManagement() {
     fetchAccounts();
   }, []);
 
-  const handleExportExcel = () => {
-    console.log("Xuất báo cáo Excel người dùng");
+  const handleExportExcel = async () => {
+    if (accounts.length === 0) {
+      toast.warning("Không có dữ liệu để xuất Excel!");
+      return;
+    }
+
+    setExportLoading(true);
+    try {
+      const response = await exportUserToExcel();
+      
+      // Tạo blob từ response data
+      const blob = new Blob([response.data], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      });
+      
+      // Tạo URL cho blob
+      const url = window.URL.createObjectURL(blob);
+      
+      // Tạo link để download
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `danh-sach-tai-khoan-${new Date().toISOString().split('T')[0]}.xlsx`;
+      
+      // Trigger download
+      document.body.appendChild(link);
+      link.click();
+      
+      // Cleanup
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      toast.success("Xuất Excel thành công!");
+    } catch (error) {
+      console.error("Lỗi khi xuất Excel:", error);
+      toast.error("Lỗi khi xuất file Excel!");
+    } finally {
+      setExportLoading(false);
+    }
   };
 
   const handleChangeStatus = async (accountId, currentStatus) => {
@@ -71,6 +110,7 @@ export default function AccountManagement() {
       );
       setTimeout(() => setMessage(""), 2000);
     } catch (err) {
+      console.error("Lỗi khi thay đổi trạng thái:", err);
       alert("Không thể thay đổi trạng thái tài khoản.");
     }
   };
@@ -79,7 +119,7 @@ const handleChangeRole = async (accountId, newRole) => {
   setRoleLoadingId(accountId);
   try {
     // Gọi hàm changeRole đã import
-    const response = await changeRole(accountId, { role: Number(newRole) });
+    await changeRole(accountId, { role: Number(newRole) });
     setAccounts((prev) =>
       prev.map((acc) =>
         acc._id === accountId ? { ...acc, role: Number(newRole) } : acc
@@ -88,6 +128,7 @@ const handleChangeRole = async (accountId, newRole) => {
     setMessage("Thay đổi vai trò người dùng thành công");
     setTimeout(() => setMessage(""), 2000);
   } catch (err) {
+    console.error("Lỗi khi thay đổi vai trò:", err);
     alert("Không thể thay đổi vai trò.");
   }
   setRoleLoadingId(null);
@@ -131,9 +172,22 @@ const handleChangeRole = async (accountId, newRole) => {
             Quản lý thông tin và trạng thái của các tài khoản người dùng
           </p>
         </div>
-        <Button onClick={handleExportExcel}>
-          <FileSpreadsheet className="mr-2 h-4 w-4" />
-          Xuất Excel
+        <Button 
+          onClick={handleExportExcel} 
+          disabled={exportLoading || accounts.length === 0}
+          className="flex items-center gap-2"
+        >
+          {exportLoading ? (
+            <>
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+              <span>Đang xuất...</span>
+            </>
+          ) : (
+            <>
+              <FileSpreadsheet className="h-4 w-4" />
+              <span>Xuất Excel</span>
+            </>
+          )}
         </Button>
       </div>
 
@@ -161,49 +215,54 @@ const handleChangeRole = async (accountId, newRole) => {
         <CardHeader>
           <CardTitle>Danh sách tài khoản</CardTitle>
           <CardDescription>
-            Tổng quan các tài khoản trong hệ thống
+            Tổng quan các tài khoản trong hệ thống ({accounts.length} tài khoản)
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
             {loading ? (
-              <p>Đang tải dữ liệu...</p>
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+                <span className="ml-2">Đang tải dữ liệu...</span>
+              </div>
             ) : error ? (
-              <p className="text-red-500">{error}</p>
+              <div className="text-center py-8">
+                <p className="text-red-500">{error}</p>
+              </div>
             ) : paginatedAccounts && paginatedAccounts.length > 0 ? (
               <>
                 <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-black text-white">
+                  <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider rounded-tl-md">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         STT
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Họ và tên
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Email
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Vai trò
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Số điện thoại
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Địa chỉ
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Trạng thái
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider rounded-tr-md">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Hoạt động
                       </th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {paginatedAccounts.map((account, index) => (
-                      <tr key={account._id}>
+                      <tr key={account._id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                           {(currentPage - 1) * rowsPerPage + index + 1}
                         </td>
@@ -297,7 +356,9 @@ const handleChangeRole = async (accountId, newRole) => {
                 </div>
               </>
             ) : (
-              <p>Không có tài khoản nào để hiển thị.</p>
+              <div className="text-center py-8">
+                <p className="text-gray-500">Không có tài khoản nào để hiển thị.</p>
+              </div>
             )}
           </div>
         </CardContent>

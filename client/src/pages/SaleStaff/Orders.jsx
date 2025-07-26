@@ -6,7 +6,11 @@ import {
   AlertTriangle,
   Eye,
   Edit,
-  Filter
+  Filter,
+  TrendingUp,
+  Package,
+  DollarSign,
+  Users
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -16,7 +20,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { getMyOrders, getMyOrderById, updateMyOrderStatus } from '@/services/SaleStaff/ApiSaleStaff';
+import { getMyOrders, getMyOrderById, updateMyOrderStatus, getMyOrderStatistics } from '@/services/SaleStaff/ApiSaleStaff';
 import { toast } from 'sonner';
 
 const Orders = () => {
@@ -32,9 +36,16 @@ const Orders = () => {
   const [filter, setFilter] = useState('all');
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [products, setProducts] = useState([]);
+  const [stats, setStats] = useState({
+    totalAssignments: 0,
+    completedAssignments: 0,
+    completionRate: 0,
+    statusStats: []
+  });
 
   useEffect(() => {
     fetchOrders();
+    fetchStats();
   }, []);
 
   const fetchOrders = async () => {
@@ -47,6 +58,23 @@ const Orders = () => {
       toast.error('Không thể tải danh sách đơn hàng');
     }
     setLoading(false);
+  };
+
+  const fetchStats = async () => {
+    try {
+      const res = await getMyOrderStatistics();
+      if (res.data?.data) {
+        const data = res.data.data;
+        setStats({
+          totalAssignments: data.summary?.totalAssignments || 0,
+          completedAssignments: data.summary?.completedAssignments || 0,
+          completionRate: data.summary?.completionRate || 0,
+          statusStats: data.statusStats || []
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+    }
   };
 
   const handleViewOrder = async (order) => {
@@ -63,6 +91,17 @@ const Orders = () => {
   };
 
   const handleUpdateOrder = (order) => {
+    // Check if order status allows updates
+    if (isStatusBlocked(order.status)) {
+      toast.error(`Không thể cập nhật trạng thái đơn hàng với trạng thái "${getStatusText(order.status)}"`);
+      return;
+    }
+    
+    if (!canUpdateStatus(order.status)) {
+      toast.error('Trạng thái đơn hàng không hợp lệ để cập nhật');
+      return;
+    }
+    
     setSelectedOrder(order);
     setUpdateForm({
       status: order.status,
@@ -72,11 +111,23 @@ const Orders = () => {
   };
 
   const handleSubmitUpdate = async () => {
+    // Additional validation before submitting
+    if (isStatusBlocked(selectedOrder?.status)) {
+      toast.error(`Không thể cập nhật trạng thái đơn hàng với trạng thái "${getStatusText(selectedOrder?.status)}"`);
+      return;
+    }
+
+    if (!canUpdateStatus(selectedOrder?.status)) {
+      toast.error('Trạng thái đơn hàng không hợp lệ để cập nhật');
+      return;
+    }
+
     try {
       await updateMyOrderStatus(selectedOrder._id, { status: updateForm.status });
       toast.success('Cập nhật trạng thái đơn hàng thành công');
       setShowUpdateModal(false);
       fetchOrders();
+      fetchStats(); // Refresh statistics after update
     } catch {
       toast.error('Không thể cập nhật trạng thái đơn hàng');
     }
@@ -85,38 +136,54 @@ const Orders = () => {
   const getStatusColor = (status) => {
     switch (status) {
       case 'delivered':
-      case 'completed':
-        return 'bg-green-100 text-green-800';
+        return 'bg-emerald-500 text-white';
       case 'shipped':
-      case 'in_progress':
+        return 'bg-blue-500 text-white';
       case 'processing':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-amber-500 text-white';
       case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-slate-500 text-white';
       case 'cancelled':
-        return 'bg-red-100 text-red-800';
+        return 'bg-red-500 text-white';
+      case 'failed':
+        return 'bg-rose-500 text-white';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-500 text-white';
     }
   };
 
   const getStatusText = (status) => {
     switch (status) {
       case 'delivered':
-      case 'completed':
-        return 'Hoàn thành';
+        return 'Đã giao';
       case 'shipped':
-      case 'in_progress':
-      case 'processing':
         return 'Đang giao';
+      case 'processing':
+        return 'Đang xử lý';
       case 'pending':
         return 'Chờ xử lý';
       case 'cancelled':
         return 'Đã hủy';
+      case 'failed':
+        return 'Thất bại';
       default:
         return 'Không xác định';
     }
   };
+
+  // Helper function to check if status can be updated
+  const canUpdateStatus = (status) => {
+    const allowedStatuses = ['pending', 'processing', 'shipped'];
+    return allowedStatuses.includes(status);
+  };
+
+  // Helper function to check if status is blocked from updates
+  const isStatusBlocked = (status) => {
+    const blockedStatuses = ['delivered', 'cancelled', 'failed'];
+    return blockedStatuses.includes(status);
+  };
+
+
 
   // Sort orders by createdAt (orderId?.createdAt or createdAt), newest first
   const sortedOrders = [...orders].sort((a, b) => {
@@ -155,47 +222,128 @@ const Orders = () => {
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Đơn hàng của tôi</h1>
+              <h1 className="text-2xl font-bold text-gray-900">Đơn hàng đang chờ xử lý</h1>
               <p className="text-gray-600">Quản lý và cập nhật trạng thái đơn hàng</p>
             </div>
             <div className="flex items-center space-x-2">
               <ShoppingCart className="h-6 w-6 text-green-600" />
               <span className="text-sm font-medium text-gray-700">
-                {orders.filter(o => o.status === 'delivered' || o.status === 'completed').length}/{orders.length} đơn hàng hoàn thành
+                {stats.completedAssignments || 0}/{stats.totalAssignments || 0} đơn hàng đã giao
               </span>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Filter */}
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex items-center space-x-4">
-            <Filter className="h-5 w-5 text-gray-400" />
-            <Select value={filter} onValueChange={setFilter}>
-              <SelectTrigger className="w-48">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Tất cả đơn hàng</SelectItem>
-                <SelectItem value="pending">Chờ xử lý</SelectItem>
-                <SelectItem value="shipped">Đang giao</SelectItem>
-                <SelectItem value="delivered">Hoàn thành</SelectItem>
-                <SelectItem value="cancelled">Đã hủy</SelectItem>
-              </SelectContent>
-            </Select>
-            <span className="text-sm text-gray-500">
-              {filteredOrders.length} đơn hàng
-            </span>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Statistics Section */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Tổng đơn hàng</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.totalAssignments || 0}</p>
+              </div>
+              <div className="p-2 bg-blue-100 rounded-full">
+                <Package className="w-6 h-6 text-blue-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Đã hoàn thành</p>
+                <p className="text-2xl font-bold text-green-600">{stats.completedAssignments || 0}</p>
+              </div>
+              <div className="p-2 bg-green-100 rounded-full">
+                <CheckCircle className="w-6 h-6 text-green-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Tỷ lệ hoàn thành</p>
+                <p className="text-2xl font-bold text-purple-600">{Math.round(stats.completionRate || 0)}%</p>
+              </div>
+              <div className="p-2 bg-purple-100 rounded-full">
+                <TrendingUp className="w-6 h-6 text-purple-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Đang xử lý</p>
+                <p className="text-2xl font-bold text-orange-600">
+                  {(stats.totalAssignments || 0) - (stats.completedAssignments || 0)}
+                </p>
+              </div>
+              <div className="p-2 bg-orange-100 rounded-full">
+                <Clock className="w-6 h-6 text-orange-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
-      {/* Orders List */}
+      {/* Detailed Statistics */}
+      {stats.statusStats && stats.statusStats.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Thống kê theo trạng thái</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+              {stats.statusStats.map((stat) => (
+                <div key={stat._id} className="text-center p-3 bg-gray-50 rounded-lg">
+                  <div className={`inline-flex items-center justify-center w-8 h-8 rounded-full mb-2 ${getStatusColor(stat._id)}`}>
+                    <span className="text-xs font-medium">{stat.count}</span>
+                  </div>
+                  <p className="text-sm font-medium text-gray-900">{getStatusText(stat._id)}</p>
+                  <p className="text-xs text-gray-500">{stat.count} đơn</p>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Combined Filter and Orders List */}
       <Card>
         <CardHeader>
-          <CardTitle>Danh sách đơn hàng</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle>Danh sách đơn hàng</CardTitle>
+            <div className="flex items-center space-x-4">
+              <Filter className="h-5 w-5 text-gray-400" />
+              <Select value={filter} onValueChange={setFilter}>
+                <SelectTrigger className="w-48">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tất cả đơn hàng</SelectItem>
+                  <SelectItem value="pending">Chờ xử lý</SelectItem>
+                  <SelectItem value="processing">Đang xử lý</SelectItem>
+                  <SelectItem value="shipped">Đang giao</SelectItem>
+                  <SelectItem value="delivered">Đã giao</SelectItem>
+                  <SelectItem value="cancelled">Đã hủy</SelectItem>
+                  <SelectItem value="failed">Thất bại</SelectItem>
+                </SelectContent>
+              </Select>
+              <span className="text-sm text-gray-500">
+                {filteredOrders.length} đơn hàng
+              </span>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           <Table>
@@ -237,6 +385,8 @@ const Orders = () => {
                         variant="ghost"
                         size="sm"
                         onClick={() => handleUpdateOrder(order)}
+                        disabled={isStatusBlocked(order.status)}
+                        title={isStatusBlocked(order.status) ? 'Không thể cập nhật trạng thái đơn hàng đã hoàn thành' : 'Cập nhật trạng thái'}
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
@@ -246,24 +396,25 @@ const Orders = () => {
               ))}
             </TableBody>
           </Table>
+          
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex justify-center items-center gap-2 mt-6">
+              <Button size="sm" variant="outline" onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>Trước</Button>
+              {Array.from({ length: totalPages }, (_, i) => (
+                <Button
+                  key={i + 1}
+                  size="sm"
+                  variant={currentPage === i + 1 ? 'default' : 'outline'}
+                  onClick={() => handlePageChange(i + 1)}
+                >
+                  {i + 1}
+                </Button>
+              ))}
+              <Button size="sm" variant="outline" onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>Sau</Button>
+            </div>
+          )}
         </CardContent>
-        {/* Pagination Controls */}
-        {totalPages > 1 && (
-          <div className="flex justify-center items-center gap-2 mt-4">
-            <Button size="sm" variant="outline" onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>Trước</Button>
-            {Array.from({ length: totalPages }, (_, i) => (
-              <Button
-                key={i + 1}
-                size="sm"
-                variant={currentPage === i + 1 ? 'default' : 'outline'}
-                onClick={() => handlePageChange(i + 1)}
-              >
-                {i + 1}
-              </Button>
-            ))}
-            <Button size="sm" variant="outline" onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>Sau</Button>
-          </div>
-        )}
       </Card>
 
       {/* Order Detail Modal */}
@@ -318,6 +469,11 @@ const Orders = () => {
                   </div>
                 </div>
               </div>
+              {isStatusBlocked(selectedOrder?.status) && (
+                <p className="text-sm text-red-600 mt-1">
+                  Không thể cập nhật trạng thái đơn hàng đã hoàn thành
+                </p>
+              )}
               <div>
                 <h4 className="font-medium text-gray-900 mb-2">Danh sách sản phẩm</h4>
                 <Table>
@@ -380,17 +536,23 @@ const Orders = () => {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Trạng thái
               </label>
-              <Select value={updateForm.status} onValueChange={(value) => setUpdateForm({ ...updateForm, status: value })}>
+              <Select 
+                value={updateForm.status} 
+                onValueChange={(value) => setUpdateForm({ ...updateForm, status: value })}
+                disabled={isStatusBlocked(selectedOrder?.status)}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="pending">Chờ xử lý</SelectItem>
+                  <SelectItem value="processing">Đang xử lý</SelectItem>
                   <SelectItem value="shipped">Đang giao</SelectItem>
-                  <SelectItem value="delivered">Hoàn thành</SelectItem>
+                  <SelectItem value="delivered">Đã giao</SelectItem>
                   <SelectItem value="cancelled">Đã hủy</SelectItem>
+                  <SelectItem value="failed">Thất bại</SelectItem>
                 </SelectContent>
               </Select>
+
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -412,7 +574,10 @@ const Orders = () => {
             >
               Hủy
             </Button>
-            <Button onClick={handleSubmitUpdate}>
+            <Button 
+              onClick={handleSubmitUpdate}
+              disabled={isStatusBlocked(selectedOrder?.status)}
+            >
               Cập nhật
             </Button>
           </div>

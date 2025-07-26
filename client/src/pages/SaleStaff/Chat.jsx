@@ -8,14 +8,18 @@ import {
   Image,
   Paperclip,
   Smile,
-  MessageSquare
+  MessageSquare,
+  User
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { toast } from 'sonner';
 import { getChatUsers, getChatHistory, sendMessage } from '@/services/Chatbot/ApiChatbox';
+import { useSelector } from 'react-redux';
 
 const Chat = () => {
   const [contacts, setContacts] = useState([]);
@@ -23,27 +27,98 @@ const Chat = () => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef(null);
+  const currentUser = useSelector(state => state.customer.user);
+  const pollingIntervalRef = useRef(null);
+
+  // Helper function để fetch và map messages
+  const fetchAndMapMessages = async (userId) => {
+    const res = await getChatHistory(userId);
+    let msgs = [];
+    if (Array.isArray(res)) {
+      msgs = res;
+    } else if (Array.isArray(res.data)) {
+      msgs = res.data;
+    } else if (res.data && Array.isArray(res.data.messages)) {
+      msgs = res.data.messages;
+    }
+    
+    const mapped = msgs.map(msg => {
+      return {
+        id: msg.id || msg._id,
+        content: msg.content,
+        timestamp: msg.timestamp ? (msg.timestamp instanceof Date ? msg.timestamp : new Date(msg.timestamp)) : new Date(),
+        isCurrentUser: msg.isCurrentUser !== undefined ? msg.isCurrentUser : false,
+        senderId: msg.senderId || '',
+        receiverId: msg.receiverId || '',
+        ...msg
+      };
+    });
+    
+    return mapped;
+  };
 
   useEffect(() => {
     // Lấy danh sách user từ API
+    setLoading(true);
     getChatUsers()
-      .then(users => {
-        setContacts(users || []);
-        if (users && users.length > 0) setSelectedContact(users[0]);
+      .then(res => {
+        if (res && res.users) {
+          setContacts(res.users || []);
+        } else if (Array.isArray(res)) {
+          setContacts(res);
+        } else {
+          setContacts([]);
+        }
+        if (res && res.users && res.users.length > 0) {
+          setSelectedContact(res.users[0]);
+        } else if (Array.isArray(res) && res.length > 0) {
+          setSelectedContact(res[0]);
+        }
       })
-      .catch(() => {
+      .catch((error) => {
+        console.error('Error fetching users:', error);
+        toast.error('Không thể tải danh sách người dùng');
         setContacts([]);
-      });
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   useEffect(() => {
     if (selectedContact) {
-      getChatHistory(selectedContact._id)
-        .then(res => {
-          setMessages(res.messages || []);
-        })
-        .catch(() => setMessages([]));
+      setLoading(true);
+      const fetchMessages = async () => {
+        try {
+          const mappedMessages = await fetchAndMapMessages(selectedContact._id);
+          setMessages(mappedMessages);
+        } catch (error) {
+          console.error('Error loading chat history:', error);
+          toast.error('Không thể tải lịch sử chat');
+          setMessages([]);
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchMessages();
+
+      // Bắt đầu polling để cập nhật tin nhắn mới
+      pollingIntervalRef.current = setInterval(async () => {
+        try {
+          const mappedMessages = await fetchAndMapMessages(selectedContact._id);
+          setMessages(mappedMessages);
+        } catch (error) {
+          console.error('Error polling messages:', error);
+        }
+      }, 3000); // Cập nhật mỗi 3 giây
+
+      // Cleanup polling khi component unmount hoặc selectedContact thay đổi
+      return () => {
+        if (pollingIntervalRef.current) {
+          clearInterval(pollingIntervalRef.current);
+          pollingIntervalRef.current = null;
+        }
+      };
     }
   }, [selectedContact]);
 
@@ -52,18 +127,41 @@ const Chat = () => {
   }, [messages]);
 
   const filteredContacts = contacts.filter(contact =>
-    (contact.username?.toLowerCase() || contact.name?.toLowerCase() || '').includes(searchTerm.toLowerCase())
+    (contact.username?.toLowerCase() || contact.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+    (contact.email?.toLowerCase() || '').includes(searchTerm.toLowerCase())
   );
 
   const handleSendMessage = async () => {
-    if (newMessage.trim() && selectedContact) {
-      try {
-        const res = await sendMessage(selectedContact._id, newMessage);
-        setMessages([...messages, res.message]);
-        setNewMessage('');
-      } catch {
-        // handle error
-      }
+    if (!newMessage.trim() || !selectedContact) return;
+    
+    const tempMessage = {
+      id: Date.now().toString(),
+      content: newMessage,
+      timestamp: new Date(),
+      isCurrentUser: true,
+      senderId: currentUser?._id || currentUser?.id,
+      receiverId: selectedContact._id,
+      isPending: true // Đánh dấu tin nhắn đang gửi
+    };
+    
+    // Thêm tin nhắn tạm thời vào UI ngay lập tức
+    setMessages(prev => [...prev, tempMessage]);
+    const messageToSend = newMessage;
+    setNewMessage('');
+    
+    try {
+      await sendMessage(selectedContact._id, messageToSend);
+      
+      // Sau khi gửi thành công, fetch lại toàn bộ lịch sử chat
+      const mapped = await fetchAndMapMessages(selectedContact._id);
+      setMessages(mapped);
+      toast.success('Gửi tin nhắn thành công');
+    } catch (error) {
+      console.error('Error sending message:', error);
+      // Nếu gửi thất bại, xóa tin nhắn tạm thời và khôi phục nội dung
+      setMessages(prev => prev.filter(msg => msg.id !== tempMessage.id));
+      setNewMessage(messageToSend);
+      toast.error('Không thể gửi tin nhắn');
     }
   };
 
@@ -107,45 +205,54 @@ const Chat = () => {
           </CardHeader>
         </Card>
 
-        <div className="flex-1 overflow-y-auto">
-          {filteredContacts.map((contact) => (
-            <div
-              key={contact.id}
-              onClick={() => setSelectedContact(contact)}
-              className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors ${
-                selectedContact?.id === contact.id ? 'bg-blue-50' : ''
-              }`}
-            >
-              <div className="flex items-center space-x-3">
-                <div className="relative">
-                  <Avatar>
-                    <AvatarImage src={contact.avatar} alt={contact.username || contact.name} />
-                    <AvatarFallback>{(contact.username || contact.name || '').charAt(0)}</AvatarFallback>
-                  </Avatar>
-                  {contact.online && (
-                    <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-sm font-medium text-gray-900 truncate">
-                      {contact.username || contact.name}
-                    </h4>
-                    <span className="text-xs text-gray-500">{contact.timestamp}</span>
-                  </div>
-                  <div className="flex items-center justify-between mt-1">
-                    <p className="text-sm text-gray-600 truncate">{contact.lastMessage}</p>
-                    {contact.unread > 0 && (
-                      <Badge className="ml-2 bg-blue-600 text-white text-xs">
-                        {contact.unread}
-                      </Badge>
+        <ScrollArea className="flex-1">
+          {loading ? (
+            <div className="flex items-center justify-center h-24">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+            </div>
+          ) : filteredContacts.length > 0 ? (
+            filteredContacts.map((contact) => (
+              <div
+                key={contact._id}
+                onClick={() => setSelectedContact(contact)}
+                className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors ${
+                  selectedContact?._id === contact._id ? 'bg-blue-50' : ''
+                }`}
+              >
+                <div className="flex items-center space-x-3">
+                  <div className="relative">
+                    <Avatar>
+                      <AvatarImage src={contact.avatar} alt={contact.username || contact.name} />
+                      <AvatarFallback className="bg-gradient-to-r from-green-600 to-amber-600 text-white">
+                        {(contact.username || contact.name || '').charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    {contact.online && (
+                      <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
                     )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-sm font-medium text-gray-900 truncate">
+                        {contact.username || contact.name}
+                      </h4>
+                    </div>
+                    <div className="flex items-center justify-between mt-1">
+                      <p className="text-sm text-gray-600 truncate">{contact.email}</p>
+                      <p className="text-xs text-gray-500">
+                        {contact.role === "staff" ? "Nhân viên" : contact.role === "user" ? "Khách hàng" : contact.role === 2 ? "Sale Manager" : contact.role === 1 ? "Admin" : "Khác"}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
+            ))
+          ) : (
+            <div className="text-center text-muted-foreground py-4">
+              Không có người dùng nào để chat
             </div>
-          ))}
-        </div>
+          )}
+        </ScrollArea>
       </div>
 
       {/* Chat Area */}
@@ -159,17 +266,19 @@ const Chat = () => {
                   <div className="flex items-center space-x-3">
                     <div className="relative">
                       <Avatar>
-                        <AvatarImage src={selectedContact.avatar} alt={selectedContact.name} />
-                        <AvatarFallback>{selectedContact.name.charAt(0)}</AvatarFallback>
+                        <AvatarImage src={selectedContact.avatar} alt={selectedContact.username || selectedContact.name} />
+                        <AvatarFallback className="bg-gradient-to-r from-green-600 to-amber-600 text-white">
+                          {(selectedContact.username || selectedContact.name || '').charAt(0).toUpperCase()}
+                        </AvatarFallback>
                       </Avatar>
                       {selectedContact.online && (
                         <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
                       )}
                     </div>
                     <div>
-                      <h3 className="font-medium text-gray-900">{selectedContact.name}</h3>
+                      <h3 className="font-medium text-gray-900">{selectedContact.username || selectedContact.name}</h3>
                       <p className="text-sm text-gray-500">
-                        {selectedContact.online ? 'Đang hoạt động' : 'Không hoạt động'}
+                        {selectedContact.role === "staff" ? "Nhân viên" : "Khách hàng"}
                       </p>
                     </div>
                   </div>
@@ -189,30 +298,44 @@ const Chat = () => {
             </Card>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`flex ${message.isOwn ? 'justify-end' : 'justify-start'}`}
-                >
-                  <div
-                    className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                      message.isOwn
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-100 text-gray-900'
-                    }`}
-                  >
-                    <p className="text-sm">{message.content}</p>
-                    <p className={`text-xs mt-1 ${
-                      message.isOwn ? 'text-blue-100' : 'text-gray-500'
-                    }`}>
-                      {message.timestamp}
-                    </p>
-                  </div>
+            <ScrollArea className="flex-1 p-4 space-y-4">
+              {loading ? (
+                <div className="flex items-center justify-center h-24">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
                 </div>
-              ))}
-              <div ref={messagesEndRef} />
-            </div>
+              ) : (
+                <>
+                  {messages.map((message) => (
+                    <div
+                      key={message.id || message._id}
+                      className={`flex ${message.isCurrentUser ? 'justify-end' : 'justify-start'}`}
+                    >
+                      <div
+                        className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg relative ${
+                          message.isCurrentUser
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-gray-100 text-gray-900'
+                        } ${message.isPending ? 'opacity-70' : ''}`}
+                      >
+                        <p className="text-sm">{message.content}</p>
+                        <p className={`text-xs mt-1 ${
+                          message.isCurrentUser ? 'text-blue-100' : 'text-gray-500'
+                        }`}>
+                          {formatTimestamp(message.timestamp)}
+                          {message.isPending && ' (đang gửi...)'}
+                        </p>
+                        {message.isPending && (
+                          <div className="absolute -top-1 -right-1">
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                  <div ref={messagesEndRef} />
+                </>
+              )}
+            </ScrollArea>
 
             {/* Message Input */}
             <Card className="border-0 rounded-none border-t">
@@ -244,6 +367,7 @@ const Chat = () => {
                     onClick={handleSendMessage}
                     disabled={!newMessage.trim()}
                     size="icon"
+                    className="bg-gradient-to-r from-green-600 to-amber-600 hover:from-green-700 hover:to-amber-700 text-white"
                   >
                     <Send className="h-4 w-4" />
                   </Button>

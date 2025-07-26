@@ -12,6 +12,8 @@ import {
   Share2,
   Minus,
   Plus,
+  MessageCircle,
+  Bot,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import AddToCartButton from "../../components/customer/AddToCartButton";
@@ -20,6 +22,8 @@ import {
 } from "../../services/Customer/ApiProduct";
 import {getRatingsByBaseProduct} from "../../services/Admin/AdminAPI"
 import { useTranslation } from "react-i18next";
+import Chatbox from '@/components/Chatbox/Chatbox';
+import ChatAI from '@/components/Chatbox/ChatAI';
 
 const ProductDetail = () => {
   const { slug } = useParams();
@@ -29,6 +33,8 @@ const ProductDetail = () => {
   const [quantity, setQuantity] = useState(1);
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [reviews, setReviews] = useState([]);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isChatAIOpen, setIsChatAIOpen] = useState(false);
   const { t } = useTranslation(["translation"]);
   const instructions = t("product_detail.instructions", {
     returnObjects: true,
@@ -157,7 +163,27 @@ useEffect(() => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-amber-50">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-amber-50 relative">
+      {/* Nút chat nổi - Chat với Admin/Sale Staff */}
+      <div className="fixed z-50 bottom-6 right-6 flex flex-col items-end gap-3">
+        <Button
+          className="w-14 h-14 rounded-full shadow-lg bg-gradient-to-br from-green-500 to-orange-500 hover:from-green-600 hover:to-orange-600 flex flex-col items-center justify-center"
+          onClick={() => setIsChatOpen(true)}
+          style={{ boxShadow: '0 4px 24px 0 rgba(0,0,0,0.12)' }}
+        >
+          <MessageCircle className="w-7 h-7 text-white" />
+        </Button>
+        <Button
+          className="w-14 h-14 rounded-full shadow-lg bg-gradient-to-br from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 flex flex-col items-center justify-center"
+          onClick={() => setIsChatAIOpen(true)}
+          style={{ boxShadow: '0 4px 24px 0 rgba(0,0,0,0.12)' }}
+        >
+          <Bot className="w-7 h-7 text-white" />
+        </Button>
+      </div>
+      <Chatbox isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
+      <ChatAI isOpen={isChatAIOpen} onClose={() => setIsChatAIOpen(false)} />
+
       <div className="container mx-auto px-4 py-8">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 mb-6">
@@ -336,7 +362,7 @@ useEffect(() => {
           </CardHeader>
           <CardContent>
             {reviews.length > 0 ? (
-              reviews.map((review, index) => (
+              reviews.map((review) => (
                 <div key={review._id} className="border-b border-gray-200 pb-4">
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex items-center gap-3">

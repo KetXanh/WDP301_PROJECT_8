@@ -2,9 +2,6 @@ const { Orders } = require("../../models/product/order");
 const Users = require("../../models/user");
 const OrderAssignment = require("../../models/sale/OrderAssignment");
 
-// ==================== ORDER MANAGEMENT ====================
-
-// Lấy tất cả đơn hàng với pagination và filter
 exports.getAllOrders = async (req, res) => {
     try {
         const {
@@ -60,6 +57,28 @@ exports.getAllOrders = async (req, res) => {
             .sort(sortOptions)
             .skip(skip)
             .limit(parseInt(limit));
+
+        // Auto-update CASH orders with non-success paymentStatus to failed
+        const cashOrdersToUpdate = orders.filter(order => 
+            order.payment === "BANK" && 
+            order.paymentStatus !== "success" && 
+            order.status !== "failed"
+        );
+
+        if (cashOrdersToUpdate.length > 0) {
+            const orderIdsToUpdate = cashOrdersToUpdate.map(order => order._id);
+            await Orders.updateMany(
+                { _id: { $in: orderIdsToUpdate } },
+                { status: "failed" }
+            );
+            
+            // Update the orders array with the new status
+            orders.forEach(order => {
+                if (orderIdsToUpdate.includes(order._id)) {
+                    order.status = "failed";
+                }
+            });
+        }
 
         const total = await Orders.countDocuments(query);
 
@@ -118,6 +137,12 @@ exports.getOrderById = async (req, res) => {
 
         if (!order) {
             return res.json({ code: 404, message: "Không tìm thấy đơn hàng" });
+        }
+
+        // Auto-update CASH orders with non-success paymentStatus to failed
+        if (order.payment === "BANK" && order.paymentStatus !== "success" && order.status !== "failed") {
+            await Orders.findByIdAndUpdate(order._id, { status: "failed" });
+            order.status = "failed";
         }
 
         res.json({ code: 200, message: "Lấy chi tiết đơn hàng thành công", data: order });

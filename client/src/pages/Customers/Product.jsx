@@ -8,13 +8,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, Filter, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, Filter, ChevronLeft, ChevronRight, MessageCircle, Bot } from "lucide-react";
 import ProductCard from "../../components/customer/ProductCard";
 import ProductFilters from "../../components/customer/ProductFilters";
 import { useNavigate } from "react-router-dom";
 import { allProducts } from "../../services/Customer/ApiProduct";
 import { MAX_PRICE } from "../../constants";
 import { useTranslation } from "react-i18next";
+import Chatbox from '@/components/Chatbox/Chatbox';
+import ChatAI from '@/components/Chatbox/ChatAI';
 
 const Product = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -23,6 +25,8 @@ const Product = () => {
   const [priceRange, setPriceRange] = useState([0, MAX_PRICE]);
   const [allProduct, setAllProducts] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isChatAIOpen, setIsChatAIOpen] = useState(false);
   const productsPerPage = 9;
   const navigate = useNavigate();
   const { t } = useTranslation('translation');
@@ -96,7 +100,27 @@ const Product = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-amber-50">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-amber-50 relative">
+      {/* Nút chat nổi - Chat với Admin/Sale Staff */}
+      <div className="fixed z-50 bottom-6 right-6 flex flex-col items-end gap-3">
+        <Button
+          className="w-14 h-14 rounded-full shadow-lg bg-gradient-to-br from-green-500 to-orange-500 hover:from-green-600 hover:to-orange-600 flex flex-col items-center justify-center"
+          onClick={() => setIsChatOpen(true)}
+          style={{ boxShadow: '0 4px 24px 0 rgba(0,0,0,0.12)' }}
+        >
+          <MessageCircle className="w-7 h-7 text-white" />
+        </Button>
+        <Button
+          className="w-14 h-14 rounded-full shadow-lg bg-gradient-to-br from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 flex flex-col items-center justify-center"
+          onClick={() => setIsChatAIOpen(true)}
+          style={{ boxShadow: '0 4px 24px 0 rgba(0,0,0,0.12)' }}
+        >
+          <Bot className="w-7 h-7 text-white" />
+        </Button>
+      </div>
+      <Chatbox isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
+      <ChatAI isOpen={isChatAIOpen} onClose={() => setIsChatAIOpen(false)} />
+
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-800 mb-4">{t('product.title')}</h1>

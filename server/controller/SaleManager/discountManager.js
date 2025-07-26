@@ -157,3 +157,106 @@ exports.applyDiscount = async (req, res) => {
         res.json({ code: 400, success: false, message: error.message });
     }
 };
+
+// Thống kê discount
+exports.getDiscountStats = async (req, res) => {
+    try {
+        // Tổng số discount
+        const totalDiscounts = await Discount.countDocuments({});
+        
+        // Số discount đang active
+        const activeDiscounts = await Discount.countDocuments({ active: true });
+        
+        // Số discount đã hết hạn
+        const expiredDiscounts = await Discount.countDocuments({
+            endDate: { $lt: new Date() }
+        });
+        
+        // Tổng số lượt sử dụng
+        const totalUsage = await Discount.aggregate([
+            {
+                $group: {
+                    _id: null,
+                    totalUsed: { $sum: "$usedCount" }
+                }
+            }
+        ]);
+        
+        // Thống kê theo loại discount
+        const typeStats = await Discount.aggregate([
+            {
+                $group: {
+                    _id: "$discountType",
+                    count: { $sum: 1 },
+                    totalUsed: { $sum: "$usedCount" }
+                }
+            }
+        ]);
+        
+        // Thống kê theo tháng (6 tháng gần nhất)
+        const monthlyStats = await Discount.aggregate([
+            {
+                $match: {
+                    createdAt: {
+                        $gte: new Date(new Date().getFullYear(), new Date().getMonth() - 5, 1)
+                    }
+                }
+            },
+            {
+                $group: {
+                    _id: {
+                        year: { $year: "$createdAt" },
+                        month: { $month: "$createdAt" }
+                    },
+                    count: { $sum: 1 },
+                    totalUsed: { $sum: "$usedCount" }
+                }
+            },
+            {
+                $sort: { "_id.year": 1, "_id.month": 1 }
+            }
+        ]);
+        
+        // Top 5 discount được sử dụng nhiều nhất
+        const topUsedDiscounts = await Discount.find()
+            .sort({ usedCount: -1 })
+            .limit(5)
+            .select('code description usedCount discountValue discountType');
+        
+        // Tổng giá trị discount đã sử dụng (ước tính)
+        const totalDiscountValue = await Discount.aggregate([
+            {
+                $group: {
+                    _id: null,
+                    totalValue: { $sum: { $multiply: ["$usedCount", "$maxDiscount"] } }
+                }
+            }
+        ]);
+
+        res.json({
+            success: true,
+            data: {
+                totalDiscounts,
+                activeDiscounts,
+                expiredDiscounts,
+                totalUsage: totalUsage[0]?.totalUsed || 0,
+                totalDiscountValue: totalDiscountValue[0]?.totalValue || 0,
+                typeStats: typeStats.reduce((acc, stat) => {
+                    acc[stat._id] = {
+                        count: stat.count,
+                        totalUsed: stat.totalUsed
+                    };
+                    return acc;
+                }, {}),
+                monthlyStats,
+                topUsedDiscounts
+            }
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Lỗi máy chủ",
+            error: error.message
+        });
+    }
+};

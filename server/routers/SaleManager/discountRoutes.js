@@ -6,6 +6,8 @@ const discountController = require('../../controller/SaleManager/discountManager
 router.post('/', discountController.createDiscount);
 // Lấy tất cả mã giảm giá
 router.get('/', discountController.getAllDiscounts);
+// Thống kê discount
+router.get('/stats', discountController.getDiscountStats);
 // Lấy mã giảm giá theo id
 router.get('/:id', discountController.getDiscountById);
 // Cập nhật mã giảm giá

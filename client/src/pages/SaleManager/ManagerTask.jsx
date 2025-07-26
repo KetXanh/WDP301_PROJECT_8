@@ -22,7 +22,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { toast } from "sonner"
-import { getAllTasks, createTask, updateTask, deleteTask, getAllSaleStaff, createTaskAssignment, getAssignedTasks, removeTaskAssignment } from "@/services/SaleManager/ApiSaleManager"
+import { getAllTasks, createTask, updateTask, deleteTask, getAllSaleStaff, createTaskAssignment, getAssignedTasks, removeTaskAssignment, getTaskStats, assignUnassignedTasksToAllStaff } from "@/services/SaleManager/ApiSaleManager"
 import TaskStaffFilter from "./components/TaskStaffFilter"
 
 export default function ManagerTask() {
@@ -36,11 +36,39 @@ export default function ManagerTask() {
   const [isAssignAllDialogOpen, setIsAssignAllDialogOpen] = useState(false)
   const [selectedStaffId, setSelectedStaffId] = useState('all')
   const [assignments, setAssignments] = useState([])
+  const [stats, setStats] = useState({
+    totalTasks: 0,
+    completedTasks: 0,
+    inProgressTasks: 0,
+    pendingTasks: 0,
+    lateTasks: 0,
+    completionRate: 0,
+    upcomingDeadlines: 0,
+    statusStats: {},
+    monthlyStats: [],
+    topAssignedTasks: [],
+    creatorStats: [],
+    totalAssignments: 0,
+    averageAssignmentsPerTask: 0,
+    multiAssignedTasks: 0
+  })
 
   useEffect(() => {
     fetchTasks()
     fetchSaleStaff()
+    fetchStats()
   }, [])
+
+  const fetchStats = async () => {
+    try {
+      const res = await getTaskStats()
+      if (res.data?.data) {
+        setStats(res.data.data)
+      }
+    } catch (error) {
+      console.error('Error fetching stats:', error)
+    }
+  }
 
   useEffect(() => {
     if (selectedStaffId === 'all') {
@@ -142,32 +170,27 @@ export default function ManagerTask() {
   }
 
   const handleAssignToAll = async () => {
-    // Lấy danh sách task chưa giao
-    const unassignedTasks = tasks.filter(task => !task.assignedTo || task.assignedTo === '' || (Array.isArray(task.assignedTo) && task.assignedTo.length === 0));
-    if (unassignedTasks.length === 0 || saleStaff.length === 0) {
-      toast.error("Không có công việc hoặc nhân viên để giao việc");
-      return;
-    }
-    // Chia đều task cho staff
-    const assignments = Array(saleStaff.length).fill().map(() => []);
-    unassignedTasks.forEach((task, idx) => {
-      assignments[idx % saleStaff.length].push(task);
-    });
-    let successCount = 0;
-    let failCount = 0;
-    for (let i = 0; i < saleStaff.length; i++) {
-      for (let task of assignments[i]) {
-        try {
-          await createTaskAssignment({ taskId: task._id, assignedTo: saleStaff[i]._id });
-          successCount++;
-        } catch {
-          failCount++;
+    try {
+      const res = await assignUnassignedTasksToAllStaff();
+      if (res.data?.code === 201) {
+        toast.success(res.data.message);
+        fetchTasks();
+        fetchStats(); // Cập nhật thống kê sau khi giao việc
+      } else {
+        // Hiển thị thông tin debug nếu có
+        const debugInfo = res.data?.debug;
+        const message = res.data?.message || "Có lỗi xảy ra khi giao việc";
+        if (debugInfo) {
+          console.log('Debug info:', debugInfo);
+          toast.error(`${message} (Debug: ${JSON.stringify(debugInfo)})`);
+        } else {
+          toast.error(message);
         }
       }
+    } catch (error) {
+      console.error('Error assigning tasks to all staff:', error);
+      toast.error("Không thể giao việc cho tất cả nhân viên");
     }
-    fetchTasks();
-    if (successCount > 0) toast.success(`Đã giao thành công ${successCount} công việc!`);
-    if (failCount > 0) toast.error(`${failCount} công việc không thể giao!`);
   };
 
   const confirmDelete = async () => {
@@ -191,6 +214,7 @@ export default function ManagerTask() {
         toast.success("Thêm công việc mới thành công")
       }
       fetchTasks()
+      fetchStats() // Cập nhật thống kê sau khi thay đổi
     } catch {
       toast.error("Không thể lưu công việc")
     }
@@ -207,6 +231,7 @@ export default function ManagerTask() {
       })
       toast.success("Đã gán công việc cho nhân viên được chọn")
       fetchTasks()
+      fetchStats() // Cập nhật thống kê sau khi gán
     } catch {
       toast.error("Không thể gán công việc")
     }
@@ -222,6 +247,7 @@ export default function ManagerTask() {
       toast.success("Đã hủy gán công việc cho nhân viên!");
       if (selectedStaffId === 'all') fetchTasks();
       else fetchAssignments(selectedStaffId);
+      fetchStats() // Cập nhật thống kê sau khi hủy gán
     } catch {
       toast.error("Không thể hủy gán công việc!");
     }
@@ -254,6 +280,132 @@ export default function ManagerTask() {
             <Plus className="mr-2 h-4 w-4" />
             Thêm công việc mới
           </Button>
+        </div>
+      </div>
+
+      {/* Thống kê tổng quan */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="bg-white p-4 rounded-lg shadow border">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Tổng công việc</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.totalTasks}</p>
+            </div>
+            <div className="p-2 bg-blue-100 rounded-full">
+              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-white p-4 rounded-lg shadow border">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Đã hoàn thành</p>
+              <p className="text-2xl font-bold text-green-600">{stats.completedTasks}</p>
+            </div>
+            <div className="p-2 bg-green-100 rounded-full">
+              <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-white p-4 rounded-lg shadow border">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Tỷ lệ hoàn thành</p>
+              <p className="text-2xl font-bold text-purple-600">{stats.completionRate}%</p>
+            </div>
+            <div className="p-2 bg-purple-100 rounded-full">
+              <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+              </svg>
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-white p-4 rounded-lg shadow border">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Sắp đến hạn</p>
+              <p className="text-2xl font-bold text-orange-600">{stats.upcomingDeadlines}</p>
+            </div>
+            <div className="p-2 bg-orange-100 rounded-full">
+              <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Thống kê chi tiết */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="bg-white p-4 rounded-lg shadow border">
+          <h3 className="text-lg font-semibold mb-3">Thống kê theo trạng thái</h3>
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">Chờ xử lý</span>
+              <span className="font-medium text-gray-800">{stats.pendingTasks}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">Đang thực hiện</span>
+              <span className="font-medium text-blue-600">{stats.inProgressTasks}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">Đã hoàn thành</span>
+              <span className="font-medium text-green-600">{stats.completedTasks}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">Trễ hạn</span>
+              <span className="font-medium text-red-600">{stats.lateTasks}</span>
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-white p-4 rounded-lg shadow border">
+          <h3 className="text-lg font-semibold mb-3">Thống kê phân công</h3>
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">Tổng phân công</span>
+              <span className="font-medium text-blue-600">{stats.totalAssignments || 0}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">TB phân công/task</span>
+              <span className="font-medium text-purple-600">{stats.averageAssignmentsPerTask || 0}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">Task nhiều người</span>
+              <span className="font-medium text-orange-600">{stats.multiAssignedTasks || 0}</span>
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-white p-4 rounded-lg shadow border">
+          <h3 className="text-lg font-semibold mb-3">Top người tạo</h3>
+          <div className="space-y-2">
+            {stats.creatorStats?.slice(0, 3).map((creator) => (
+              <div key={creator._id} className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">{creator.creatorName}</span>
+                <span className="font-medium">{creator.taskCount} việc</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        
+        <div className="bg-white p-4 rounded-lg shadow border">
+          <h3 className="text-lg font-semibold mb-3">Top task được gán</h3>
+          <div className="space-y-2">
+            {stats.topAssignedTasks?.slice(0, 3).map((task) => (
+              <div key={task._id} className="flex justify-between items-center">
+                <span className="text-sm text-gray-600 truncate">{task.title}</span>
+                <span className="font-medium">{task.assignmentCount} lần</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -303,16 +455,53 @@ export default function ManagerTask() {
                   </span>
                 </TableCell>
                 <TableCell>
-                  {task.assignedTo
-                    ? (
-                        <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
-                          {task.assignedTo.username}
-                        </span>
-                      )
-                    : (
-                        <span className="text-muted-foreground text-sm">Chưa giao</span>
-                      )
-                  }
+                  {task.assignments && task.assignments.length > 0 ? (
+                    <div className="space-y-1">
+                      <div className="flex flex-wrap gap-1">
+                        {task.assignments.slice(0, 3).map((assignment, index) => {
+                          const assignedTo = assignment.assignedTo;
+                          const username = typeof assignedTo === 'object' ? assignedTo.username : assignedTo;
+                          return (
+                            <span 
+                              key={assignment._id || index} 
+                              className="inline-block px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs"
+                              title={username}
+                            >
+                              {username || 'Unknown'}
+                            </span>
+                          );
+                        })}
+                        {task.assignmentCount > 3 && (
+                          <span 
+                            className="inline-block px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs cursor-pointer"
+                            title={`Xem thêm ${task.assignmentCount - 3} người khác`}
+                          >
+                            +{task.assignmentCount - 3}
+                          </span>
+                        )}
+                      </div>
+                      {task.assignmentCount > 3 && (
+                        <details className="text-xs text-gray-500">
+                          <summary className="cursor-pointer hover:text-gray-700">
+                            Xem tất cả ({task.assignmentCount} người)
+                          </summary>
+                          <div className="mt-1 space-y-1">
+                            {task.assignments.slice(3).map((assignment, index) => {
+                              const assignedTo = assignment.assignedTo;
+                              const username = typeof assignedTo === 'object' ? assignedTo.username : assignedTo;
+                              return (
+                                <div key={assignment._id || index + 3} className="text-gray-600">
+                                  • {username || 'Unknown'}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </details>
+                      )}
+                    </div>
+                  ) : (
+                    <span className="text-muted-foreground text-sm">Chưa giao</span>
+                  )}
                 </TableCell>
                 <TableCell>
                   {task.createdBy ? (
@@ -331,6 +520,14 @@ export default function ManagerTask() {
                   <div className="flex justify-end gap-1">
                     {selectedStaffId === 'all' ? (
                       <>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleEditTask(task)}
+                          title="Sửa"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
                         <Button
                           variant="ghost"
                           size="icon"

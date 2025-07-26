@@ -32,6 +32,34 @@ export default function Chat() {
   const [showGlobalSearch, setShowGlobalSearch] = useState(false);
   const inputRef = useRef(null);
   const currentUser = useSelector(state => state.customer.user); // hoặc state.customer nếu lưu user ở đây
+  const pollingIntervalRef = useRef(null);
+
+  // Helper function để fetch và map messages
+  const fetchAndMapMessages = async (userId) => {
+    const res = await getChatHistory(userId);
+    let msgs = [];
+    if (Array.isArray(res)) {
+      msgs = res;
+    } else if (Array.isArray(res.data)) {
+      msgs = res.data;
+    } else if (res.data && Array.isArray(res.data.messages)) {
+      msgs = res.data.messages;
+    }
+    
+    const mapped = msgs.map(msg => {
+      return {
+        id: msg.id || msg._id,
+        content: msg.content,
+        timestamp: msg.timestamp ? (msg.timestamp instanceof Date ? msg.timestamp : new Date(msg.timestamp)) : new Date(),
+        isCurrentUser: msg.isCurrentUser !== undefined ? msg.isCurrentUser : false,
+        senderId: msg.senderId || '',
+        receiverId: msg.receiverId || '',
+        ...msg
+      };
+    });
+    
+    return mapped;
+  };
 
   // Fetch users on component mount
   useEffect(() => {
@@ -81,29 +109,7 @@ export default function Chat() {
       setLoading(true);
       const fetchMessages = async () => {
         try {
-          const res = await getChatHistory(selectedUser._id);
-          let msgs = [];
-          if (Array.isArray(res.data)) {
-            msgs = res.data;
-          } else if (res.data && Array.isArray(res.data.messages)) {
-            msgs = res.data.messages;
-          }
-          // Map lại để đảm bảo mỗi message có id, content, timestamp (Date), isCurrentUser, senderId là string
-          const mapped = msgs.map(msg => {
-            const senderId = typeof msg.senderId === 'object' && msg.senderId?._id ? msg.senderId._id : msg.senderId;
-            const receiverId = typeof msg.receiverId === 'object' && msg.receiverId?._id ? msg.receiverId._id : msg.receiverId;
-            return {
-              id: msg.id || msg._id,
-              content: msg.content,
-              timestamp: msg.timestamp ? new Date(msg.timestamp) : new Date(),
-              isCurrentUser: msg.isCurrentUser !== undefined
-                ? msg.isCurrentUser
-                : (currentUser && (senderId === currentUser._id || senderId === currentUser?.id)),
-              ...msg,
-              senderId,
-              receiverId
-            };
-          });
+          const mapped = await fetchAndMapMessages(selectedUser._id);
           setMessages(mapped);
         } catch {
           toast.error('Không thể tải lịch sử chat');
@@ -113,19 +119,58 @@ export default function Chat() {
         }
       };
       fetchMessages();
+
+      // Bắt đầu polling để cập nhật tin nhắn mới
+      pollingIntervalRef.current = setInterval(async () => {
+        try {
+          const mapped = await fetchAndMapMessages(selectedUser._id);
+          setMessages(mapped);
+        } catch (error) {
+          console.error('Error polling messages:', error);
+        }
+      }, 3000); // Cập nhật mỗi 3 giây
+
+      // Cleanup polling khi component unmount hoặc selectedUser thay đổi
+      return () => {
+        if (pollingIntervalRef.current) {
+          clearInterval(pollingIntervalRef.current);
+          pollingIntervalRef.current = null;
+        }
+      };
     }
   }, [selectedUser, currentUser]);
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!newMessage.trim() || !selectedUser) return;
+    
+    const tempMessage = {
+      id: Date.now().toString(),
+      content: newMessage,
+      timestamp: new Date(),
+      isCurrentUser: true,
+      senderId: currentUser?._id || currentUser?.id,
+      receiverId: selectedUser._id,
+      isPending: true // Đánh dấu tin nhắn đang gửi
+    };
+    
+    // Thêm tin nhắn tạm thời vào UI ngay lập tức
+    setMessages(prev => [...prev, tempMessage]);
+    const messageToSend = newMessage;
+    setNewMessage('');
+    
     try {
-      const res = await sendMessage(selectedUser._id, newMessage);
-      setMessages([...messages, res.data.message]);
-      setNewMessage('');
+      await sendMessage(selectedUser._id, messageToSend);
+      
+      // Sau khi gửi thành công, fetch lại toàn bộ lịch sử chat
+      const mapped = await fetchAndMapMessages(selectedUser._id);
+      setMessages(mapped);
       toast.success('Gửi tin nhắn thành công');
     } catch (error) {
       console.error('Error sending message:', error);
+      // Nếu gửi thất bại, xóa tin nhắn tạm thời và khôi phục nội dung
+      setMessages(prev => prev.filter(msg => msg.id !== tempMessage.id));
+      setNewMessage(messageToSend);
       toast.error('Không thể gửi tin nhắn');
     }
   };
@@ -133,9 +178,10 @@ export default function Chat() {
   const handleUpdateMessage = async (messageId, newContent) => {
     try {
       await updateMessage(messageId, newContent);
-      setMessages(messages.map(msg =>
-        msg._id === messageId ? { ...msg, content: newContent, updatedAt: new Date() } : msg
-      ));
+      
+      // Fetch lại toàn bộ lịch sử chat sau khi cập nhật
+      const mapped = await fetchAndMapMessages(selectedUser._id);
+      setMessages(mapped);
       toast.success('Cập nhật tin nhắn thành công');
       setEditingMessage(null);
       setEditContent('');
@@ -148,7 +194,10 @@ export default function Chat() {
   const handleDeleteMessage = async (messageId) => {
     try {
       await deleteMessage(messageId);
-      setMessages(messages.filter(msg => msg._id !== messageId));
+      
+      // Fetch lại toàn bộ lịch sử chat sau khi xóa
+      const mapped = await fetchAndMapMessages(selectedUser._id);
+      setMessages(mapped);
       toast.success('Xóa tin nhắn thành công');
       setMessageToDelete(null);
     } catch (error) {
@@ -339,7 +388,8 @@ export default function Chat() {
             {/* Messages Area */}
             <ScrollArea className="flex-1 p-4 bg-gradient-to-b from-white to-muted/30">
               <div className="space-y-4">
-                {messages.map((message) => (
+                {messages.map((message) => {
+                  return (
                   <div
                     key={message.id || message._id}
                     className={cn(
@@ -347,26 +397,34 @@ export default function Chat() {
                       message.isCurrentUser ? "justify-end" : "justify-start"
                     )}
                   >
-                    <div
-                      className={cn(
-                        "max-w-[70%] rounded-lg px-4 py-2 shadow-sm",
-                        message.isCurrentUser
-                          ? "bg-blue-500 text-white"
-                          : "bg-white"
-                      )}
-                    >
-                      <p>{message.content}</p>
-                      <span className={cn(
-                        "text-xs opacity-70",
-                        message.isCurrentUser ? "text-white/70" : "text-muted-foreground"
-                      )}>
-                        {format(new Date(message.timestamp), 'HH:mm')}
-                        {message.updatedAt && ' (đã chỉnh sửa)'}
-                      </span>
-                    </div>
+                                         <div
+                       className={cn(
+                         "max-w-[70%] rounded-lg px-4 py-2 shadow-sm relative",
+                         message.isCurrentUser
+                           ? "bg-blue-500 text-white"
+                           : "bg-white",
+                         message.isPending && "opacity-70"
+                       )}
+                     >
+                       <p>{message.content}</p>
+                       <span className={cn(
+                         "text-xs opacity-70",
+                         message.isCurrentUser ? "text-white/70" : "text-muted-foreground"
+                       )}>
+                         {format(new Date(message.timestamp), 'HH:mm')}
+                         {message.updatedAt && ' (đã chỉnh sửa)'}
+                         {message.isPending && ' (đang gửi...)'}
+                       </span>
+                       {message.isPending && (
+                         <div className="absolute -top-1 -right-1">
+                           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                         </div>
+                       )}
+                     </div>
                     {getMessageActions(message)}
                   </div>
-                ))}
+                );
+                })}
                 <div ref={messagesEndRef} />
               </div>
             </ScrollArea>

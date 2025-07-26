@@ -25,6 +25,12 @@ export const getChatUsers = async () => {
     return response.data.users ? response.data.users : response.data;
 }
 
+// New API function to get only admin, sale staff, and sale manager users
+export const getStaffUsers = async () => {
+    const response = await api.get('/chat/staff-users');
+    return response.data.users ? response.data.users : response.data;
+}
+
 export const getReceiverUser = async (receiverId) => {
     const response = await api.get(`/chat/receiver/${receiverId}`);
     return response.data;

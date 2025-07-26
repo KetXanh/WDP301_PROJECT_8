@@ -25,6 +25,11 @@ export const updateProduct = (id, formData) => {
   });
 };
 
+// Cập nhật thông tin cơ bản của sản phẩm (AdminDev)
+export const updateBaseProduct = (id, productData) => {
+  return instance.put(`/admin/updateProduct/${id}`, productData);
+};
+
 // Xóa sản phẩm theo ID
 export const deleteProduct = (id) => {
   return instance.delete(`/productmanager/product/deleteProduct/${id}`);
@@ -123,6 +128,25 @@ export const exportProductToExcel = async () => {
     responseType: "blob",
   });
 };
+
+export const exportUserToExcel = async () => {
+  return await instance.get("/admin/export-users-excel", {
+    responseType: "blob",
+  });
+};
+
+export const exportStatisticsToExcel = async () => {
+  return await instance.get("/admin/export-statistics-excel", {
+    responseType: "blob",
+  });
+};
+
+export const exportFeedbackToExcel = async () => {
+  return await instance.get("/admin/export-feedback-excel", {
+    responseType: "blob",
+  });
+};
+
 export const getCategoryStats = () => {
   return instance.get("/productmanager/category/category-stats");
 };
@@ -201,6 +225,17 @@ export const getAllBlogs = async () => {
   } catch (error) {
     console.error("API Error:", error);
     return [];
+  }
+};
+
+// Lấy thống kê blog
+export const getBlogStats = async () => {
+  try {
+    const response = await instance.get("/admin/blog-stats");
+    return response.data;
+  } catch (error) {
+    console.error("API Error:", error);
+    throw error;
   }
 };
 

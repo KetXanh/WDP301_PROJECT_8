@@ -79,10 +79,23 @@ module.exports.chatWithAI = async (req, res) => {
 exports.sendMessage = async (req, res) => {
   try {
     const { receiverId, content } = req.body;
-    const senderId = req.user;
-    console.log(senderId);
-    if (!senderId) {
-      return res.status(401).json({ message: 'User not authenticated' });
+    let senderId = req.user;
+    
+    // Xử lý senderId
+    if (senderId) {
+      if (typeof senderId === 'string') {
+        senderId = senderId;
+      } else if (senderId._id) {
+        senderId = senderId._id.toString();
+      } else if (senderId.id) {
+        senderId = senderId.id.toString();
+      } else {
+        senderId = senderId.toString();
+      }
+    }
+    
+    if (!senderId || senderId === "[object Object]" || senderId === "undefined") {
+      return res.status(401).json({ message: 'User not authenticated or invalid user ID' });
     }
 
     if (!receiverId || !content) {
@@ -107,30 +120,69 @@ exports.sendMessage = async (req, res) => {
 
 exports.getChatHistory = async (req, res) => {
   try {
-    const currentUserId = req.user;
+    let currentUserId = req.user;
     const { otherUserId } = req.params;
 
     if (!otherUserId) {
       return res.status(400).json({ message: 'Missing other user ID' });
     }
+
+    // Xử lý currentUserId tương tự như sendMessage
+    if (currentUserId) {
+      if (typeof currentUserId === 'string') {
+        currentUserId = currentUserId;
+      } else if (currentUserId._id) {
+        currentUserId = currentUserId._id.toString();
+      } else if (currentUserId.id) {
+        currentUserId = currentUserId.id.toString();
+      } else {
+        currentUserId = currentUserId.toString();
+      }
+    }
+
     const messages = await db.collection('messages')
-      .where('senderId', 'in', [currentUserId.toString(), otherUserId])
-      .where('receiverId', 'in', [currentUserId.toString(), otherUserId])
+      .where('senderId', 'in', [currentUserId, otherUserId])
+      .where('receiverId', 'in', [currentUserId, otherUserId])
       .get();
 
     const chatHistory = messages.docs.map(doc => {
       const data = doc.data();
+      
+      // Xử lý senderId
+      let senderId = data.senderId;
+      if (senderId === "[object Object]") {
+        senderId = currentUserId.toString();
+      } else if (senderId && senderId._id) {
+        senderId = senderId._id.toString();
+      } else if (typeof senderId === 'string') {
+        senderId = senderId;
+      } else {
+        senderId = '';
+      }
+      
+      // Xử lý receiverId
+      let receiverId = data.receiverId;
+      if (receiverId === "[object Object]") {
+        receiverId = otherUserId;
+      } else if (receiverId && receiverId._id) {
+        receiverId = receiverId._id.toString();
+      } else if (typeof receiverId === 'string') {
+        receiverId = receiverId;
+      } else {
+        receiverId = '';
+      }
+      
       return {
         id: doc.id,
         ...data,
-        senderId: data.senderId && data.senderId._id ? data.senderId._id.toString() : (typeof data.senderId === 'string' ? data.senderId : ''),
-        receiverId: data.receiverId && data.receiverId._id ? data.receiverId._id.toString() : (typeof data.receiverId === 'string' ? data.receiverId : ''),
+        senderId: senderId,
+        receiverId: receiverId,
         timestamp: data.timestamp?.toDate ? data.timestamp.toDate() : data.timestamp,
-        isCurrentUser: data.senderId === currentUserId.toString()
+        isCurrentUser: senderId === currentUserId.toString()
       }
     });
 
-    chatHistory.sort((a, b) => b.timestamp - a.timestamp);
+    chatHistory.sort((a, b) => a.timestamp - b.timestamp);
 
     res.status(200).json(chatHistory);
   } catch (error) {
@@ -238,15 +290,22 @@ exports.getAlltUsers = async (req, res) => {
 
 exports.getChatUsers = async (req, res) => {
   try {
-    const currentUserId =
-      req.user && req.user._id
-        ? req.user._id.toString()
-        : req.user
-          ? req.user.toString()
-          : null;
+    let currentUserId = null;
+    
+    // Xử lý currentUserId từ req.user
+    if (req.user) {
+      if (typeof req.user === 'string') {
+        currentUserId = req.user;
+      } else if (req.user._id) {
+        currentUserId = req.user._id.toString();
+      } else if (req.user.id) {
+        currentUserId = req.user.id.toString();
+      }
+    }
 
-    if (!currentUserId) {
-      return res.status(401).json({ message: "User not authenticated" });
+    // Kiểm tra nếu currentUserId là "[object Object]" hoặc không hợp lệ
+    if (!currentUserId || currentUserId === "[object Object]" || currentUserId === "undefined") {
+      return res.status(401).json({ message: "User not authenticated or invalid user ID" });
     }
 
     const { search = "" } = req.query;
@@ -271,29 +330,17 @@ exports.getChatUsers = async (req, res) => {
       return res.status(200).json({ users: formattedUsers });
     }
 
-    // Nếu không có search, lấy user đã chat gần đây
-    // Lấy tất cả message có liên quan đến currentUserId
-    const recentMessages = await ChatMessage.find({
-      $or: [
-        { sender: currentUserId },
-        { receiver: currentUserId }
-      ]
-    }).sort({ updatedAt: -1, createdAt: -1 }).lean();
-
-    // Lấy danh sách userId đã chat (trừ chính mình)
-    const userIds = new Set();
-    recentMessages.forEach(msg => {
-      if (msg.sender && msg.sender.toString() !== currentUserId) userIds.add(msg.sender.toString());
-      if (msg.receiver && msg.receiver.toString() !== currentUserId) userIds.add(msg.receiver.toString());
-    });
-
-    if (userIds.size === 0) {
-      // Nếu chưa từng chat với ai, trả về rỗng
-      return res.status(200).json({ users: [] });
+    // Nếu không có search, lấy tất cả users (trừ current user) để đơn giản hóa
+    let users;
+    try {
+      users = await Users.find(
+        { _id: { $ne: currentUserId } }, 
+        { password: 0, token: 0, deletedAt: 0 }
+      ).lean();
+    } catch (error) {
+      // Fallback: lấy tất cả users nếu có lỗi với currentUserId
+      users = await Users.find({}, { password: 0, token: 0, deletedAt: 0 }).lean();
     }
-
-    // Lấy thông tin user đã chat gần đây
-    const users = await Users.find({ _id: { $in: Array.from(userIds) } }, { password: 0, token: 0, deletedAt: 0 }).lean();
     const formattedUsers = users.map(user => ({
       _id: user._id.toString(),
       username: user.username || user.userName || 'Unknown User',
@@ -344,6 +391,54 @@ exports.getReceiverUser = async (req, res) => {
     console.error('Error in getReceiverUser:', error);
     res.status(500).json({
       message: 'Error getting receiver user',
+      error: error.message
+    });
+  }
+};
+
+// Lấy danh sách staff users (admin, sale manager, sale staff)
+exports.getStaffUsers = async (req, res) => {
+  try {
+    let currentUserId = null;
+    
+    // Xử lý currentUserId từ req.user
+    if (req.user) {
+      if (typeof req.user === 'string') {
+        currentUserId = req.user;
+      } else if (req.user._id) {
+        currentUserId = req.user._id.toString();
+      } else if (req.user.id) {
+        currentUserId = req.user.id.toString();
+      }
+    }
+
+    // Kiểm tra nếu currentUserId là "[object Object]" hoặc không hợp lệ
+    if (!currentUserId || currentUserId === "[object Object]" || currentUserId === "undefined") {
+      return res.status(401).json({ message: "User not authenticated or invalid user ID" });
+    }
+
+    // Chỉ lấy users có role là admin (1), sale manager (2), hoặc sale staff (4)
+    const staffUsers = await Users.find(
+      { 
+        _id: { $ne: currentUserId },
+        role: { $in: [1, 2, 4] } // 1: Admin, 2: Sale Manager, 4: Sale Staff
+      }, 
+      { password: 0, token: 0, deletedAt: 0 }
+    ).lean();
+
+    const formattedUsers = staffUsers.map(user => ({
+      _id: user._id.toString(),
+      username: user.username || user.userName || 'Unknown User',
+      email: user.email || '',
+      avatar: user.avatar?.url || user.avatar || '',
+      role: user.role
+    }));
+
+    res.status(200).json({ users: formattedUsers });
+  } catch (error) {
+    console.error('Error in getStaffUsers:', error);
+    res.status(500).json({
+      message: 'Error getting staff users',
       error: error.message
     });
   }

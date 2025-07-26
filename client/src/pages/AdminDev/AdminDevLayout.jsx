@@ -7,7 +7,8 @@ import {
   BarChart3,
   ClipboardList,
   Settings,
-  LayoutDashboard
+  LayoutDashboard,
+  MessageSquare
 } from "lucide-react"
 
 export default function AdminDevLayout() {
@@ -32,7 +33,12 @@ export default function AdminDevLayout() {
       url: "/admin-dev/productmanagement",
       icon: ClipboardList
     },
-        {
+    {
+      title: "Quản lý đánh giá",
+      url: "/admin-dev/feedbackmanagement",
+      icon: MessageSquare
+    },
+    {
       title: "Quản lý blog",
       url: "/admin-dev/blogmanagement",
       icon: ClipboardList

@@ -9,6 +9,7 @@ router.get('/history/:otherUserId', authenticateToken, chatController.getChatHis
 router.delete('/delete/:messageId', authenticateToken, chatController.deleteMessage);
 router.put('/update/:messageId', authenticateToken, chatController.updateMessage);
 router.get('/users', authenticateToken, chatController.getChatUsers);
+router.get('/staff-users', authenticateToken, chatController.getStaffUsers);
 router.get('/users/all', chatController.getAlltUsers);
 router.get('/receiver/:receiverId', authenticateToken, chatController.getReceiverUser);
 router.get('/all-users', authenticateToken, chatController.getAllUsersForChat);

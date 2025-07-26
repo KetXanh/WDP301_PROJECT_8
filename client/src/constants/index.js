@@ -57,16 +57,6 @@ export const links = [
     icon: FaBox,
     text: "Sản phẩm",
   },
-  {
-    href: "/admin/task",
-    icon: FaListAlt,
-    text: "Công việc",
-  },
-  {
-    href: "/admin/kpi",
-    icon: FaUsersCog,
-    text: "Chỉ số KPI",
-  },
 ];
 
 

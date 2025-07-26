@@ -32,6 +32,10 @@ export const getTaskById = (taskId) => {
     return instance.get(`/saleManager/task/get-task/${taskId}`)
 }
 
+export const getTaskStats = () => {
+    return instance.get('/saleManager/task/stats');
+}
+
 // Task Assignment APIs
 export const getAllTaskAssignments = () => {
     return instance.get('/saleManager/taskAssignment/assigned-tasks')
@@ -57,12 +61,24 @@ export const removeTaskAssignment = (assignmentId) => {
     return instance.delete(`/saleManager/taskAssignment/remove/${assignmentId}`)
 }
 
+export const removeSpecificAssignment = (taskId, userId) => {
+    return instance.delete(`/saleManager/taskAssignment/remove/${taskId}/${userId}`)
+}
+
 export const getTaskAssignmentById = (assignmentId) => {
     return instance.get(`/saleManager/taskAssignment/assigned-tasks/${assignmentId}`)
 }
 
+export const getTaskAssignments = (taskId) => {
+    return instance.get(`/saleManager/taskAssignment/task/${taskId}`)
+}
+
 export const assignTaskToAllStaff = (taskId, deadline, notes) => {
     return instance.post('/saleManager/taskAssignment/assign-all', { taskId, deadline, notes })
+}
+
+export const assignUnassignedTasksToAllStaff = () => {
+    return instance.post('/saleManager/taskAssignment/assign-unassigned-to-all')
 }
 
 // Discount Management APIs
@@ -92,6 +108,10 @@ export const toggleDiscountActive = (discountId) => {
 
 export const applyDiscount = (data) => {
     return instance.post('/saleManager/discount/apply', data);
+}
+
+export const getDiscountStats = () => {
+    return instance.get('/saleManager/discount/stats');
 }
 
 // Order Management APIs
@@ -182,6 +202,7 @@ export const getStaffById = (staffId) => {
 }
 
 export const updateStaffRole = (staffId, role) => {
+    console.log('Updating staff role:', { staffId, role });
     return instance.put(`/saleManager/changeRole/${staffId}`, { role })
 }
 
@@ -189,8 +210,12 @@ export const getProfile = () => {
     return instance.get('/saleManager/profile');
 }
 
-export const getAllUsers = () => {
-    return instance.get("/saleManager/users");
+export const getAllUsers = (config = {}) => {
+    return instance.get("/saleManager/users", config);
+};
+
+export const getUserStats = () => {
+    return instance.get("/saleManager/users/stats");
 };
 
 export const getMyOrderById = (orderId) => {

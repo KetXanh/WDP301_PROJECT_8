@@ -1,18 +1,22 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ShoppingCart, Star, Truck, Shield, Award, Heart } from 'lucide-react';
+import { ShoppingCart, Star, Truck, Shield, Award, Heart, MessageCircle, Bot } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import React, { useEffect, useState } from 'react';
 
 import AddToCartButton from '../../components/customer/AddToCartButton';
 import { allProducts } from '../../services/Customer/ApiProduct';
 import { useTranslation } from "react-i18next";
+import Chatbox from '@/components/Chatbox/Chatbox';
+import ChatAI from '@/components/Chatbox/ChatAI';
 
 
 const HomePage = () => {
   const navigate = useNavigate();
   const { t } = useTranslation('translation');
   const [featuredProducts, setFeaturedProducts] = useState([]);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isChatAIOpen, setIsChatAIOpen] = useState(false);
 
   const benefits = [
     {
@@ -53,7 +57,27 @@ const HomePage = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-amber-50">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-amber-50 relative">
+      {/* Nút chat nổi - Chat với Admin/Sale Staff */}
+      <div className="fixed z-50 bottom-6 right-6 flex flex-col items-end gap-3">
+        <Button
+          className="w-14 h-14 rounded-full shadow-lg bg-gradient-to-br from-green-500 to-orange-500 hover:from-green-600 hover:to-orange-600 flex flex-col items-center justify-center"
+          onClick={() => setIsChatOpen(true)}
+          style={{ boxShadow: '0 4px 24px 0 rgba(0,0,0,0.12)' }}
+        >
+          <MessageCircle className="w-7 h-7 text-white" />
+        </Button>
+        <Button
+          className="w-14 h-14 rounded-full shadow-lg bg-gradient-to-br from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 flex flex-col items-center justify-center"
+          onClick={() => setIsChatAIOpen(true)}
+          style={{ boxShadow: '0 4px 24px 0 rgba(0,0,0,0.12)' }}
+        >
+          <Bot className="w-7 h-7 text-white" />
+        </Button>
+      </div>
+      <Chatbox isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
+      <ChatAI isOpen={isChatAIOpen} onClose={() => setIsChatAIOpen(false)} />
+
       {/* Hero Section */}
       <section className="py-20">
         <div className="container mx-auto px-4 text-center">

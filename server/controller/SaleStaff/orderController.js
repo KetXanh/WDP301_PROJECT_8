@@ -71,9 +71,9 @@ exports.updateMyOrderStatus = async (req, res) => {
         const user = await Users.findOne({ email: userLogin.email });
         if (!user) return res.json({ code: 404, message: "Không tìm thấy người dùng" });
         const { status } = req.body;
-        const validStatuses = ["pending", "shipped", "delivered"];
+        const validStatuses = ["processing", "shipped", "delivered", "cancelled", "failed"];
         if (!validStatuses.includes(status)) {
-            return res.status(400).json({ message: "Chỉ được cập nhật sang trạng thái 'shipped' hoặc 'delivered'" });
+            return res.status(400).json({ message: "Trạng thái không hợp lệ. Chỉ được cập nhật sang: processing, shipped, delivered, cancelled, failed" });
         }
         const order = await OrderAssignment.findOneAndUpdate(
             { _id: req.params.id, assignedTo: user._id },
@@ -331,10 +331,10 @@ exports.getMyOrderStatistics = async (req, res) => {
         // Tổng số assignment
         const totalAssignments = await OrderAssignment.countDocuments(query);
 
-        // Số assignment hoàn thành
+        // Số assignment hoàn thành (delivered status)
         const completedAssignments = await OrderAssignment.countDocuments({
             ...query,
-            status: "completed"
+            status: "delivered"
         });
 
         // Tỷ lệ hoàn thành

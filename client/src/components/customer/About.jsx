@@ -1,9 +1,16 @@
-import { Shield, Heart, Leaf, Users, Award, Target } from 'lucide-react';
+import { Shield, Heart, Leaf, Users, Award, Target, MessageCircle, Bot } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { useNavigate } from "react-router-dom";
+import { useState } from 'react';
+import Chatbox from '@/components/Chatbox/Chatbox';
+import ChatAI from '@/components/Chatbox/ChatAI';
 
 const About = () => {
   const navigate = useNavigate();
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isChatAIOpen, setIsChatAIOpen] = useState(false);
+
   const values = [
     {
       icon: <Heart className="h-8 w-8 text-red-500" />,
@@ -35,7 +42,26 @@ const About = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 relative">
+      {/* Nút chat nổi - Chat với Admin/Sale Staff */}
+      <div className="fixed z-50 bottom-6 right-6 flex flex-col items-end gap-3">
+        <Button
+          className="w-14 h-14 rounded-full shadow-lg bg-gradient-to-br from-green-500 to-orange-500 hover:from-green-600 hover:to-orange-600 flex flex-col items-center justify-center"
+          onClick={() => setIsChatOpen(true)}
+          style={{ boxShadow: '0 4px 24px 0 rgba(0,0,0,0.12)' }}
+        >
+          <MessageCircle className="w-7 h-7 text-white" />
+        </Button>
+        <Button
+          className="w-14 h-14 rounded-full shadow-lg bg-gradient-to-br from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 flex flex-col items-center justify-center"
+          onClick={() => setIsChatAIOpen(true)}
+          style={{ boxShadow: '0 4px 24px 0 rgba(0,0,0,0.12)' }}
+        >
+          <Bot className="w-7 h-7 text-white" />
+        </Button>
+      </div>
+      <Chatbox isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
+      <ChatAI isOpen={isChatAIOpen} onClose={() => setIsChatAIOpen(false)} />
       
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-green-50 to-orange-50 py-20">

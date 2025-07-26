@@ -50,7 +50,6 @@ const ContactUs = () => {
           style={{ boxShadow: '0 4px 24px 0 rgba(0,0,0,0.12)' }}
         >
           <MessageCircle className="w-7 h-7 text-white" />
-          <span className="text-[10px] text-white font-semibold mt-1">Chat Admin</span>
         </Button>
         <Button
           className="w-14 h-14 rounded-full shadow-lg bg-gradient-to-br from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 flex flex-col items-center justify-center"
@@ -58,7 +57,6 @@ const ContactUs = () => {
           style={{ boxShadow: '0 4px 24px 0 rgba(0,0,0,0.12)' }}
         >
           <Bot className="w-7 h-7 text-white" />
-          <span className="text-[10px] text-white font-semibold mt-1">Chat AI</span>
         </Button>
       </div>
       <Chatbox isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />

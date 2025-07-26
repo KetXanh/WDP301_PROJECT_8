@@ -17,17 +17,11 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Textarea } from "@/components/ui/textarea"
 
 const assignmentSchema = z.object({
-  assignedTo: z.string().min(1, "Vui lòng chọn một nhân viên"),
+  assignedTo: z.array(z.string()).min(1, "Vui lòng chọn ít nhất một nhân viên"),
   notes: z.string().optional(),
 })
 
@@ -35,20 +29,26 @@ export function TaskAssignmentForm({ open, onOpenChange, onSubmit, task, saleSta
   const form = useForm({
     resolver: zodResolver(assignmentSchema),
     defaultValues: {
-      assignedTo: "",
+      assignedTo: [],
       notes: "",
     },
   })
 
   useEffect(() => {
     if (task) {
+      // Nếu task đã có assignments, lấy danh sách user IDs
+      const currentAssignments = task.assignments || [];
+      const currentUserIds = currentAssignments.map(assignment => 
+        typeof assignment.assignedTo === 'object' ? assignment.assignedTo._id : assignment.assignedTo
+      );
+      
       form.reset({
-        assignedTo: task.assignedTo?._id || "",
+        assignedTo: currentUserIds,
         notes: task.notes || "",
       })
     } else {
       form.reset({
-        assignedTo: "",
+        assignedTo: [],
         notes: "",
       })
     }
@@ -64,7 +64,7 @@ export function TaskAssignmentForm({ open, onOpenChange, onSubmit, task, saleSta
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Giao công việc</DialogTitle>
         </DialogHeader>
@@ -73,23 +73,44 @@ export function TaskAssignmentForm({ open, onOpenChange, onSubmit, task, saleSta
             <FormField
               control={form.control}
               name="assignedTo"
-              render={({ field }) => (
+              render={() => (
                 <FormItem>
                   <FormLabel>Chọn nhân viên</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Chọn nhân viên" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {saleStaff.map((staff) => (
-                        <SelectItem key={staff._id} value={staff._id}>
-                          {staff.username}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div className="space-y-2 max-h-40 overflow-y-auto">
+                    {saleStaff.map((staff) => (
+                      <FormField
+                        key={staff._id}
+                        control={form.control}
+                        name="assignedTo"
+                        render={({ field }) => {
+                          return (
+                            <FormItem
+                              key={staff._id}
+                              className="flex flex-row items-start space-x-3 space-y-0"
+                            >
+                              <FormControl>
+                                <Checkbox
+                                  checked={field.value?.includes(staff._id)}
+                                  onCheckedChange={(checked) => {
+                                    return checked
+                                      ? field.onChange([...field.value, staff._id])
+                                      : field.onChange(
+                                          field.value?.filter(
+                                            (value) => value !== staff._id
+                                          )
+                                        )
+                                  }}
+                                />
+                              </FormControl>
+                              <FormLabel className="text-sm font-normal cursor-pointer">
+                                {staff.username} ({staff.email})
+                              </FormLabel>
+                            </FormItem>
+                          )
+                        }}
+                      />
+                    ))}
+                  </div>
                   <FormMessage />
                 </FormItem>
               )}

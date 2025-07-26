@@ -88,6 +88,10 @@ export const updateMyOrderStatus = (orderId, data) => {
     return instance.put(`/saleStaff/order/${orderId}`, data);
 }
 
+export const getMyOrderStatistics = () => {
+    return instance.get('/saleStaff/order/statistics');
+}
+
 export const getTaskAssignment = () => {
     return instance.get('/saleStaff/get-task-assignment');
 }

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import { sendMessage, getChatHistory, updateMessage, deleteMessage, getChatUsers } from '../../services/Chatbot/ApiChatbox';
+import { sendMessage, getChatHistory, updateMessage, deleteMessage, getStaffUsers } from '../../services/Chatbot/ApiChatbox';
 import { format } from 'date-fns';
-import { Send, MoreVertical, User, X, Edit2, Trash2 } from 'lucide-react';
+import { Send, MoreVertical, User, X, Edit2, Trash2, LogIn, Sparkles } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from "../ui/avatar";
 import { Button } from "../ui/button";
 import { ScrollArea } from "../ui/scroll-area";
@@ -12,6 +12,7 @@ import { Textarea } from "../ui/textarea";
 import { cn } from "../../lib/utils";
 import PropTypes from 'prop-types';
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 
 const Chatbox = ({ isOpen, onClose }) => {
     const [messages, setMessages] = useState([]);
@@ -22,25 +23,52 @@ const Chatbox = ({ isOpen, onClose }) => {
     const [editingMessage, setEditingMessage] = useState(null);
     const [editContent, setEditContent] = useState('');
     const [messageToDelete, setMessageToDelete] = useState(null);
+    const [isUnauthorized, setIsUnauthorized] = useState(false);
     const messagesEndRef = useRef(null);
+    const navigate = useNavigate();
+
+    // Message suggestions for staff chat
+    const staffSuggestions = [
+        "Xin chào! Tôi cần hỗ trợ",
+        "Tôi có câu hỏi về đơn hàng",
+        "Cần tư vấn về sản phẩm",
+        "Tôi muốn đặt hàng",
+        "Có vấn đề với thanh toán",
+        "Kiểm tra tình trạng đơn hàng",
+        "Tôi muốn hủy đơn hàng",
+        "Cảm ơn bạn đã hỗ trợ"
+    ];
     
     useEffect(() => {
         if (isOpen) {
-            fetchUsers();
+            fetchStaffUsers();
         }
     }, [isOpen]);
 
-    const fetchUsers = async () => {
+    const fetchStaffUsers = async () => {
         try {
             setLoading(true);
-            const data = await getChatUsers();
+            setIsUnauthorized(false);
+            const data = await getStaffUsers();
             setUsers(data);
         } catch (error) {
-            console.error('Error fetching users:', error);
-            toast.error('Failed to load users');
+            console.error('Error fetching staff users:', error);
+            
+            // Check if it's a 401 Unauthorized error
+            if (error.response?.status === 401) {
+                setIsUnauthorized(true);
+                toast.error('Vui lòng đăng nhập để sử dụng tính năng chat');
+            } else {
+                toast.error('Failed to load staff users');
+            }
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleLoginClick = () => {
+        onClose();
+        navigate('/login');
     };
 
     const scrollToBottom = () => {
@@ -52,10 +80,10 @@ const Chatbox = ({ isOpen, onClose }) => {
     }, [messages]);
 
     useEffect(() => {
-        if (selectedUser) {
+        if (selectedUser && !isUnauthorized) {
             loadChatHistory();
         }
-    }, [selectedUser]);
+    }, [selectedUser, isUnauthorized]);
 
     const loadChatHistory = async () => {
         try {
@@ -64,13 +92,18 @@ const Chatbox = ({ isOpen, onClose }) => {
             setMessages(sortedMessages);
         } catch (error) {
             console.error('Error loading chat history:', error);
-            toast.error('Failed to load chat history');
+            if (error.response?.status === 401) {
+                setIsUnauthorized(true);
+                toast.error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại');
+            } else {
+                toast.error('Failed to load chat history');
+            }
         }
     };
 
     const handleSendMessage = async (e) => {
         e.preventDefault();
-        if (!newMessage.trim() || !selectedUser) return;
+        if (!newMessage.trim() || !selectedUser || isUnauthorized) return;
 
         try {
             await sendMessage(selectedUser._id, newMessage);
@@ -78,8 +111,17 @@ const Chatbox = ({ isOpen, onClose }) => {
             loadChatHistory();
         } catch (error) {
             console.error('Error sending message:', error);
-            toast.error('Failed to send message');
+            if (error.response?.status === 401) {
+                setIsUnauthorized(true);
+                toast.error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại');
+            } else {
+                toast.error('Failed to send message');
+            }
         }
+    };
+
+    const handleSuggestionClick = (suggestion) => {
+        setNewMessage(suggestion);
     };
 
     const handleUpdateMessage = async (messageId, newContent) => {
@@ -91,7 +133,12 @@ const Chatbox = ({ isOpen, onClose }) => {
             loadChatHistory();
         } catch (error) {
             console.error('Error updating message:', error);
-            toast.error('Failed to update message');
+            if (error.response?.status === 401) {
+                setIsUnauthorized(true);
+                toast.error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại');
+            } else {
+                toast.error('Failed to update message');
+            }
         }
     };
 
@@ -103,7 +150,12 @@ const Chatbox = ({ isOpen, onClose }) => {
             loadChatHistory();
         } catch (error) {
             console.error('Error deleting message:', error);
-            toast.error('Failed to delete message');
+            if (error.response?.status === 401) {
+                setIsUnauthorized(true);
+                toast.error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại');
+            } else {
+                toast.error('Failed to delete message');
+            }
         }
     };
 
@@ -140,6 +192,24 @@ const Chatbox = ({ isOpen, onClose }) => {
         );
     };
 
+    const getRoleLabel = (role) => {
+        switch (role) {
+            case 1: return 'Admin';
+            case 2: return 'Sale Manager';
+            case 4: return 'Sale Staff';
+            default: return 'User';
+        }
+    };
+
+    const getRoleColor = (role) => {
+        switch (role) {
+            case 1: return 'bg-red-500';
+            case 2: return 'bg-blue-500';
+            case 4: return 'bg-green-500';
+            default: return 'bg-gray-500';
+        }
+    };
+
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="max-w-sm h-[450px] p-0 sm:max-w-[400px] fixed bottom-10 right-20 translate-y-0 translate-x-0 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-bottom-1/2 data-[state=open]:slide-in-from-bottom-1/2 !translate-x-0 !translate-y-0 !left-auto !top-auto">
@@ -155,15 +225,28 @@ const Chatbox = ({ isOpen, onClose }) => {
                     </Button>
 
                     {/* User List Sidebar - Hidden on mobile */}
-                    <div className="hidden md:block w-24 border-r flex flex-col bg-muted/50">
+                    <div className="hidden md:block w-32 border-r flex flex-col bg-muted/50">
                         <div className="p-2 border-b bg-gradient-to-r from-green-600/10 to-amber-600/10">
-                            <h3 className="font-semibold text-sm">Users</h3>
+                            <h3 className="font-semibold text-sm">Staff</h3>
                         </div>
 
                         <ScrollArea className="flex-1">
                             {loading ? (
                                 <div className="flex items-center justify-center h-24">
                                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                                </div>
+                            ) : isUnauthorized ? (
+                                <div className="flex flex-col items-center justify-center h-24 p-4 text-center">
+                                    <div className="text-2xl mb-2">🔒</div>
+                                    <p className="text-xs text-muted-foreground mb-2">Cần đăng nhập</p>
+                                    <Button 
+                                        size="sm" 
+                                        onClick={handleLoginClick}
+                                        className="text-xs bg-gradient-to-r from-green-600 to-amber-600 hover:from-green-700 hover:to-amber-700"
+                                    >
+                                        <LogIn className="h-3 w-3 mr-1" />
+                                        Đăng nhập
+                                    </Button>
                                 </div>
                             ) : (
                                 <div className="p-1">
@@ -185,9 +268,12 @@ const Chatbox = ({ isOpen, onClose }) => {
                                                 </AvatarFallback>
                                             </Avatar>
                                             <div className="flex-1 min-w-0">
-                                                <p className="font-medium text-xs truncate">{user.name}</p>
+                                                <p className="font-medium text-xs truncate">{user.username || user.name}</p>
+                                                <div className="flex items-center gap-1 mt-0.5">
+                                                    <div className={cn("w-1.5 h-1.5 rounded-full", getRoleColor(user.role))} />
+                                                    <span className="text-[10px] text-muted-foreground">{getRoleLabel(user.role)}</span>
+                                                </div>
                                             </div>
-                                            <div className="h-1.5 w-1.5 rounded-full bg-green-500" />
                                         </div>
                                     ))}
                                 </div>
@@ -197,7 +283,22 @@ const Chatbox = ({ isOpen, onClose }) => {
 
                     {/* Main Chat Area */}
                     <div className="flex-1 flex flex-col">
-                        {selectedUser ? (
+                        {isUnauthorized ? (
+                            <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground p-4">
+                                <div className="text-4xl mb-4">🔒</div>
+                                <h3 className="text-sm font-medium mb-2 text-center">Cần đăng nhập</h3>
+                                <p className="text-xs text-center mb-4">
+                                    Vui lòng đăng nhập để sử dụng tính năng chat với nhân viên
+                                </p>
+                                <Button 
+                                    onClick={handleLoginClick}
+                                    className="bg-gradient-to-r from-green-600 to-amber-600 hover:from-green-700 hover:to-amber-700"
+                                >
+                                    <LogIn className="h-4 w-4 mr-2" />
+                                    Đăng nhập ngay
+                                </Button>
+                            </div>
+                        ) : selectedUser ? (
                             <>
                                 {/* Chat Header */}
                                 <div className="p-2 border-b bg-gradient-to-r from-green-600/10 to-amber-600/10 flex items-center gap-2">
@@ -207,43 +308,75 @@ const Chatbox = ({ isOpen, onClose }) => {
                                             <User className="h-3 w-3" />
                                         </AvatarFallback>
                                     </Avatar>
-                                    <div>
-                                        <h3 className="font-semibold text-sm">{selectedUser.name}</h3>
-                                        <p className="text-xs text-muted-foreground">Online</p>
+                                    <div className="flex-1">
+                                        <h3 className="font-semibold text-sm">{selectedUser.username || selectedUser.name}</h3>
+                                        <div className="flex items-center gap-1">
+                                            <div className={cn("w-1.5 h-1.5 rounded-full", getRoleColor(selectedUser.role))} />
+                                            <p className="text-xs text-muted-foreground">{getRoleLabel(selectedUser.role)}</p>
+                                        </div>
                                     </div>
                                 </div>
 
                                 {/* Messages Area */}
                                 <ScrollArea className="flex-1 p-2 bg-gradient-to-b from-white to-muted/30">
                                     <div className="space-y-2">
-                                        {messages.map((message) => (
-                                            <div
-                                                key={message.id || message._id}
-                                                className={cn(
-                                                    "flex items-end gap-1",
-                                                    message.isCurrentUser ? "justify-end" : "justify-start"
-                                                )}
-                                            >
+                                        {messages.length === 0 ? (
+                                            <div className="flex flex-col items-center justify-center h-32 text-muted-foreground">
+                                                <div className="text-2xl mb-2">💬</div>
+                                                <h3 className="text-sm font-medium mb-1 text-center">Bắt đầu cuộc trò chuyện</h3>
+                                                <p className="text-xs text-center mb-4">
+                                                    Chọn một gợi ý để bắt đầu
+                                                </p>
+                                                
+                                                {/* Message Suggestions */}
+                                                <div className="w-full space-y-2">
+                                                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                                    <Sparkles className="h-3 w-3" />
+                                                    <span>Gợi ý tin nhắn:</span>
+                                                  </div>
+                                                  <div className="grid grid-cols-1 gap-1">
+                                                    {staffSuggestions.slice(0, 4).map((suggestion, index) => (
+                                                      <button
+                                                        key={index}
+                                                        onClick={() => handleSuggestionClick(suggestion)}
+                                                        className="text-left p-2 text-xs bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-green-300 transition-all duration-200 text-gray-700"
+                                                      >
+                                                        {suggestion}
+                                                      </button>
+                                                    ))}
+                                                  </div>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            messages.map((message) => (
                                                 <div
+                                                    key={message.id || message._id}
                                                     className={cn(
-                                                        "max-w-[85%] rounded-lg px-2 py-1 text-xs shadow-sm",
-                                                        message.isCurrentUser
-                                                            ? "bg-gradient-to-r from-green-600 to-amber-600 text-white"
-                                                            : "bg-white"
+                                                        "flex items-end gap-1",
+                                                        message.isCurrentUser ? "justify-end" : "justify-start"
                                                     )}
                                                 >
-                                                    <p>{message.content}</p>
-                                                    <span className={cn(
-                                                        "text-[10px] opacity-70",
-                                                        message.isCurrentUser ? "text-white/70" : "text-muted-foreground"
-                                                    )}>
-                                                        {format(new Date(message.timestamp), 'HH:mm')}
-                                                        {message.updatedAt && ' (edited)'}
-                                                    </span>
+                                                    <div
+                                                        className={cn(
+                                                            "max-w-[85%] rounded-lg px-2 py-1 text-xs shadow-sm",
+                                                            message.isCurrentUser
+                                                                ? "bg-gradient-to-r from-green-600 to-amber-600 text-white"
+                                                                : "bg-white"
+                                                        )}
+                                                    >
+                                                        <p>{message.content}</p>
+                                                        <span className={cn(
+                                                            "text-[10px] opacity-70",
+                                                            message.isCurrentUser ? "text-white/70" : "text-muted-foreground"
+                                                        )}>
+                                                            {format(new Date(message.timestamp), 'HH:mm')}
+                                                            {message.updatedAt && ' (edited)'}
+                                                        </span>
+                                                    </div>
+                                                    {getMessageActions(message)}
                                                 </div>
-                                                {getMessageActions(message)}
-                                            </div>
-                                        ))}
+                                            ))
+                                        )}
                                         <div ref={messagesEndRef} />
                                     </div>
                                 </ScrollArea>
@@ -275,9 +408,9 @@ const Chatbox = ({ isOpen, onClose }) => {
                         ) : (
                             <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground p-2">
                                 <div className="text-2xl mb-2">💬</div>
-                                <h3 className="text-sm font-medium mb-1 text-center">Select a user</h3>
+                                <h3 className="text-sm font-medium mb-1 text-center">Select a staff member</h3>
                                 <p className="text-xs text-center">
-                                    Choose someone to chat
+                                    Choose someone to chat with
                                 </p>
                             </div>
                         )}

@@ -32,8 +32,6 @@ import Order from "./pages/admin/Order";
 import Category from "./pages/admin/Category";
 import DashboardAdmin from "./pages/admin/DashBoard";
 import SubCategory from "./pages/admin/SubCategory";
-import Task from "./pages/admin/Task";
-import Kpi from "./pages/admin/Kpi";
 
 //Sale Manager Pages
 import SaleManagerLayout from "./pages/SaleManager/SaleManagerLayout";
@@ -61,7 +59,9 @@ import DashboardAdminDev from "./pages/AdminDev/Dashboard";
 import StatisticsAdminDev from "./pages/AdminDev/Statistics";
 import AccountManagement from "./pages/AdminDev/AccountManagement";
 import ProductManagement from "./pages/AdminDev/ProductManagement";
+import FeedbackManagement from "./pages/AdminDev/FeedbackManagement";
 import AdminBlog from "./pages/AdminDev/AdminBlog";
+
 
 import Checkout from "./pages/Customers/Checkout";
 import Rating from "./pages/admin/Rating";
@@ -185,8 +185,6 @@ function App() {
           <Route path="order" element={<Order />} />
           <Route path="subcategory" element={<SubCategory />} />
           <Route path="category" element={<Category />} />
-          <Route path="task" element={<Task />} />
-          <Route path="kpi" element={<Kpi />} />
           <Route path="rating" element={<Rating/>} />
         </Route>
 
@@ -217,6 +215,7 @@ function App() {
           <Route path="stats" element={<StatisticsAdminDev/>}/>
           <Route path="accmanage" element={<AccountManagement/>}/>
           <Route path="productmanagement" element={<ProductManagement/>}/>
+          <Route path="feedbackmanagement" element={<FeedbackManagement/>}/>
           <Route path="blogmanagement" element={<AdminBlog />} />
         </Route>
         {/* Not Found */}

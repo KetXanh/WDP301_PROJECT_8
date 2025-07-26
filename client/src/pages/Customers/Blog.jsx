@@ -10,6 +10,7 @@ import {
   Clock,
   Heart,
   Share2,
+  Bot,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -17,12 +18,16 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { BlogPost } from "../../pages/Customers/BlogDetails";
 import { getAllBlogs, getBlogDetail } from "../../services/Admin/AdminAPI";
+import Chatbox from '@/components/Chatbox/Chatbox';
+import ChatAI from '@/components/Chatbox/ChatAI';
 
 const Blog = () => {
   const [blogs, setBlogs] = useState([]);
   const [filteredBlogs, setFilteredBlogs] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedBlog, setSelectedBlog] = useState(null);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isChatAIOpen, setIsChatAIOpen] = useState(false);
 
   useEffect(() => {
     const fetchBlogs = async () => {
@@ -92,7 +97,27 @@ const Blog = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 relative">
+      {/* Nút chat nổi - Chat với Admin/Sale Staff */}
+      <div className="fixed z-50 bottom-6 right-6 flex flex-col items-end gap-3">
+        <Button
+          className="w-14 h-14 rounded-full shadow-lg bg-gradient-to-br from-green-500 to-orange-500 hover:from-green-600 hover:to-orange-600 flex flex-col items-center justify-center"
+          onClick={() => setIsChatOpen(true)}
+          style={{ boxShadow: '0 4px 24px 0 rgba(0,0,0,0.12)' }}
+        >
+          <MessageSquare className="w-7 h-7 text-white" />
+        </Button>
+        <Button
+          className="w-14 h-14 rounded-full shadow-lg bg-gradient-to-br from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 flex flex-col items-center justify-center"
+          onClick={() => setIsChatAIOpen(true)}
+          style={{ boxShadow: '0 4px 24px 0 rgba(0,0,0,0.12)' }}
+        >
+          <Bot className="w-7 h-7 text-white" />
+        </Button>
+      </div>
+      <Chatbox isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
+      <ChatAI isOpen={isChatAIOpen} onClose={() => setIsChatAIOpen(false)} />
+
       {/* Hero Header */}
       <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

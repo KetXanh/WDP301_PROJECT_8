@@ -31,10 +31,7 @@ const taskSchema = z.object({
   title: z.string().min(1, "Tiêu đề không được để trống"),
   description: z.string().min(1, "Mô tả không được để trống"),
   deadline: z.string().min(1, "Hạn chót không được để trống"),
-  priority: z.enum(["high", "medium", "low"], {
-    required_error: "Vui lòng chọn độ ưu tiên",
-  }),
-  status: z.enum(["pending", "in-progress", "completed", "late"], {
+  status: z.enum(["pending", "in-progress", "done", "late"], {
     required_error: "Vui lòng chọn trạng thái",
   }),
 })
@@ -46,7 +43,6 @@ export function TaskForm({ open, onOpenChange, onSubmit, initialData }) {
       title: "",
       description: "",
       deadline: "",
-      priority: "medium",
       status: "pending",
     },
   })
@@ -59,7 +55,6 @@ export function TaskForm({ open, onOpenChange, onSubmit, initialData }) {
         title: "",
         description: "",
         deadline: "",
-        priority: "medium",
         status: "pending",
       })
     }
@@ -122,31 +117,7 @@ export function TaskForm({ open, onOpenChange, onSubmit, initialData }) {
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="priority"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Độ ưu tiên</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Chọn độ ưu tiên" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="high">Cao</SelectItem>
-                      <SelectItem value="medium">Trung bình</SelectItem>
-                      <SelectItem value="low">Thấp</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+
             <FormField
               control={form.control}
               name="status"
@@ -165,7 +136,7 @@ export function TaskForm({ open, onOpenChange, onSubmit, initialData }) {
                     <SelectContent>
                       <SelectItem value="pending">Chờ thực hiện</SelectItem>
                       <SelectItem value="in-progress">Đang thực hiện</SelectItem>
-                      <SelectItem value="completed">Hoàn thành</SelectItem>
+                      <SelectItem value="done">Hoàn thành</SelectItem>
                       <SelectItem value="late">Quá hạn</SelectItem>
                     </SelectContent>
                   </Select>

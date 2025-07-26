@@ -21,7 +21,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { toast } from "sonner"
-import { getAllDiscounts, createDiscount, updateDiscount, deleteDiscount } from "@/services/SaleManager/ApiSaleManager"
+import { getAllDiscounts, createDiscount, updateDiscount, deleteDiscount, getDiscountStats } from "@/services/SaleManager/ApiSaleManager"
 
 export default function ManagerDiscount() {
   const [discounts, setDiscounts] = useState([])
@@ -29,10 +29,32 @@ export default function ManagerDiscount() {
   const [selectedDiscount, setSelectedDiscount] = useState(null)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [discountToDelete, setDiscountToDelete] = useState(null)
+  const [stats, setStats] = useState({
+    totalDiscounts: 0,
+    activeDiscounts: 0,
+    expiredDiscounts: 0,
+    totalUsage: 0,
+    totalDiscountValue: 0,
+    typeStats: {},
+    monthlyStats: [],
+    topUsedDiscounts: []
+  })
 
   useEffect(() => {
     fetchDiscounts()
+    fetchStats()
   }, [])
+
+  const fetchStats = async () => {
+    try {
+      const res = await getDiscountStats()
+      if (res.data?.data) {
+        setStats(res.data.data)
+      }
+    } catch (error) {
+      console.error('Error fetching stats:', error)
+    }
+  }
 
   const fetchDiscounts = async () => {
     try {
@@ -75,6 +97,7 @@ export default function ManagerDiscount() {
       await deleteDiscount(discountToDelete._id)
       toast.success("Xóa chương trình giảm giá thành công")
       fetchDiscounts()
+      fetchStats() // Cập nhật thống kê sau khi xóa
     } catch {
       toast.error("Không thể xóa chương trình giảm giá")
     }
@@ -102,6 +125,7 @@ export default function ManagerDiscount() {
         toast.success("Thêm chương trình giảm giá thành công")
       }
       fetchDiscounts()
+      fetchStats() // Cập nhật thống kê sau khi thay đổi
     } catch {
       toast.error("Không thể lưu chương trình giảm giá")
     }
@@ -122,6 +146,94 @@ export default function ManagerDiscount() {
           <Plus className="mr-2 h-4 w-4" />
           Thêm mới
         </Button>
+      </div>
+
+      {/* Thống kê tổng quan */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="bg-white p-4 rounded-lg shadow border">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Tổng mã giảm giá</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.totalDiscounts}</p>
+            </div>
+            <div className="p-2 bg-blue-100 rounded-full">
+              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+              </svg>
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-white p-4 rounded-lg shadow border">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Đang hoạt động</p>
+              <p className="text-2xl font-bold text-green-600">{stats.activeDiscounts}</p>
+            </div>
+            <div className="p-2 bg-green-100 rounded-full">
+              <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-white p-4 rounded-lg shadow border">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Tổng lượt sử dụng</p>
+              <p className="text-2xl font-bold text-purple-600">{stats.totalUsage}</p>
+            </div>
+            <div className="p-2 bg-purple-100 rounded-full">
+              <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+              </svg>
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-white p-4 rounded-lg shadow border">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Tổng giá trị</p>
+              <p className="text-2xl font-bold text-orange-600">{stats.totalDiscountValue?.toLocaleString()}đ</p>
+            </div>
+            <div className="p-2 bg-orange-100 rounded-full">
+              <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Thống kê theo loại */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="bg-white p-4 rounded-lg shadow border">
+          <h3 className="text-lg font-semibold mb-3">Thống kê theo loại</h3>
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">Phần trăm</span>
+              <span className="font-medium">{stats.typeStats?.percentage?.count || 0} mã</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">Số tiền cố định</span>
+              <span className="font-medium">{stats.typeStats?.fixed?.count || 0} mã</span>
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-white p-4 rounded-lg shadow border">
+          <h3 className="text-lg font-semibold mb-3">Top mã được sử dụng</h3>
+          <div className="space-y-2">
+            {stats.topUsedDiscounts?.slice(0, 3).map((discount, index) => (
+              <div key={discount._id} className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">{discount.code}</span>
+                <span className="font-medium">{discount.usedCount} lượt</span>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
 
       <div className="border rounded-lg">
